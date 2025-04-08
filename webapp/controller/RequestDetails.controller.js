@@ -85,14 +85,21 @@ sap.ui.define([
         },
         onSelectionChange: function (oEvent) {
             var selectedKey = oEvent.getSource().getSelectedKey();
-            var oView = this.getView(); 
+            var oView = this.getView();
+            var oVendorFilterItem = this.byId("vendorFilterItem");
+            var oCustomerFilterItem = this.byId("customerFilterItem");
+
 
             if (selectedKey === "OPTION1") {
                 oView.byId("vendorsSection").setVisible(true);
                 oView.byId("customersSection").setVisible(false);
+                oVendorFilterItem.setVisibleInFilterBar(true);
+                oCustomerFilterItem.setVisibleInFilterBar(false);
             } else if (selectedKey === "OPTION2") {
-                oView.byId("customersSection").setVisible(true); 
+                oView.byId("customersSection").setVisible(true);
                 oView.byId("vendorsSection").setVisible(false);
+                oVendorFilterItem.setVisibleInFilterBar(false);
+                oCustomerFilterItem.setVisibleInFilterBar(true);
             }
         },
         onGoPress: function (oEvent) {
@@ -104,6 +111,8 @@ sap.ui.define([
             const sProjectTo = oView.byId("projectTo").getValue();
             const sVendorFrom = oView.byId("vendorFrom").getValue();
             const sVendorTo = oView.byId("vendorTo").getValue();
+            const customerFrom = oView.byId("vendorFrom").getValue();
+            const customerTo = oView.byId("vendorTo").getValue();
             const sAsOnDate = oView.byId("asOnDate").getDateValue();
 
             const aFilters = [];
@@ -124,11 +133,15 @@ sap.ui.define([
                 aFilters.push(new Filter("Vendor", FilterOperator.BT, sVendorFrom, sVendorTo));
             }
 
+            if (customerFrom && customerTo) {
+                aFilters.push(new Filter("Customer", FilterOperator.BT, customerFrom, customerTo));
+            }
+
             if (sAsOnDate) {
                 aFilters.push(new Filter("AsOnDate", FilterOperator.EQ, sAsOnDate));
             }
 
-            const oTable = this.byId("vendorsTable");
+            const oTable = this.byId("vendorsSection");
             const oBinding = oTable.getBinding("items");
 
             if (oBinding) {
@@ -156,6 +169,12 @@ sap.ui.define([
             const oInput = oEvent.getSource();
             valuehelp.openValueHelp(this, oInput, aData, "Select Project", "value");
         },
+        onCustomerHelp: function (oEvent) {
+            const aData = ["100", "200","300"
+            ];
+            const oInput = oEvent.getSource();
+            valuehelp.openValueHelp(this, oInput, aData, "Select Customer", "value");
+        },
 
         onVendorHelp: function (oEvent) {
             const aData = ["Vendor A", "Vendor B"
@@ -174,10 +193,12 @@ sap.ui.define([
             oView.byId("projectTo").setValue("");
             oView.byId("vendorFrom").setValue("");
             oView.byId("vendorTo").setValue("");
+            oView.byId("customerFrom").setValue("");
+            oView.byId("customerTo").setValue("");
 
             oView.byId("asOnDate").setDateValue(null);
 
-            const oTable = oView.byId("vendorsTable");
+            const oTable = oView.byId("vendorsSection");
             const oBinding = oTable.getBinding("items");
             if (oBinding) {
                 oBinding.filter([]);

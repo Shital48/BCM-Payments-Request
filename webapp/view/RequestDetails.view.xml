@@ -6,13 +6,14 @@
     xmlns:fb="sap.ui.comp.filterbar"
     displayBlock="true"
 >
-    <Page id="page">
+    <Page id="page" class="whiteBackgroundPage">
         <content>
             <Select
                 id="mySelect"
-                selectedKey="TEST"
+                selectedKey="OPTION1"
                 width="30%"
                 change="onSelectionChange"
+                class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin"
             >
                 <core:Item
                     key="OPTION1"
@@ -24,299 +25,206 @@
                 />
             </Select>
 
-            <VBox
-                id="vendorsSection"
-                visible="true"
-                class="sapUiSmallMarginTop"
+            <fb:FilterBar
+                id="vendorsFilterBar"
+                showFilterConfiguration="false"
+                useToolbar="false"
+                showGoOnFB="true"
+                showClearOnFB="true"
+                search="onGoPress"
+                clear="onClearPress"
             >
-                <items>
-                    <fb:FilterBar
-                        id="vendorsFilterBar"
-                        showFilterConfiguration="false"
-                        useToolbar="false"
-                        showGoOnFB="true"
-                        showClearOnFB="true"
-                        search="onGoPress"
-                        clear="onClearPress"
+                <fb:filterGroupItems>
+                    <fb:FilterGroupItem
+                        groupName="__Basic"
+                        name="BusinessSegment"
+                        label="Business Segment"
+                        visibleInFilterBar="true"
                     >
-                        <fb:filterGroupItems>
-                            <fb:FilterGroupItem
-                                groupName="__Basic"
-                                name="BusinessSegment"
-                                label="Business Segment"
-                                visibleInFilterBar="true"
-                            >
-                                <fb:control>
-                                    <Input
-                                        id="businessSegment"
-                                        showValueHelp="true"
-                                        valueHelpRequest="onBusinessSegmentHelp"
-                                    />
-                                </fb:control>
-                            </fb:FilterGroupItem>
-                            <fb:FilterGroupItem
-                                groupName="__Basic"
-                                name="CompanyCode"
-                                label="Company Code"
-                                visibleInFilterBar="true"
-                            >
-                                <fb:control>
-                                    <HBox>
-                                        <Input
-                                            id="companyCodeFrom"
-                                            placeholder="From"
-                                            showValueHelp="true"
-                                            valueHelpRequest="onCompanyCodeHelp"
-                                        />
-                                        <Input
-                                            id="companyCodeTo"
-                                            placeholder="To"
-                                            showValueHelp="true"
-                                            valueHelpRequest="onCompanyCodeHelp"
-                                        />
-                                    </HBox>
-                                </fb:control>
-                            </fb:FilterGroupItem>
-
-                            <!-- Project (From - To) -->
-                            <fb:FilterGroupItem
-                                groupName="__Basic"
-                                name="Project"
-                                label="Project"
-                                visibleInFilterBar="true"
-                            >
-                                <fb:control>
-                                    <HBox>
-                                        <Input
-                                            id="projectFrom"
-                                            placeholder="From"
-                                            showValueHelp="true"
-                                            valueHelpRequest="onProjectHelp"
-                                        />
-                                        <Input
-                                            id="projectTo"
-                                            placeholder="To"
-                                            showValueHelp="true"
-                                            valueHelpRequest="onProjectHelp"
-                                        />
-                                    </HBox>
-                                </fb:control>
-                            </fb:FilterGroupItem>
-
-                            <!-- Vendor (From - To) -->
-                            <fb:FilterGroupItem
-                                groupName="__Basic"
-                                name="Vendor"
-                                label="Vendor"
-                                visibleInFilterBar="true"
-                            >
-                                <fb:control>
-                                    <HBox>
-                                        <Input
-                                            id="vendorFrom"
-                                            placeholder="From"
-                                            showValueHelp="true"
-                                            valueHelpRequest="onVendorHelp"
-                                        />
-                                        <Input
-                                            id="vendorTo"
-                                            placeholder="To"
-                                            showValueHelp="true"
-                                            valueHelpRequest="onVendorHelp"
-                                        />
-                                    </HBox>
-                                </fb:control>
-                            </fb:FilterGroupItem>
-
-                            <!-- As On Date -->
-                            <fb:FilterGroupItem
-                                groupName="__Basic"
-                                name="AsOnDate"
-                                label="As On Date"
-                                visibleInFilterBar="true"
-                            >
-                                <fb:control>
-                                    <DatePicker id="asOnDate" />
-                                </fb:control>
-                            </fb:FilterGroupItem>
-                        </fb:filterGroupItems>
-                    </fb:FilterBar>
-
-                    <Table
-                        id="vendorsTable"
-                        items="{/vendors}"
-                        inset="false"
-                        mode="MultiSelect"
+                        <fb:control>
+                            <Input
+                                id="businessSegment"
+                                showValueHelp="true"
+                                valueHelpRequest="onBusinessSegmentHelp"
+                            />
+                        </fb:control>
+                    </fb:FilterGroupItem>
+                    <fb:FilterGroupItem
+                        groupName="__Basic"
+                        name="CompanyCode"
+                        label="Company Code"
+                        visibleInFilterBar="true"
                     >
-                        <columns>
-                            <Column>
-                                <Text text="Vendor Name" />
-                            </Column>
-                            <Column>
-                                <Text text="Total Amount" />
-                            </Column>
-                            <Column>
-                                <Text text="MSME" />
-                            </Column>
-                            <Column>
-                                <Text text="Approval Amount" />
-                            </Column>
-                            <Column>
-                                <Text text="Payment Method" />
-                            </Column>
-                            <Column>
-                                <Text text="Invoice Amount" />
-                            </Column>
-                            <Column>
-                                <Text text="Advance Request Amount" />
-                            </Column>
-                            <Column>
-                                <Text text="Retention Amount" />
-                            </Column>
-                        </columns>
-                        <items>
-                            <ColumnListItem>
-                                <cells>
-                                    <Text text="{vendorName}" />
-                                    <Text text="{totalAmount}" />
-                                    <Text text="{msme}" />
-                                    <Text text="{approvalAmount}" />
-                                    <Button
-                                        text="{paymentMethod}"
-                                        press="onPaymentMethodPress"
-                                        width="6rem"
-                                    />
-                                    <Text text="{invoiceAmount}" />
-                                    <Text text="{advanceRequestAmount}" />
-                                    <Text text="{retentionAmount}" />
-                                </cells>
-                            </ColumnListItem>
-                        </items>
-                    </Table>
-                </items>
-            </VBox>
-
-            <VBox
-                id="customersSection"
-                visible="false"
-                class="sapUiSmallMarginTop"
-            >
-                <fb:FilterBar
-                    id="customersFilterBar1"
-                    showFilterConfiguration="false"
-                    useToolbar="false"
-                    showGoOnFB="true"
-                    showClearOnFB="true"
-                    filterGroupItems=""
-                >
-                    <fb:filterGroupItems>
-                        <fb:FilterGroupItem
-                            groupName="__Basic"
-                            name="BusinessSegment"
-                            label="Business Segment"
-                            visibleInFilterBar="true"
-                        >
-                            <fb:control>
+                        <fb:control>
+                            <HBox>
                                 <Input
-                                    id="businessSegment1"
+                                    id="companyCodeFrom"
+                                    placeholder="From"
                                     showValueHelp="true"
-                                    valueHelpRequest="onBusinessSegmentHelp"
+                                    valueHelpRequest="onCompanyCodeHelp"
                                 />
-                            </fb:control>
-                        </fb:FilterGroupItem>
-                        <fb:FilterGroupItem
-                            groupName="__Basic"
-                            name="CompanyCode"
-                            label="Company Code"
-                            visibleInFilterBar="true"
-                        >
-                            <fb:control>
-                                <HBox>
-                                    <Input
-                                        id="companyCodeFrom1"
-                                        placeholder="From"
-                                        showValueHelp="true"
-                                        valueHelpRequest="onCompanyCodeHelp"
-                                    />
-                                    <Input
-                                        id="companyCodeTo1"
-                                        placeholder="To"
-                                        showValueHelp="true"
-                                        valueHelpRequest="onCompanyCodeHelp"
-                                    />
-                                </HBox>
-                            </fb:control>
-                        </fb:FilterGroupItem>
+                                <Input
+                                    id="companyCodeTo"
+                                    placeholder="To"
+                                    showValueHelp="true"
+                                    valueHelpRequest="onCompanyCodeHelp"
+                                />
+                            </HBox>
+                        </fb:control>
+                    </fb:FilterGroupItem>
 
-                        <!-- Project (From - To) -->
-                        <fb:FilterGroupItem
-                            groupName="__Basic"
-                            name="Project"
-                            label="Project"
-                            visibleInFilterBar="true"
-                        >
-                            <fb:control>
-                                <HBox>
-                                    <Input
-                                        id="projectFrom1"
-                                        placeholder="From"
-                                        showValueHelp="true"
-                                        valueHelpRequest="onProjectHelp"
-                                    />
-                                    <Input
-                                        id="projectTo1"
-                                        placeholder="To"
-                                        showValueHelp="true"
-                                        valueHelpRequest="onProjectHelp"
-                                    />
-                                </HBox>
-                            </fb:control>
-                        </fb:FilterGroupItem>
+                    <fb:FilterGroupItem
+                        groupName="__Basic"
+                        name="Project"
+                        label="Project"
+                        visibleInFilterBar="true"
+                    >
+                        <fb:control>
+                            <HBox>
+                                <Input
+                                    id="projectFrom"
+                                    placeholder="From"
+                                    showValueHelp="true"
+                                    valueHelpRequest="onProjectHelp"
+                                />
+                                <Input
+                                    id="projectTo"
+                                    placeholder="To"
+                                    showValueHelp="true"
+                                    valueHelpRequest="onProjectHelp"
+                                />
+                            </HBox>
+                        </fb:control>
+                    </fb:FilterGroupItem>
 
-                        <!-- Vendor (From - To) -->
-                        <fb:FilterGroupItem
-                            groupName="__Basic"
-                            name="Customer"
-                            label="Customer"
-                            visibleInFilterBar="true"
-                        >
-                            <fb:control>
-                                <HBox>
-                                    <Input
-                                        id="vendorFrom1"
-                                        placeholder="From"
-                                        showValueHelp="true"
-                                        valueHelpRequest="onCustomerHelp"
-                                    />
-                                    <Input
-                                        id="vendorTo1"
-                                        placeholder="To"
-                                        showValueHelp="true"
-                                        valueHelpRequest="onCustomerHelp"
-                                    />
-                                </HBox>
-                            </fb:control>
-                        </fb:FilterGroupItem>
+                    <fb:FilterGroupItem
+                        id="vendorFilterItem"
+                        groupName="__Basic"
+                        name="Vendor"
+                        label="Vendor"
+                        visibleInFilterBar="true"
+                    >
+                        <fb:control>
+                            <HBox>
+                                <Input
+                                    id="vendorFrom"
+                                    placeholder="From"
+                                    showValueHelp="true"
+                                    valueHelpRequest="onVendorHelp"
+                                />
+                                <Input
+                                    id="vendorTo"
+                                    placeholder="To"
+                                    showValueHelp="true"
+                                    valueHelpRequest="onVendorHelp"
+                                />
+                            </HBox>
+                        </fb:control>
+                    </fb:FilterGroupItem>
 
-                        <!-- As On Date -->
-                        <fb:FilterGroupItem
-                            groupName="__Basic"
-                            name="AsOnDate"
-                            label="As On Date"
-                            visibleInFilterBar="true"
-                        >
-                            <fb:control>
-                                <DatePicker id="asOnDate1" />
-                            </fb:control>
-                        </fb:FilterGroupItem>
-                    </fb:filterGroupItems>
-                </fb:FilterBar>
+                    <fb:FilterGroupItem
+                        groupName="__Basic"
+                        name="Customer"
+                        id="customerFilterItem"
+                        label="Customer"
+                        visibleInFilterBar="false"
+                    >
+                        <fb:control>
+                            <HBox>
+                                <Input
+                                    id="customerFrom"
+                                    placeholder="From"
+                                    showValueHelp="true"
+                                    valueHelpRequest="onCustomerHelp"
+                                />
+                                <Input
+                                    id="customerTo"
+                                    placeholder="To"
+                                    showValueHelp="true"
+                                    valueHelpRequest="onCustomerHelp"
+                                />
+                            </HBox>
+                        </fb:control>
+                    </fb:FilterGroupItem>
 
+                    <fb:FilterGroupItem
+                        groupName="__Basic"
+                        name="AsOnDate"
+                        label="As On Date"
+                        visibleInFilterBar="true"
+                    >
+                        <fb:control>
+                            <DatePicker id="asOnDate" />
+                        </fb:control>
+                    </fb:FilterGroupItem>
+                </fb:filterGroupItems>
+            </fb:FilterBar>
+
+<!-- VENDORS -->
+            
                 <Table
-                    id="customersTable"
+                    id="vendorsSection"
+                    items="{/vendors}"
+                    inset="false"
+                    mode="MultiSelect"
+                    visible="true"
+                
+                >
+                    <columns>
+                        <Column>
+                            <Text text="Vendor Name" />
+                        </Column>
+                        <Column>
+                            <Text text="Total Amount" />
+                        </Column>
+                        <Column>
+                            <Text text="MSME" />
+                        </Column>
+                        <Column>
+                            <Text text="Approval Amount" />
+                        </Column>
+                        <Column>
+                            <Text text="Payment Method" />
+                        </Column>
+                        <Column>
+                            <Text text="Invoice Amount" />
+                        </Column>
+                        <Column>
+                            <Text text="Advance Request Amount" />
+                        </Column>
+                        <Column>
+                            <Text text="Retention Amount" />
+                        </Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Text text="{vendorName}" />
+                                <Text text="{totalAmount}" />
+                                <Text text="{msme}" />
+                                <Text text="{approvalAmount}" />
+                                <Button
+                                    text="{paymentMethod}"
+                                    press="onPaymentMethodPress"
+                                    width="6rem"
+                                />
+                                <Text text="{invoiceAmount}" />
+                                <Text text="{advanceRequestAmount}" />
+                                <Text text="{retentionAmount}" />
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            
+
+<!-- CUSTOMERS -->
+           
+                <Table
+                    id="customersSection"
+                    visible="false"
                     items="{/customerData}"
                     mode="MultiSelect"
-                    inset="false"
+                    inset="false" 
                 >
                     <columns>
                         <Column>
@@ -365,8 +273,7 @@
                             </cells>
                         </ColumnListItem>
                     </items>
-                </Table>
-            </VBox>
+                </Table> 
         </content>
     </Page>
 </mvc:View>
