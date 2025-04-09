@@ -150,9 +150,22 @@ sap.ui.define([
         },
 
         onBusinessSegmentHelp: function (oEvent) {
-            const aData = ["BS01", "BS02", "BS03"];
             const oInput = oEvent.getSource();
-            valuehelp.openValueHelp(this, oInput, aData, "Select Business Segment", "value");
+            const othis=this;
+            const oModel = this.getView().getModel("myModel");
+            
+
+            oModel.read("/BusinessSegmentSet", {
+                success: function (oData) {
+                   // const aData = oData.results; // array of { SegmentCode, SegmentDescription, etc. }
+                    // Pass data + key field name
+                    valuehelp.openValueHelp(othis, oInput, oData.results, "Select Business Segment", "Paval");
+                },
+                error: function (oError) {
+                    MessageBox.error("Failed to fetch business segments.");
+                }
+            });
+           // valuehelp.openValueHelp(this, oInput, aData, "Select Business Segment", "value");
         },
 
         onCompanyCodeHelp: function (oEvent) {
@@ -170,7 +183,7 @@ sap.ui.define([
             valuehelp.openValueHelp(this, oInput, aData, "Select Project", "value");
         },
         onCustomerHelp: function (oEvent) {
-            const aData = ["100", "200","300"
+            const aData = ["100", "200", "300"
             ];
             const oInput = oEvent.getSource();
             valuehelp.openValueHelp(this, oInput, aData, "Select Customer", "value");

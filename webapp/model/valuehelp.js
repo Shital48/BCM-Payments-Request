@@ -23,8 +23,7 @@ sap.ui.define([
         return {
 
             openValueHelp: function (oController, oInput, aData, sTitle, sKeyField) {
-                const oView = oController.getView();
-                var oSelectedValue = "";
+                const oView = oController.getView(); 
                 oController._currentInput = oInput;
 
                 if (!oController._oGenericVHDialog) {
@@ -33,7 +32,7 @@ sap.ui.define([
                         mode: "SingleSelectMaster",
                         selectionChange: function (oEvent) {
                             const oSelectedItem = oEvent.getParameter("listItem");
-                            const sSelectedValue = oSelectedItem.getBindingContext().getProperty("value");
+                            const sSelectedValue = oSelectedItem.getBindingContext().getProperty(sKeyField);
                     
                             if (sSelectedValue) {
                                 oController._currentInput.setValue(sSelectedValue);
@@ -75,13 +74,13 @@ sap.ui.define([
                     oController._oGenericVHDialog = oDialog;
                     oView.addDependent(oDialog);
                 }
-                const oModel = new sap.ui.model.json.JSONModel(aData.map(val => ({ value: val })));
+                const oModel = new sap.ui.model.json.JSONModel(aData);
                 const oList = oView.byId("vhList");
                 oList.setModel(oModel);
                 oList.bindItems({
                     path: "/",
                     template: new StandardListItem({
-                        title: "{value}"
+                        title: `{${sKeyField}}`
                     })
                 });
 

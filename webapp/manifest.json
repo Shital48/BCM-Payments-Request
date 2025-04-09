@@ -14,8 +14,18 @@
       "id": "@sap/generator-fiori:basic",
       "version": "1.17.1",
       "toolsId": "4350c34e-cab2-4317-acfe-5228dc715ee1"
-    }
-  },
+    },
+  "dataSources": {
+      "mainService": {
+          "uri": "/sap/opu/odata/sap/ZFI_BCM_PAYMENT_SRV/",
+          "type": "OData",
+          "settings": {
+              "odataVersion": "2.0"
+              
+          }
+      }
+  }
+},
   "sap.ui": {
     "technology": "UI5",
     "icons": {
@@ -51,6 +61,15 @@
         "settings": {
           "bundleName": "refunddetails.i18n.i18n"
         }
+      },
+      "myModel": {
+          "dataSource": "mainService",
+          "settings": {
+              "defaultBindingMode": "TwoWay",
+              "defaultCountMode": "Inline",
+              "useBatch": true
+
+          }
       }
     },
     "resources": {
