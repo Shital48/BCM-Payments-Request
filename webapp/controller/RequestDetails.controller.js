@@ -1,16 +1,14 @@
-sap.ui.define([
-    "refunddetails/controller/Base",
+sap.ui.define([ 
     "refunddetails/model/models",
     "sap/ui/core/mvc/Controller",
     "sap/ui/model/json/JSONModel",
     "sap/ui/model/Filter",
-    "sap/ui/model/FilterOperator",
-    "refunddetails/model/valuehelp",
+    "sap/ui/model/FilterOperator"
 
-], ( Base,models,JSONModel, Filter, FilterOperator, valuehelp) => {
+], (  models,Controller,JSONModel, Filter, FilterOperator) => {
     "use strict";
 
-    return Base.extend("refunddetails.controller.RequestDetails", {
+    return Controller.extend("refunddetails.controller.RequestDetails", {
         onInit() {
         },
         onBeforeRendering: function () {
@@ -99,16 +97,12 @@ sap.ui.define([
 
             if (selectedKey === "OPTION1") {
                 oView.byId("vendorsSection").setVisible(true);
-                oView.byId("customersSection").setVisible(false);
-                oVendorFilterItem.setVisibleInFilterBar(true);
-                oCustomerFilterItem.setVisibleInFilterBar(false);
-                this.onClearPress();
+                oView.byId("customersSection").setVisible(false);                
+                // this.onClearPress();
             } else if (selectedKey === "OPTION2") {
                 oView.byId("customersSection").setVisible(true);
-                oView.byId("vendorsSection").setVisible(false);
-                oVendorFilterItem.setVisibleInFilterBar(false);
-                oCustomerFilterItem.setVisibleInFilterBar(true);
-                this.onClearPress();
+                oView.byId("vendorsSection").setVisible(false);                
+                // this.onClearPress();
             }
         },
         onGoPress: function (oEvent) {
