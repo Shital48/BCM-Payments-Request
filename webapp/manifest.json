@@ -62,7 +62,7 @@
           "bundleName": "refunddetails.i18n.i18n"
         }
       },
-      "myModel": {
+      "": {
           "dataSource": "mainService",
           "settings": {
               "defaultBindingMode": "TwoWay",

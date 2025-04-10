@@ -16,16 +16,20 @@ function (JSONModel, Device) {
             return oModel;
         },
         createLocalJson: function () {
-            var oRequest = this.getRequestBlank();
+            var oCreateData = this.getRequestBlank();
             var oModel = new JSONModel({
-                "Request": oRequest, 
+                "Create": oCreateData
             });
             return oModel;
         },
 
         getRequestBlank: function () {
             return {
-                "approval_amount": ""
+                "Segment": "",
+                "Customer":"",
+                "Vendor":"",
+                "Project":"",
+                "Company":""
                 // "employee_name": "",
                  
             }
