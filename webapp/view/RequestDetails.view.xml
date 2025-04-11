@@ -33,7 +33,7 @@
             </Select>
 
     <VBox fitContainer="true" id="vendorsSection" visible="true">
-			<smartFilterBar:SmartFilterBar id="vendorFilterBar" entitySet="CustomerSet" persistencyKey="SmartFilter_Explored" basicSearchFieldName="Bukrs" enableBasicSearch="true" >
+			<smartFilterBar:SmartFilterBar id="vendorFilterBar" entitySet="VendorInvSet" persistencyKey="SmartFilter_Explored" basicSearchFieldName="Bukrs" enableBasicSearch="true" >
 				<smartFilterBar:controlConfiguration>
 					<smartFilterBar:ControlConfiguration key="Bukrs">
 					<smartFilterBar:defaultFilterValues>
@@ -52,7 +52,7 @@
 					<FlexItemData shrinkFactor="0"/>
 				</smartFilterBar:layoutData>
 			</smartFilterBar:SmartFilterBar>
-			<smartTable:SmartTable id="vendorTable" entitySet="LineItemsSet" smartFilterId="smartFilterBar" tableType="Table" enableExport="true" beforeExport="onBeforeExport" useVariantManagement="true" useTablePersonalisation="true" header="Line Items" showRowCount="true" persistencyKey="SmartTableAnalytical_Explored" enableAutoBinding="true" class="sapUiResponsiveContentPadding" enableAutoColumnWidth="true" editTogglable="true" app:useSmartToggle="true">
+			<smartTable:SmartTable id="vendorTable" entitySet="VendorInvSet" smartFilterId="vendorFilterBar" tableType="Table" enableExport="true" beforeExport="onBeforeExport" useVariantManagement="true" useTablePersonalisation="true" header="Line Items" showRowCount="true" persistencyKey="SmartTableAnalytical_Explored" enableAutoBinding="true" class="sapUiResponsiveContentPadding" enableAutoColumnWidth="true" editTogglable="true" app:useSmartToggle="true">
 				 
 				<smartTable:layoutData>
 					<FlexItemData growFactor="1" baseSize="0%"/>
@@ -61,13 +61,10 @@
 		</VBox>
 
         <VBox fitContainer="true" id="customersSection" visible="false">
-			<smartFilterBar:SmartFilterBar id="customerFilterBar" entitySet="BusinessSegmentSet" persistencyKey="SmartFilter_Explored" basicSearchFieldName="Bukrs" enableBasicSearch="true" >
+			<smartFilterBar:SmartFilterBar id="customerFilterBar" entitySet="CustomerRetSet" persistencyKey="SmartFilter_Explored" basicSearchFieldName="Bukrs" enableBasicSearch="true" >
 				<smartFilterBar:controlConfiguration>
 					<smartFilterBar:ControlConfiguration key="Bukrs">
-					<smartFilterBar:defaultFilterValues>
-							<smartFilterBar:SelectOption low="0001">
-							</smartFilterBar:SelectOption>
-						</smartFilterBar:defaultFilterValues>
+					
 					</smartFilterBar:ControlConfiguration>
 					<smartFilterBar:ControlConfiguration key="Gjahr">
 						<smartFilterBar:defaultFilterValues>
@@ -80,7 +77,7 @@
 					<FlexItemData shrinkFactor="0"/>
 				</smartFilterBar:layoutData>
 			</smartFilterBar:SmartFilterBar>
-			<smartTable:SmartTable id="customerTable" entitySet="LineItemsSet" smartFilterId="smartFilterBar" tableType="Table" enableExport="true" beforeExport="onBeforeExport" useVariantManagement="true" useTablePersonalisation="true" header="Line Items" showRowCount="true" persistencyKey="SmartTableAnalytical_Explored" enableAutoBinding="true" class="sapUiResponsiveContentPadding" enableAutoColumnWidth="true" editTogglable="true" app:useSmartToggle="true">
+			<smartTable:SmartTable id="customerTable" entitySet="CustomerRetSet" smartFilterId="customerFilterBar" tableType="Table" enableExport="true" beforeExport="onBeforeExport" useVariantManagement="true" useTablePersonalisation="true" header="Line Items" showRowCount="true" persistencyKey="SmartTableAnalytical_Explored" enableAutoBinding="true" class="sapUiResponsiveContentPadding" enableAutoColumnWidth="true" editTogglable="true" app:useSmartToggle="true" >
 				 
 				<smartTable:layoutData>
 					<FlexItemData growFactor="1" baseSize="0%"/>

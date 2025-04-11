@@ -15,103 +15,113 @@
       "version": "1.17.1",
       "toolsId": "4350c34e-cab2-4317-acfe-5228dc715ee1"
     },
-  "dataSources": {
+    "dataSources": {
       "mainService": {
-          "uri": "/sap/opu/odata/sap/ZFI_BCM_PAYMENT_SRV/",
-          "type": "OData",
-          "settings": {
-              "odataVersion": "2.0"
-              
-          }
-      }
-  }
-},
-  "sap.ui": {
-    "technology": "UI5",
-    "icons": {
-      "icon": "",
-      "favIcon": "",
-      "phone": "",
-      "phone@2": "",
-      "tablet": "",
-      "tablet@2": ""
-    },
-    "deviceTypes": {
-      "desktop": true,
-      "tablet": true,
-      "phone": true
-    }
-  },
-  "sap.ui5": {
-    "flexEnabled": false,
-    "dependencies": {
-      "minUI5Version": "1.134.1",
-      "libs": {
-        "sap.m": {},
-        "sap.ui.core": {}
-      }
-    },
-    "contentDensities": {
-      "compact": true,
-      "cozy": true
-    },
-    "models": {
-      "i18n": {
-        "type": "sap.ui.model.resource.ResourceModel",
+        "uri": "/sap/opu/odata/sap/ZFI_BCM_PAYMENT_SRV/",
+        "type": "OData",
         "settings": {
-          "bundleName": "refunddetails.i18n.i18n"
-        }
-      },
-      "": {
-          "dataSource": "mainService",
-          "settings": {
-              "defaultBindingMode": "TwoWay",
-              "defaultCountMode": "Inline",
-              "useBatch": true
-
-          }
-      }
-    },
-    "resources": {
-      "css": [
-        {
-          "uri": "css/style.css"
-        }
-      ]
-    },
-    "routing": {
-      "config": {
-        "routerClass": "sap.m.routing.Router",
-        "controlAggregation": "pages",
-        "controlId": "app",
-        "transition": "slide",
-        "type": "View",
-        "viewType": "XML",
-        "path": "refunddetails.view",
-        "async": true,
-        "viewPath": "refunddetails.view"
-      },
-      "routes": [
-        {
-          "name": "RouteRequestDetails",
-          "pattern": ":?query:",
-          "target": [
-            "TargetRequestDetails"
+          "odataVersion": "2.0",
+          "annotations": [
+            "clientAnnotations"
           ]
         }
-      ],
-      "targets": {
-        "TargetRequestDetails": {
-          "id": "RequestDetails",
-          "name": "RequestDetails"
+      },
+      "clientAnnotations": {
+        "uri": "annotations/filterAnnotations.xml",
+        "type": "ODataAnnotation",
+        "settings": {
+          "localUri": "annotations/filterAnnotations.xml"
         }
       }
+    }
     },
-    "rootView": {
-      "viewName": "refunddetails.view.App",
-      "type": "XML",
-      "id": "App",
-      "async": true
+    "sap.ui": {
+      "technology": "UI5",
+      "icons": {
+        "icon": "",
+        "favIcon": "",
+        "phone": "",
+        "phone@2": "",
+        "tablet": "",
+        "tablet@2": ""
+      },
+      "deviceTypes": {
+        "desktop": true,
+        "tablet": true,
+        "phone": true
+      }
+    },
+    "sap.ui5": {
+      "flexEnabled": false,
+      "dependencies": {
+        "minUI5Version": "1.134.1",
+        "libs": {
+          "sap.m": {},
+          "sap.ui.core": {},
+          "sap.ui.comp": {},        
+          "sap.ui.table": {} 
+        }
+      },
+      "contentDensities": {
+        "compact": true,
+        "cozy": true
+      },
+      "models": {
+        "i18n": {
+          "type": "sap.ui.model.resource.ResourceModel",
+          "settings": {
+            "bundleName": "refunddetails.i18n.i18n"
+          }
+        },
+        "": {
+          "dataSource": "mainService",
+          "settings": {
+            "defaultBindingMode": "TwoWay",
+            "defaultCountMode": "Inline",
+            "useBatch": true
+          }
+        }
+      },
+      "resources": {
+        "css": [
+          {
+            "uri": "css/style.css"
+          }
+        ]
+      },
+      "routing": {
+        "config": {
+          "routerClass": "sap.m.routing.Router",
+          "controlAggregation": "pages",
+          "controlId": "app",
+          "transition": "slide",
+          "type": "View",
+          "viewType": "XML",
+          "path": "refunddetails.view",
+          "async": true,
+          "viewPath": "refunddetails.view"
+        },
+        "routes": [
+          {
+            "name": "RouteRequestDetails",
+            "pattern": ":?query:",
+            "target": [
+              "TargetRequestDetails"
+            ]
+          }
+        ],
+        "targets": {
+          "TargetRequestDetails": {
+            "id": "RequestDetails",
+            "name": "RequestDetails"
+          }
+        }
+      },
+      "rootView": {
+        "viewName": "refunddetails.view.App",
+        "type": "XML",
+        "id": "App",
+        "async": true
+      }
     }
   }
-}
