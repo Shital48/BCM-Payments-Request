@@ -1,6 +1,6 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
-    "refunddetails/model/models" 
+    "refunddetails/model/models"
 ], (UIComponent, models) => {
     "use strict";
 
@@ -22,10 +22,19 @@ sap.ui.define([
             // enable routing
             this.getRouter().initialize();
 
-             // Local JSON Model
-             this.setModel(models.createLocalJson(), "zRequestModel");
+            // Local JSON Model
+            // this.setModel(models.createLocalJson(), "zRequestModel");
+            // UIComponent.prototype.init.apply(this, arguments);
+
+            // var oModel = this.getModel();
+            // sap.ui.core.BusyIndicator.show(0);
+            // oModel.metadataLoaded().then(function () {
+            //     sap.ui.core.BusyIndicator.hide();
+            // });
+
+
         }
-         
+
 
     });
 });

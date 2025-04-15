@@ -1,0 +1,11 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+    <Dialog title="Payment Method Details" draggable="true" resizable="true">
+        <VBox class="sapUiSmallMargin">
+            <Text text="Pay Method:" />
+            <Text text="{dialog>/payMethod}" />
+        </VBox>
+        <beginButton>
+            <Button text="OK" press=".onPayMethodDialogClose" />
+        </beginButton>
+    </Dialog>
+</core:FragmentDefinition>

@@ -17,17 +17,17 @@
         <content>
             <Select
                 id="mySelect"
-                selectedKey="OPTION1"
+                selectedKey="OPTION_VENDER"
                 width="30%"
                 change="onSelectionChange"
                 class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin"
             >
                 <core:Item
-                    key="OPTION1"
+                    key="OPTION_VENDER"
                     text="Vendors"
                 />
                 <core:Item
-                    key="OPTION2"
+                    key="OPTION_CUSTOMER"
                     text="Customers"
                 />
             </Select>
@@ -40,7 +40,7 @@
                 <smartFilterBar:SmartFilterBar
                     id="vendorFilterBar"
                     entitySet="VendorInvSet"
-                    persistencyKey="SmartFilter_Explored"
+                    persistencyKey="VendorSmartFilter"
                     basicSearchFieldName="Lifnr"
                     enableBasicSearch="true"
                 >
@@ -49,11 +49,24 @@
                             key="DateAson"
                             visibleInAdvancedArea="true"
                             mandatory="mandatory"
+                            index="0"
                         />
-                        <!-- <smartFilterBar:ControlConfiguration
-                            key="VenDet/Lifnr"
-                            label="Category Name"
-                        /> -->
+                        <smartFilterBar:ControlConfiguration
+                            key="Paval"
+                            visibleInAdvancedArea="true"
+                        />
+                        <smartFilterBar:ControlConfiguration
+                            key="Bukrs"
+                            visibleInAdvancedArea="true"
+                        />
+                        <smartFilterBar:ControlConfiguration
+                            key="Pspid"
+                            visibleInAdvancedArea="true"
+                        />
+                        <smartFilterBar:ControlConfiguration
+                            key="Lifnr"
+                            visibleInAdvancedArea="true"
+                        />
                     </smartFilterBar:controlConfiguration>
                     <smartFilterBar:layoutData>
                         <FlexItemData shrinkFactor="0" />
@@ -62,21 +75,132 @@
                 <smartTable:SmartTable
                     id="vendorTable"
                     entitySet="VendorInvSet"
-                    smartFilterId="vendorFilterBar"
-                    tableType="Table"
+                    tableType="ResponsiveTable"
+                    smartFilterId="vendorFilterBar"                    
                     enableExport="true"
-                    beforeExport="onBeforeExport"
                     useVariantManagement="true"
                     useTablePersonalisation="true"
                     header="Vendor List"
-                    showRowCount="true"
-                    persistencyKey="SmartTableAnalytical_Explored"
+                    persistencyKey="VendorSmartTable"
                     enableAutoBinding="true"
                     class="sapUiResponsiveContentPadding"
+                    ignoreFromPersonalisation=""
                     enableAutoColumnWidth="true"
-                    editTogglable="true"
-                    app:useSmartToggle="true"
+                    initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt"
+                    beforeRebindTable="onBeforeRebindTable"
                 >
+                    <Table>
+                        <columns>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "selectCheckbox", "columnIndex": 0, "visible": true, "leadingProperty": ""}'
+                                    />
+                                </customData>
+                                <header>
+                                    <CheckBox
+                                        id="selectAllCheckbox"
+                                        select=".onSelectAllCheckbox"
+                                        tooltip="Select All"
+                                    />
+                                </header>
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "Lifnr", "leadingProperty": "Lifnr", "columnIndex": 1}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>VendorName}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "TotalAmt", "leadingProperty": "TotalAmt", "columnIndex": 2}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>TotalAmount}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "Msme", "leadingProperty": "Msme", "columnIndex": 3}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>Msme}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "ApprovalAmt", "leadingProperty": "ApprovalAmt", "columnIndex": 4}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>ApprovalAmount}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "PayMethod", "leadingProperty": "PayMethod", "columnIndex": 5}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>PaymentMethod}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "InvoiceAmt", "leadingProperty": "InvoiceAmt", "columnIndex": 6}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>InvoiceAmount}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "AdvanceAmt", "leadingProperty": "AdvanceAmt", "columnIndex": 7}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>AdvanceAmount}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "RetentionAmt", "leadingProperty": "RetentionAmt", "columnIndex": 8}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>RetentionAmount}" />
+                            </Column>
+                        </columns>
+
+                        <items>
+                            <ColumnListItem>
+                                <cells>
+                                    <CheckBox
+                                        selected="{Selected}"
+                                        select=".onCheckboxSelect"
+                                    />
+
+                                    <Text text="{Lifnr}" />
+                                    <Text text="{TotalAmt}" />
+                                    <Text text="{Msme}" />
+                                    <Text text="{ApprovalAmt}" />
+                                    <Text text="{PayMethod}" />
+                                    <Text text="{InvoiceAmt}" />
+                                    <Text text="{AdvanceAmt}" />
+                                    <Text text="{RetentionAmt}" />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+
                     <smartTable:layoutData>
                         <FlexItemData
                             growFactor="1"
@@ -94,7 +218,7 @@
                 <smartFilterBar:SmartFilterBar
                     id="customerFilterBar"
                     entitySet="CustomerRetSet"
-                    persistencyKey="SmartFilter_Explored"
+                    persistencyKey="CustomerSmartFilter"
                     basicSearchFieldName="Bukrs"
                     enableBasicSearch="true"
                 >
@@ -103,23 +227,24 @@
                             key="DateAson"
                             visibleInAdvancedArea="true"
                             mandatory="mandatory"
+                            index="0"
                         />
-                        <!-- <smartFilterBar:ControlConfiguration
+                        <smartFilterBar:ControlConfiguration
                             key="Paval"
-                            visibleInAdvancedArea="true" 
+                            visibleInAdvancedArea="true"
                         />
                         <smartFilterBar:ControlConfiguration
                             key="Bukrs"
-                            visibleInAdvancedArea="true" 
+                            visibleInAdvancedArea="true"
                         />
                         <smartFilterBar:ControlConfiguration
-                            key="Project"
-                            visibleInAdvancedArea="true" 
+                            key="Pspid"
+                            visibleInAdvancedArea="true"
                         />
                         <smartFilterBar:ControlConfiguration
                             key="Kunnr"
-                            visibleInAdvancedArea="true" 
-                        /> -->
+                            visibleInAdvancedArea="true"
+                        />
                     </smartFilterBar:controlConfiguration>
                     <smartFilterBar:layoutData>
                         <FlexItemData shrinkFactor="0" />
@@ -128,21 +253,152 @@
                 <smartTable:SmartTable
                     id="customerTable"
                     entitySet="CustomerRetSet"
+                    tableType="ResponsiveTable"
                     smartFilterId="customerFilterBar"
-                    enableExport="true"
-                    beforeExport="onBeforeExport"
+                    enableExport="true" 
                     useVariantManagement="true"
                     useTablePersonalisation="true"
-                    header="Customer List"
-                    showRowCount="true"
-                    persistencyKey="SmartTableAnalytical_Explored"
+                    header="Customer List" 
+                    persistencyKey="CustomerSmartTable"
                     enableAutoBinding="true"
                     class="sapUiResponsiveContentPadding"
+                    ignoreFromPersonalisation=""
                     enableAutoColumnWidth="true"
                     initiallyVisibleFields="Kunnr,Name1,Project,UnitNo,Docnr,Budat,TotalAmt,ApprovalAmt"
-                    editTogglable="true"
-                    app:useSmartToggle="true"
                 >
+
+                <Table>
+                        <columns>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "selectCheckbox", "columnIndex": 0, "visible": true, "leadingProperty": ""}'
+                                    />
+                                </customData>
+                                <header>
+                                    <CheckBox
+                                        id="selectAllCheckbox1"
+                                        select=".onSelectAllCheckbox"
+                                        tooltip="Select All"
+                                    />
+                                </header>
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "Kunnr", "leadingProperty": "Kunnr", "columnIndex": 1}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>CustomerName}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "Name1", "leadingProperty": "Name1", "columnIndex": 2}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>Name}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "Project", "leadingProperty": "Project", "columnIndex": 3}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>Project}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "UnitNo", "leadingProperty": "UnitNo", "columnIndex": 4}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>UnitNo}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "Docnr", "leadingProperty": "Docnr", "columnIndex": 5}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>Docnr}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "Budat", "leadingProperty": "Budat", "columnIndex": 6}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>Budat}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "TotalAmt", "leadingProperty": "TotalAmt", "columnIndex": 7}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>TotalAmount}" />
+                            </Column>
+                             
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "FullPayment", "leadingProperty": "", "visible": true,"columnIndex": 8}'
+                                    />
+
+                                </customData>
+                                <header>
+                                     <Text text="{i18n>FullPayment}" />
+                                </header> 
+                            </Column>
+
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "ApprovalAmt", "leadingProperty": "ApprovalAmt", "columnIndex": 9}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>ApprovalAmt}" />
+                            </Column>
+                           
+                        </columns>
+
+                        <items>
+                            <ColumnListItem>
+                                <cells>
+                                    <CheckBox
+                                        selected="{Selected}"
+                                        select=".onCheckboxSelect"
+                                    />
+
+                                    <Text text="{Kunnr}" />
+                                    <Text text="{Name1}" />
+                                    <Text text="{Project}" />
+                                    <Text text="{UnitNo}" />
+                                    <Text text="{Docnr}" />
+                                    <Text text="{Budat}" />
+                                    <Text text="{TotalAmt}" />
+                                    <CheckBox
+                                        selected="{Selected}"
+                                        select=".onCheckboxSelect1"
+                                    />
+                                    <Text text="{ApprovalAmt}" /> 
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+
+
                     <smartTable:layoutData>
                         <FlexItemData
                             growFactor="1"
@@ -151,7 +407,7 @@
                     </smartTable:layoutData>
                 </smartTable:SmartTable>
             </VBox>
-            <!-- <HBox
+            <HBox
                 justifyContent="End"
                 class="sapUiSmallMarginTop sapUiSmallMarginBottom"
             >
@@ -166,7 +422,7 @@
                     press="onCancelPress"
                     class="sapUiSmallMarginBegin sapUiSmallMarginEnd"
                 />
-            </HBox> -->
+            </HBox>
         </content>
     </Page>
 </mvc:View>

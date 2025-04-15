@@ -29,7 +29,8 @@ function (JSONModel, Device) {
                 "Customer":"",
                 "Vendor":"",
                 "Project":"",
-                "Company":""
+                "Company":"",
+                "PaymentMethod":""
                 // "employee_name": "",
                  
             }

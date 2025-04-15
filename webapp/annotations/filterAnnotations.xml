@@ -63,19 +63,16 @@
                 </Annotation>
             </Annotations>
 
-            <Annotations Target="ZFI_BCM_PAYMENT_SRV.CustomerRet/Project">
+            <Annotations Target="ZFI_BCM_PAYMENT_SRV.CustomerRet/Pspid">
                 <Annotation Term="Common.ValueList">
                     <Record>
-                        <PropertyValue Property="Label" String="Project" />
+                        <PropertyValue Property="Label" String="Project def." />
                         <PropertyValue Property="CollectionPath" String="ProjectSet" />
                         <PropertyValue Property="SearchSupported" Bool="true" />
                         <PropertyValue Property="Parameters">
                             <Collection>
                                 <Record Type="Common.ValueListParameterInOut">
                                     <PropertyValue Property="LocalDataProperty" PropertyPath="Pspid" />
-                                    <PropertyValue Property="ValueListProperty" String="Pspid" />
-                                </Record>
-                                <Record Type="Common.ValueListParameterDisplayOnly">
                                     <PropertyValue Property="ValueListProperty" String="Pspid" />
                                 </Record>
                                 <Record Type="Common.ValueListParameterDisplayOnly">
@@ -132,7 +129,7 @@
                 <Annotation Term="com.sap.vocabularies.UI.v1.Mandatory" Bool="true" />
             </Annotations>
 
-            <!-- <Annotations Target="ZFI_BCM_PAYMENT_SRV.VendorInv/Paval">
+            <Annotations Target="ZFI_BCM_PAYMENT_SRV.VendorInv/Paval">
                 <Annotation Term="Common.ValueList">
                     <Record>
                         <PropertyValue Property="Label" String="Business Segment" />
@@ -155,7 +152,7 @@
                     </Record>
                 </Annotation>
             </Annotations>
-
+ 
             <Annotations Target="ZFI_BCM_PAYMENT_SRV.VendorInv/Bukrs">
                 <Annotation Term="Common.ValueList">
                     <Record>
@@ -224,6 +221,28 @@
                     </Record>
                 </Annotation>
             </Annotations>
+            
+             <Annotations Target="ZFI_BCM_PAYMENT_SRV.VendorInv/Pspid">
+                <Annotation Term="Common.ValueList">
+                    <Record>
+                        <PropertyValue Property="Label" String="Project def." />
+                        <PropertyValue Property="CollectionPath" String="ProjectSet" />
+                        <PropertyValue Property="SearchSupported" Bool="true" />
+                        <PropertyValue Property="Parameters">
+                            <Collection>
+                                <Record Type="Common.ValueListParameterInOut">
+                                    <PropertyValue Property="LocalDataProperty" PropertyPath="Pspid" />
+                                    <PropertyValue Property="ValueListProperty" String="Pspid" />
+                                </Record>
+                                  
+                                     <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Post1" />
+                                </Record>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+            </Annotations>
 
             <Annotations Target="ZFI_BCM_PAYMENT_SRV.CustomerRet/DateAson">
                 <Annotation Term="UI.SelectionFields">
@@ -232,7 +251,7 @@
                     </Collection>
                 </Annotation>
                 <Annotation Term="com.sap.vocabularies.UI.v1.Mandatory" Bool="true" />
-            </Annotations> -->
+            </Annotations>
         </Schema>
     </edmx:DataServices>
 </edmx:Edmx>
