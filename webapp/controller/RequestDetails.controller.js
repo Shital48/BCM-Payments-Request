@@ -3,9 +3,10 @@ sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/model/json/JSONModel",
     "sap/ui/model/Filter",
+    "sap/ui/core/Fragment",
     "sap/ui/model/FilterOperator"
 
-], (models, Controller, JSONModel, Filter, FilterOperator) => {
+], (models, Controller,Fragment, JSONModel, Filter, FilterOperator) => {
     "use strict";
 
     return Controller.extend("refunddetails.controller.RequestDetails", {
@@ -16,6 +17,8 @@ sap.ui.define([
                 sap.ui.core.BusyIndicator.hide();
             });
         },
+
+        
         onBeforeRendering: function () {
             this.mdl_zFilter = this.getOwnerComponent().getModel('zRequestModel');
         },
@@ -38,31 +41,7 @@ sap.ui.define([
             oBindingParams.parameters = oBindingParams.parameters || {};
             oBindingParams.parameters.expand = "VenDet";
         },
-        onPayMethodPress: function (oEvent) {
-            const oContext = oEvent.getSource().getBindingContext();
-            const oRowData = oContext.getObject();
-            const sPayMethod = oRowData.PayMethod || "(Not Set)";
-
-            this._selectedPayMethodContext = oContext;
-
-            if (!this._oPayMethodDialog) {
-                Fragment.load({
-                    name: "your.namespace.view.fragments.PayMethodDialog",
-                    controller: this
-                }).then(function (oDialog) {
-                    this._oPayMethodDialog = oDialog;
-                    this.getView().addDependent(oDialog);
-
-                    const oModel = new sap.ui.model.json.JSONModel({ payMethod: sPayMethod });
-                    oDialog.setModel(oModel, "dialog");
-
-                    oDialog.open();
-                }.bind(this));
-            } else {
-                this._oPayMethodDialog.getModel("dialog").setData({ payMethod: sPayMethod });
-                this._oPayMethodDialog.open();
-            }
-        },
+        
         onPayMethodDialogClose: function () {
             this._oPayMethodDialog.close();
         },
@@ -89,7 +68,53 @@ sap.ui.define([
             const oHeaderCheckBox = this.byId("selectAllCheckbox");
         
             oHeaderCheckBox.setSelected(bAllSelected);
+        },
+        onPayMethodPress: function (oEvent) {
+            const oContext = oEvent.getSource().getBindingContext();
+            var oData = oContext.getObject();
+            var sLifnr = oData.Lifnr;
+    var oDateAson = oData.DateAson;
+    // var sDateAson = new Date(oDateAson).toISOString().split(".")[0];
+    var sDateAson ="2025-04-10T14:49:52"
+    var oModel = this.getOwnerComponent().getModel();
+
+    if (!this._oInvoiceDialog) {
+        this.loadFragment({
+            name: "refunddetails.view.InvoiceDetail"
+        }).then(function (oDialog) {
+            this._oInvoiceDialog = oDialog;
+            this.getView().addDependent(oDialog);
+            this._loadInvoiceData(sLifnr, sDateAson);
+            oDialog.open();
+        }.bind(this));
+    } else {
+        this._loadInvoiceData(sLifnr, sDateAson);
+        this._oInvoiceDialog.open();
+    } 
+        },
+        _loadInvoiceData: function (sLifnr, sDateAson) {
+            const oModel = this.getOwnerComponent().getModel();
+        
+            oModel.read("/VendorInvSet", {
+                urlParameters: {
+                    "$expand": "VenDet",
+                    "$filter": "Lifnr eq '" + sLifnr + "' and DateAson eq datetime'" + sDateAson + "'"
+                },
+                success: function (oData) {
+                    const oJSONModel = new sap.ui.model.json.JSONModel(oData.results[0].VenDet);
+                    this._oInvoiceDialog.setModel(oJSONModel, "filtered");
+                }.bind(this),
+                error: function (oError) {
+                    console.error("Error fetching filtered data", oError);
+                }
+            });
         }
+        ,
+        onCloseInvoiceDialog: function () {
+            this._oInvoiceDialog.close();
+        }
+        
+        
         
         
 

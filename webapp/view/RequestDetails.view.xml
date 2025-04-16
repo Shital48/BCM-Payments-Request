@@ -48,7 +48,6 @@
                         <smartFilterBar:ControlConfiguration
                             key="DateAson"
                             visibleInAdvancedArea="true"
-                            mandatory="mandatory"
                             index="0"
                         />
                         <smartFilterBar:ControlConfiguration
@@ -76,7 +75,7 @@
                     id="vendorTable"
                     entitySet="VendorInvSet"
                     tableType="ResponsiveTable"
-                    smartFilterId="vendorFilterBar"                    
+                    smartFilterId="vendorFilterBar"
                     enableExport="true"
                     useVariantManagement="true"
                     useTablePersonalisation="true"
@@ -192,7 +191,11 @@
                                     <Text text="{TotalAmt}" />
                                     <Text text="{Msme}" />
                                     <Text text="{ApprovalAmt}" />
-                                    <Text text="{PayMethod}" />
+                                    <Button
+                                    icon="sap-icon://action" 
+                                        text=""
+                                        press=".onPayMethodPress"
+                                    />
                                     <Text text="{InvoiceAmt}" />
                                     <Text text="{AdvanceAmt}" />
                                     <Text text="{RetentionAmt}" />
@@ -255,10 +258,10 @@
                     entitySet="CustomerRetSet"
                     tableType="ResponsiveTable"
                     smartFilterId="customerFilterBar"
-                    enableExport="true" 
+                    enableExport="true"
                     useVariantManagement="true"
                     useTablePersonalisation="true"
-                    header="Customer List" 
+                    header="Customer List"
                     persistencyKey="CustomerSmartTable"
                     enableAutoBinding="true"
                     class="sapUiResponsiveContentPadding"
@@ -266,8 +269,7 @@
                     enableAutoColumnWidth="true"
                     initiallyVisibleFields="Kunnr,Name1,Project,UnitNo,Docnr,Budat,TotalAmt,ApprovalAmt"
                 >
-
-                <Table>
+                    <Table>
                         <columns>
                             <Column>
                                 <customData>
@@ -347,18 +349,17 @@
                                 </customData>
                                 <Text text="{i18n>TotalAmount}" />
                             </Column>
-                             
+
                             <Column>
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
                                         value='{"columnKey": "FullPayment", "leadingProperty": "", "visible": true,"columnIndex": 8}'
                                     />
-
                                 </customData>
                                 <header>
-                                     <Text text="{i18n>FullPayment}" />
-                                </header> 
+                                    <Text text="{i18n>FullPayment}" />
+                                </header>
                             </Column>
 
                             <Column>
@@ -370,7 +371,6 @@
                                 </customData>
                                 <Text text="{i18n>ApprovalAmt}" />
                             </Column>
-                           
                         </columns>
 
                         <items>
@@ -392,12 +392,11 @@
                                         selected="{Selected}"
                                         select=".onCheckboxSelect1"
                                     />
-                                    <Text text="{ApprovalAmt}" /> 
+                                    <Text text="{ApprovalAmt}" />
                                 </cells>
                             </ColumnListItem>
                         </items>
                     </Table>
-
 
                     <smartTable:layoutData>
                         <FlexItemData
