@@ -90,11 +90,11 @@ sap.ui.define([
             const oVendorData = oModel2.getProperty("/VendorData") || {};
             if (!oVendorData[sLifnr]) {
                 oVendorData[sLifnr] = {
-                    PayMethodSelectedKey: "OPTION_Full"
+                    PayMethodSelectedKey: "OPTION_Select" 
                 };
                 oModel2.setProperty("/VendorData", oVendorData);
             }
-            const oDialogStateModel = new JSONModel(oVendorData[sLifnr]);
+            const oDialogStateModel = new JSONModel(Object.assign({},oVendorData[sLifnr]));
 
             this._dialogMap = this._dialogMap || {};
             if (this._dialogMap[sLifnr]) {
@@ -115,8 +115,7 @@ sap.ui.define([
                     this._dialogMap[sLifnr] = oDialog;
 
                     this._loadInvoiceData(sLifnr, sDateAson, oDialog);
-                    oDialog.open();
-                    oDialog.open();
+                    oDialog.open(); 
                 }.bind(this));
             }
         },
@@ -145,8 +144,8 @@ sap.ui.define([
                     console.error("Error fetching filtered data", oError);
                 }
             });
-        }
-        ,
+        },
+        
         onCloseInvoiceDialog: function (oEvent) {
             const oDialog = oEvent.getSource().getParent();
             if (oDialog) {
@@ -169,9 +168,20 @@ sap.ui.define([
             oVendorData[sLifnr] = oDialogState;
             oModel.setProperty("/VendorData", oVendorData);
 
-            if (this._oButton && this._selectedPayMethodText) {
-                this._oButton.setText(this._selectedPayMethodText);
+            const sNewText = oDialogState.PayMethodSelectedKey ? this._selectedPayMethodText : "";
+            if (this._oButton) {
+                this._oButton.setText(sNewText);
             }
+
+    //         const oSelect = Fragment.byId(`invoiceDialog-${sLifnr}`, "payMethodSelect");
+    // if (oSelect) {
+    //     const oSelectedItem = oSelect.getSelectedItem();
+    //     if (this._oButton && oSelectedItem) {
+    //         this._oButton.setText(oSelectedItem.getText());
+    //     } else {
+    //         this._oButton.setText(""); // Set to blank if nothing selected
+    //     }
+    // }
 
             oDialog.close();
         },

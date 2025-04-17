@@ -224,7 +224,7 @@
                 </smartTable:SmartTable>
             </VBox>
 
-            <!-- <VBox
+            <VBox
                 fitContainer="true"
                 id="customersSection"
                 visible="false">
@@ -397,14 +397,19 @@
                                     <Text text="{Name1}" />
                                     <Text text="{Project}" />
                                     <Text text="{UnitNo}" />
-                                    <Text text="{Docnr}" />
-                                    <Text text="{Budat}" />
+                                    <Text text="{Docnr}" /> 
+                                    <Text text="{path:'Budat',formatter:'.formatDate'}"/>
                                     <Text text="{TotalAmt}" />
                                     <CheckBox
                                         selected="{Selected}"
                                         select=".onCheckboxSelect1"
                                     />
                                     <Text text="{ApprovalAmt}" />
+                                     <Input
+                            value="{ApprovalAmt}" 
+                            editable="{= ${dialogState>/PayMethodSelectedKey} === 'OPTION_Partial'}"
+                            placeholder="Enter amount"
+                        />
                                 </cells>
                             </ColumnListItem>
                         </items>
@@ -417,7 +422,7 @@
                         />
                     </smartTable:layoutData>
                 </smartTable:SmartTable>
-            </VBox> -->
+            </VBox>
 </content>
 
             <footer>

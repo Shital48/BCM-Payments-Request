@@ -13,25 +13,26 @@
         contentHeight="90%"
         class="sapUiContentPadding"
     >
-         
-             <Select
-                id="payMethodChange.id"
-                selectedKey="{dialogState>/PayMethodSelectedKey}"
-                width="30%"
-                change="onSelectionChange"
-                class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin"
-            >
-                <core:Item
-                    key="OPTION_Full"
-                    text="Full"
-                />
-                <core:Item
-                    key="OPTION_Partial"
-                    text="Partial"
-                />
-            </Select>
-            
-        
+        <Select
+            id="payMethodChange.id"
+            selectedKey="{dialogState>/PayMethodSelectedKey}"
+            width="30%"
+            change="onSelectionChange"
+            class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin"
+        >
+            <core:Item
+                key="OPTION_Select"
+                text="Select Payment Mode"
+            />
+            <core:Item
+                key="OPTION_Full"
+                text="Full"
+            />
+            <core:Item
+                key="OPTION_Partial"
+                text="Partial"
+            />
+        </Select>
 
         <Table
             id="invoiceTable"
@@ -86,29 +87,39 @@
                     <cells>
                         <Text text="{filtered>Category}" />
                         <Text text="{filtered>Docnr}" />
-                        <Text text="{filtered>Budat}" />
+                        <Text
+                            text="{path:'filtered>Budat',formatter:'.formatDate'}"
+                        />
                         <Text text="{filtered>DocAmt}" />
-                        <!-- <Text text="{= ${/fullPayment} ? '✔' : ''}" />
-                        <Input editable="{/editable}" value="{ApprovalAmt}" placeholder="partial amount"></Input> -->
-                        <Text text="{filtered>Project}" />
-                        <Text text="{filtered>Project}" />
+                        <Text
+                            text="{= ${dialogState>/PayMethodSelectedKey} === 'OPTION_Full' ? '✔' : ''}" 
+                        />
+                        <Input
+                            value="{filtered>ApprovalAmt}" 
+                            editable="{= ${dialogState>/PayMethodSelectedKey} === 'OPTION_Partial'}"
+                            placeholder="Enter amount"
+                        /> 
                         <Text text="{filtered>Project}" />
                     </cells>
                 </ColumnListItem>
             </items>
         </Table>
-       
+
         <beginButton>
             <Button
                 text="{i18n>Confirm}"
                 type="Emphasized"
                 press="onConfirmDialog"
+                enabled="{= ${dialogState>/PayMethodSelectedKey} !== 'OPTION_Select' }"
+    
             />
         </beginButton>
         <endButton>
             <Button
                 text="{i18n>Cancel}"
                 press="onCloseInvoiceDialog"
+                enabled="{= ${dialogState>/PayMethodSelectedKey} !== 'OPTION_Select' }"
+    
             />
         </endButton>
     </Dialog>
