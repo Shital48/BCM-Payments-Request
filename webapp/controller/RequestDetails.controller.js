@@ -191,6 +191,76 @@ sap.ui.define([
             }
             var oDate = new Date(sDate);
             return DateFormat.getDateTimeInstance({ pattern: "dd/MM/yyyy" }).format(oDate);
-        } 
+        } ,
+
+        onSubmitPress: function () {
+            var othis=this;
+            const oModel = this.getView().getModel();
+            const oView = this.getView();
+        
+            // var aItems = this.getView().byId('customerTable').getSelectedItems();
+ 
+            this.getView().setBusy(true);
+
+            const oCustomerTable = oView.byId("customerTable") ;
+
+        const aItems = oCustomerTable.getItems();
+
+        const aCustReq = [];
+
+        aItems.forEach(function (oItem) {
+            const oCtx = oItem.getBindingContext();
+            const oData = oCtx.getObject();
+            if (oData.SelectedMain) {
+                const formatToODataDate = function (dateString) {
+                    const oDate = new Date(dateString);
+                    return `/Date(${oDate.getTime()})/`;
+                };
+
+                aCustReq.push({
+                    RequestNo: "",
+                    DateAson: formatToODataDate(oData.DateAson || new Date()), // fallback to today
+                    Kunnr: oData.Kunnr,
+                    Pspid: oData.Pspid || "",
+                    Name1: oData.Name1,
+                    Paval: oData.Paval || "",
+                    Project: oData.Project || "",
+                    ProjectName: oData.ProjectName || "",
+                    UnitNo: oData.UnitNo || "",
+                    Docnr: oData.Docnr,
+                    Gjahr: oData.Gjahr,
+                    Bukrs: oData.Bukrs,
+                    Budat: formatToODataDate(oData.Budat),
+                    TotalAmt: oData.TotalAmt,
+                    PayMethod: oData.PayMethod || "",
+                    ApprovalAmt: oData.ApprovalAmt,
+                    Bankl: oData.Bankl || ""
+                });
+            }
+        });
+
+        if (aCustReq.length === 0) {
+            sap.m.MessageToast.show("Please select at least one customer record.");
+            othis.getView().setBusy(false);
+            return;
+        }
+
+        const oPayload = {
+            RequestNo: "",
+            CustReq: aCustReq
+        };
+
+         
+        oModel.create("/CustomerReqSet", oPayload, {
+            success: function () {
+                othis.getView().setBusy(false);
+                console.log("Customer submission successful!");
+            },
+            error: function (oError) {
+                othis.getView().setBusy(false);
+                console.error("Customer POST failed", oError);
+            }
+        });
+    } 
     });
 });

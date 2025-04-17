@@ -24,12 +24,8 @@ function (JSONModel, Device) {
         },
 
         getRequestBlank: function () {
-            return {
-                "Segment": "",
-                "Customer":"",
-                "VendorData":{},
-                "Project":"",
-                "Company":"",
+            return { 
+                "VendorData":{}, 
                 "PaymentMethod":"" 
                  
             }

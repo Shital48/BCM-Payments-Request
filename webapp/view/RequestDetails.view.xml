@@ -389,7 +389,7 @@
                             <ColumnListItem>
                                 <cells>
                                     <CheckBox
-                                        selected="{Selected}"
+                                        selected="{SelectedMain}"
                                         select=".onCheckboxSelect"
                                     />
 
@@ -401,7 +401,7 @@
                                     <Text text="{path:'Budat',formatter:'.formatDate'}"/>
                                     <Text text="{TotalAmt}" />
                                     <CheckBox
-                                        selected="{Selected}"
+                                        selected="{SelectedFullPay}"
                                         select=".onCheckboxSelect1"
                                     />
                                     <Text text="{ApprovalAmt}" />
