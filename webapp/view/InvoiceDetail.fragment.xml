@@ -16,7 +16,7 @@
          
              <Select
                 id="payMethodChange.id"
-                selectedKey="OPTION_Full"
+                selectedKey="{dialogState>/PayMethodSelectedKey}"
                 width="30%"
                 change="onSelectionChange"
                 class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin"
@@ -35,7 +35,7 @@
 
         <Table
             id="invoiceTable"
-            items="{filtered>/}"
+            items="{filtered>/results}"
             width="100%"
         >
             <headerToolbar>
@@ -85,11 +85,13 @@
                 <ColumnListItem type="Active">
                     <cells>
                         <Text text="{filtered>Category}" />
-                        <Text text="{filtered>DocumentNo}" />
-                        <Text text="{filtered>InvoiceDate}" />
-                        <Text text="{filtered>DocumentAmount}" />
-                        <Text text="{= ${/fullPayment} ? '✔' : ''}" />
-                        <Input editable="{/editable}" value="{ApprovalAmount}" placeholder="partial amount"></Input>
+                        <Text text="{filtered>Docnr}" />
+                        <Text text="{filtered>Budat}" />
+                        <Text text="{filtered>DocAmt}" />
+                        <!-- <Text text="{= ${/fullPayment} ? '✔' : ''}" />
+                        <Input editable="{/editable}" value="{ApprovalAmt}" placeholder="partial amount"></Input> -->
+                        <Text text="{filtered>Project}" />
+                        <Text text="{filtered>Project}" />
                         <Text text="{filtered>Project}" />
                     </cells>
                 </ColumnListItem>
@@ -106,7 +108,7 @@
         <endButton>
             <Button
                 text="{i18n>Cancel}"
-                press="onCancelDialog"
+                press="onCloseInvoiceDialog"
             />
         </endButton>
     </Dialog>

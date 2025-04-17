@@ -27,11 +27,10 @@ function (JSONModel, Device) {
             return {
                 "Segment": "",
                 "Customer":"",
-                "Vendor":"",
+                "VendorData":{},
                 "Project":"",
                 "Company":"",
-                "PaymentMethod":""
-                // "employee_name": "",
+                "PaymentMethod":"" 
                  
             }
         }

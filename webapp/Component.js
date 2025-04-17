@@ -23,8 +23,8 @@ sap.ui.define([
             this.getRouter().initialize();
 
             // Local JSON Model
-            // this.setModel(models.createLocalJson(), "zRequestModel");
-            // UIComponent.prototype.init.apply(this, arguments);
+            this.setModel(models.createLocalJson(), "zRequestModel");
+           // UIComponent.prototype.init.apply(this, arguments);
 
             // var oModel = this.getModel();
             // sap.ui.core.BusyIndicator.show(0);

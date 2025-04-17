@@ -85,7 +85,7 @@
                     class="sapUiResponsiveContentPadding"
                     ignoreFromPersonalisation=""
                     enableAutoColumnWidth="true"
-                    initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt"
+                    initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt,DateAson"
                     beforeRebindTable="onBeforeRebindTable"
                 >
                     <Table>
@@ -177,6 +177,15 @@
                                 </customData>
                                 <Text text="{i18n>RetentionAmount}" />
                             </Column>
+                             <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "DateAson", "leadingProperty": "DateAson", "columnIndex": 9}'
+                                    />
+                                </customData>
+                                <Text text="Date1" />
+                            </Column>
                         </columns>
 
                         <items>
@@ -193,12 +202,14 @@
                                     <Text text="{ApprovalAmt}" />
                                     <Button
                                     icon="sap-icon://action" 
-                                        text=""
+                                        text="{= ${filtered>PayMethodType} === 'OPTION_Full' ? 'Full Payment' : 'Partial Payment'}"    
                                         press=".onPayMethodPress"
                                     />
                                     <Text text="{InvoiceAmt}" />
                                     <Text text="{AdvanceAmt}" />
                                     <Text text="{RetentionAmt}" />
+                                    <Text text="{path:'DateAson',formatter:'.formatDate'}"/>
+                                    
                                 </cells>
                             </ColumnListItem>
                         </items>
@@ -213,11 +224,11 @@
                 </smartTable:SmartTable>
             </VBox>
 
-            <VBox
+            <!-- <VBox
                 fitContainer="true"
                 id="customersSection"
-                visible="false"
-            >
+                visible="false">
+
                 <smartFilterBar:SmartFilterBar
                     id="customerFilterBar"
                     entitySet="CustomerRetSet"
@@ -371,6 +382,7 @@
                                 </customData>
                                 <Text text="{i18n>ApprovalAmt}" />
                             </Column>
+                            
                         </columns>
 
                         <items>
@@ -405,23 +417,17 @@
                         />
                     </smartTable:layoutData>
                 </smartTable:SmartTable>
-            </VBox>
-            <HBox
-                justifyContent="End"
-                class="sapUiSmallMarginTop sapUiSmallMarginBottom"
-            >
-                <Button
-                    text="Submit"
-                    type="Emphasized"
-                    press="onSubmitPress"
-                />
-                <Button
-                    text="Cancel"
-                    type="Reject"
-                    press="onCancelPress"
-                    class="sapUiSmallMarginBegin sapUiSmallMarginEnd"
-                />
-            </HBox>
-        </content>
+            </VBox> -->
+</content>
+
+            <footer>
+            <Toolbar>
+				<ToolbarSpacer/>
+				<Button type="Emphasized" text="Submit" press="onSubmitPress" />
+				<Button  text="Cancel" type="Reject" press="onCancelPress" /> 
+			</Toolbar>
+             
+        </footer>
+        
     </Page>
 </mvc:View>
