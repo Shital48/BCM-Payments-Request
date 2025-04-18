@@ -72,7 +72,6 @@
                     </smartFilterBar:layoutData>
                 </smartFilterBar:SmartFilterBar>
                 <smartTable:SmartTable
-                    id="vendorTable"
                     entitySet="VendorInvSet"
                     tableType="ResponsiveTable"
                     smartFilterId="vendorFilterBar"
@@ -88,7 +87,10 @@
                     initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt,DateAson"
                     beforeRebindTable="onBeforeRebindTable"
                 >
-                    <Table>
+                    <Table
+                        mode="MultiSelect"
+                        id="vendorTable"
+                    >
                         <columns>
                             <Column>
                                 <customData>
@@ -177,7 +179,7 @@
                                 </customData>
                                 <Text text="{i18n>RetentionAmount}" />
                             </Column>
-                             <Column>
+                            <Column>
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
@@ -201,15 +203,16 @@
                                     <Text text="{Msme}" />
                                     <Text text="{ApprovalAmt}" />
                                     <Button
-                                    icon="sap-icon://action" 
-                                        text="{= ${filtered>PayMethodType} === 'OPTION_Full' ? 'Full Payment' : 'Partial Payment'}"    
+                                        icon="sap-icon://action"
+                                        text="{= ${filtered>PayMethodType} === 'OPTION_Full' ? 'Full Payment' : 'Partial Payment'}"
                                         press=".onPayMethodPress"
                                     />
                                     <Text text="{InvoiceAmt}" />
                                     <Text text="{AdvanceAmt}" />
                                     <Text text="{RetentionAmt}" />
-                                    <Text text="{path:'DateAson',formatter:'.formatDate'}"/>
-                                    
+                                    <Text
+                                        text="{path:'DateAson',formatter:'.formatDate'}"
+                                    />
                                 </cells>
                             </ColumnListItem>
                         </items>
@@ -227,8 +230,8 @@
             <VBox
                 fitContainer="true"
                 id="customersSection"
-                visible="false">
-
+                visible="false"
+            >
                 <smartFilterBar:SmartFilterBar
                     id="customerFilterBar"
                     entitySet="CustomerRetSet"
@@ -265,7 +268,6 @@
                     </smartFilterBar:layoutData>
                 </smartFilterBar:SmartFilterBar>
                 <smartTable:SmartTable
-                    id="customerTable"
                     entitySet="CustomerRetSet"
                     tableType="ResponsiveTable"
                     smartFilterId="customerFilterBar"
@@ -280,28 +282,16 @@
                     enableAutoColumnWidth="true"
                     initiallyVisibleFields="Kunnr,Name1,Project,UnitNo,Docnr,Budat,TotalAmt,ApprovalAmt"
                 >
-                    <Table>
+                    <Table
+                        id="customerTable"
+                        mode="MultiSelect"
+                    >
                         <columns>
                             <Column>
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "selectCheckbox", "columnIndex": 0, "visible": true, "leadingProperty": ""}'
-                                    />
-                                </customData>
-                                <header>
-                                    <CheckBox
-                                        id="selectAllCheckbox1"
-                                        select=".onSelectAllCheckbox"
-                                        tooltip="Select All"
-                                    />
-                                </header>
-                            </Column>
-                            <Column>
-                                <customData>
-                                    <core:CustomData
-                                        key="p13nData"
-                                        value='{"columnKey": "Kunnr", "leadingProperty": "Kunnr", "columnIndex": 1}'
+                                        value='{"columnKey": "Kunnr", "leadingProperty": "Kunnr", "columnIndex": 0}'
                                     />
                                 </customData>
                                 <Text text="{i18n>CustomerName}" />
@@ -310,7 +300,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "Name1", "leadingProperty": "Name1", "columnIndex": 2}'
+                                        value='{"columnKey": "Name1", "leadingProperty": "Name1", "columnIndex": 1}'
                                     />
                                 </customData>
                                 <Text text="{i18n>Name}" />
@@ -319,7 +309,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "Project", "leadingProperty": "Project", "columnIndex": 3}'
+                                        value='{"columnKey": "Project", "leadingProperty": "Project", "columnIndex": 2}'
                                     />
                                 </customData>
                                 <Text text="{i18n>Project}" />
@@ -328,7 +318,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "UnitNo", "leadingProperty": "UnitNo", "columnIndex": 4}'
+                                        value='{"columnKey": "UnitNo", "leadingProperty": "UnitNo", "columnIndex": 3}'
                                     />
                                 </customData>
                                 <Text text="{i18n>UnitNo}" />
@@ -337,7 +327,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "Docnr", "leadingProperty": "Docnr", "columnIndex": 5}'
+                                        value='{"columnKey": "Docnr", "leadingProperty": "Docnr", "columnIndex": 4}'
                                     />
                                 </customData>
                                 <Text text="{i18n>Docnr}" />
@@ -346,7 +336,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "Budat", "leadingProperty": "Budat", "columnIndex": 6}'
+                                        value='{"columnKey": "Budat", "leadingProperty": "Budat", "columnIndex": 5}'
                                     />
                                 </customData>
                                 <Text text="{i18n>Budat}" />
@@ -355,7 +345,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "TotalAmt", "leadingProperty": "TotalAmt", "columnIndex": 7}'
+                                        value='{"columnKey": "TotalAmt", "leadingProperty": "TotalAmt", "columnIndex": 6}'
                                     />
                                 </customData>
                                 <Text text="{i18n>TotalAmount}" />
@@ -365,7 +355,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "FullPayment", "leadingProperty": "", "visible": true,"columnIndex": 8}'
+                                        value='{"columnKey": "FullPayment", "leadingProperty": "", "visible": true,"columnIndex": 7}'
                                     />
                                 </customData>
                                 <header>
@@ -377,39 +367,33 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "ApprovalAmt", "leadingProperty": "ApprovalAmt", "columnIndex": 9}'
+                                        value='{"columnKey": "ApprovalAmt", "leadingProperty": "ApprovalAmt", "columnIndex": 8}'
                                     />
                                 </customData>
                                 <Text text="{i18n>ApprovalAmt}" />
                             </Column>
-                            
                         </columns>
 
                         <items>
                             <ColumnListItem>
                                 <cells>
-                                    <CheckBox
-                                        selected="{SelectedMain}"
-                                        select=".onCheckboxSelect"
-                                    />
-
                                     <Text text="{Kunnr}" />
                                     <Text text="{Name1}" />
                                     <Text text="{Project}" />
                                     <Text text="{UnitNo}" />
-                                    <Text text="{Docnr}" /> 
-                                    <Text text="{path:'Budat',formatter:'.formatDate'}"/>
-                                    <Text text="{TotalAmt}" />
-                                    <CheckBox
-                                        selected="{SelectedFullPay}"
-                                        select=".onCheckboxSelect1"
+                                    <Text text="{Docnr}" />
+                                    <Text
+                                        text="{path:'Budat',formatter:'.formatDate'}"
                                     />
-                                    <Text text="{ApprovalAmt}" />
-                                     <Input
-                            value="{ApprovalAmt}" 
-                            editable="{= ${dialogState>/PayMethodSelectedKey} === 'OPTION_Partial'}"
-                            placeholder="Enter amount"
-                        />
+                                    <Text text="{TotalAmt}" />
+                                    <CheckBox select=".onCheckboxSelect1" />
+                                    <Input
+                                        value="{path: 'ApprovalAmt', formatter: '.formatter.getDefaultQty'}"
+                                        editable="true"
+                                        placeholder="Enter amount"
+                                        liveChange=".onQtyLiveChange"
+                                        valueLiveUpdate="true"
+                                    />
                                 </cells>
                             </ColumnListItem>
                         </items>
@@ -423,16 +407,22 @@
                     </smartTable:layoutData>
                 </smartTable:SmartTable>
             </VBox>
-</content>
+        </content>
 
-            <footer>
+        <footer>
             <Toolbar>
-				<ToolbarSpacer/>
-				<Button type="Emphasized" text="Submit" press="onSubmitPress" />
-				<Button  text="Cancel" type="Reject" press="onCancelPress" /> 
-			</Toolbar>
-             
+                <ToolbarSpacer />
+                <Button
+                    type="Emphasized"
+                    text="Submit"
+                    press="onSubmitPress"
+                />
+                <Button
+                    text="Cancel"
+                    type="Reject"
+                    press="onCancelPress"
+                />
+            </Toolbar>
         </footer>
-        
     </Page>
 </mvc:View>

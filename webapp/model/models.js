@@ -25,6 +25,7 @@ function (JSONModel, Device) {
 
         getRequestBlank: function () {
             return { 
+                SelectedKey: "Vendor",
                 "VendorData":{}, 
                 "PaymentMethod":"" 
                  

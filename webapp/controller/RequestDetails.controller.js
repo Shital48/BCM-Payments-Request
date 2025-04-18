@@ -31,11 +31,13 @@ sap.ui.define([
             var oView = this.getView();
 
             if (selectedKey === "OPTION_VENDER") {
+                this.mdl_zFilter.setProperty("/Create/SelectedKey", "Vendor");
                 oView.byId("vendorsSection").setVisible(true);
-                oView.byId("customersSection").setVisible(false); 
+                oView.byId("customersSection").setVisible(false);
             } else if (selectedKey === "OPTION_CUSTOMER") {
+                this.mdl_zFilter.setProperty("/Create/SelectedKey", "Customer");
                 oView.byId("customersSection").setVisible(true);
-                oView.byId("vendorsSection").setVisible(false); 
+                oView.byId("vendorsSection").setVisible(false);
             }
         },
         onBeforeRebindTable: function (oEvent) {
@@ -86,21 +88,20 @@ sap.ui.define([
             var sLifnr = oData.Lifnr;
             var oDateAson = oData.DateAson;
             var sDateAson = new Date(oDateAson).toISOString().split(".")[0];
-            const oModel2 = this.getOwnerComponent().getModel("zRequestModel");
-            const oVendorData = oModel2.getProperty("/VendorData") || {};
+            const oVendorData = this.mdl_zFilter.getProperty("/VendorData") || {};
             if (!oVendorData[sLifnr]) {
                 oVendorData[sLifnr] = {
-                    PayMethodSelectedKey: "OPTION_Select" 
+                    PayMethodSelectedKey: "OPTION_Select"
                 };
-                oModel2.setProperty("/VendorData", oVendorData);
+                this.mdl_zFilter.setProperty("/VendorData", oVendorData);
             }
-            const oDialogStateModel = new JSONModel(Object.assign({},oVendorData[sLifnr]));
+            const oDialogStateModel = new JSONModel(Object.assign({}, oVendorData[sLifnr]));
 
             this._dialogMap = this._dialogMap || {};
             if (this._dialogMap[sLifnr]) {
                 const oExistingDialog = this._dialogMap[sLifnr];
                 oExistingDialog.setModel(oDialogStateModel, "dialogState");
-                this._loadInvoiceData(sLifnr, sDateAson, oExistingDialog);
+                this._loadInvoiceData(sLifnr, sDateAson, oExistingDialog, oVendorData);
                 oExistingDialog.open();
             }
             else {
@@ -114,38 +115,49 @@ sap.ui.define([
 
                     this._dialogMap[sLifnr] = oDialog;
 
-                    this._loadInvoiceData(sLifnr, sDateAson, oDialog);
-                    oDialog.open(); 
+                    this._loadInvoiceData(sLifnr, sDateAson, oDialog, oVendorData);
+                    oDialog.open();
                 }.bind(this));
             }
         },
-        _loadInvoiceData: function (sLifnr, sDateAson, oDialog) {
+        _loadInvoiceData: function (sLifnr, sDateAson, oDialog, oVendorData) {
             const oModel = this.getOwnerComponent().getModel();
             oDialog.setBusy(true);
-            oModel.read("/VendorInvSet", {
-                urlParameters: {
-                    "$expand": "VenDet",
-                    "$filter": "Lifnr eq '" + sLifnr + "' and DateAson eq datetime'" + sDateAson + "'"
-                },
-                success: function (oData) {
-                    oDialog.setBusy(false);
-                    if (oData && oData.results && oData.results.length > 0) {
-                        var oVenDetData = oData.results[0].VenDet;
-                        console.log(oVenDetData);
-                        if (oVenDetData && oVenDetData.results && oVenDetData.results.length > 0) {
-                            var aVenDetResults = oVenDetData.results;
-                            const oJSONModel = new sap.ui.model.json.JSONModel({ results: aVenDetResults });
-                            oDialog.setModel(oJSONModel, "filtered");
+
+            if (oVendorData[sLifnr] && oVendorData[sLifnr].Invoices) {
+                const oJSONModel = new JSONModel({ results: oVendorData[sLifnr].Invoices });
+                oDialog.setModel(oJSONModel, "filtered");
+                oDialog.setBusy(false);
+            } else {
+                oModel.read("/VendorInvSet", {
+                    urlParameters: {
+                        "$expand": "VenDet",
+                        "$filter": "Lifnr eq '" + sLifnr + "' and DateAson eq datetime'" + sDateAson + "'"
+                    },
+                    success: function (oData) {
+                        oDialog.setBusy(false);
+                        if (oData && oData.results && oData.results.length > 0) {
+                            var aVenDetResults = oData.results[0].VenDet?.results;
+                            if (aVenDetResults?.length > 0) {
+                                const oJSONModel = new JSONModel({ results: aVenDetResults });
+                                oDialog.setModel(oJSONModel, "filtered");
+                                if (!oVendorData[sLifnr]) {
+                                    oVendorData[sLifnr] = {};
+                                }
+
+                                oVendorData[sLifnr].Invoices = aVenDetResults;
+                                this.mdl_zFilter.setProperty("/VendorData", oVendorData);
+                            }
                         }
+                    }.bind(this),
+                    error: function (oError) {
+                        oDialog.setBusy(false);
+                        console.error("Error fetching filtered data", oError);
                     }
-                }.bind(this),
-                error: function (oError) {
-                    oDialog.setBusy(false);
-                    console.error("Error fetching filtered data", oError);
-                }
-            });
+                });
+            }
         },
-        
+
         onCloseInvoiceDialog: function (oEvent) {
             const oDialog = oEvent.getSource().getParent();
             if (oDialog) {
@@ -162,26 +174,29 @@ sap.ui.define([
             const oDialogState = oDialog.getModel("dialogState").getData();
 
             const sLifnr = this._oButton.getBindingContext().getProperty("Lifnr");
-            const oModel = this.getOwnerComponent().getModel("zRequestModel");
-            const oVendorData = oModel.getProperty("/VendorData");
+            const oVendorData = this.mdl_zFilter.getProperty("/VendorData");
 
             oVendorData[sLifnr] = oDialogState;
-            oModel.setProperty("/VendorData", oVendorData);
+            const updatedInvoices = oDialog.getModel("filtered").getProperty("/results");
+            if (updatedInvoices) {
+                oVendorData[sLifnr].Invoices = updatedInvoices;
+            }
+            this.mdl_zFilter.setProperty("/VendorData", oVendorData);
 
             const sNewText = oDialogState.PayMethodSelectedKey ? this._selectedPayMethodText : "";
             if (this._oButton) {
                 this._oButton.setText(sNewText);
             }
 
-    //         const oSelect = Fragment.byId(`invoiceDialog-${sLifnr}`, "payMethodSelect");
-    // if (oSelect) {
-    //     const oSelectedItem = oSelect.getSelectedItem();
-    //     if (this._oButton && oSelectedItem) {
-    //         this._oButton.setText(oSelectedItem.getText());
-    //     } else {
-    //         this._oButton.setText(""); // Set to blank if nothing selected
-    //     }
-    // }
+            //         const oSelect = Fragment.byId(`invoiceDialog-${sLifnr}`, "payMethodSelect");
+            // if (oSelect) {
+            //     const oSelectedItem = oSelect.getSelectedItem();
+            //     if (this._oButton && oSelectedItem) {
+            //         this._oButton.setText(oSelectedItem.getText());
+            //     } else {
+            //         this._oButton.setText(""); // Set to blank if nothing selected
+            //     }
+            // }
 
             oDialog.close();
         },
@@ -191,76 +206,208 @@ sap.ui.define([
             }
             var oDate = new Date(sDate);
             return DateFormat.getDateTimeInstance({ pattern: "dd/MM/yyyy" }).format(oDate);
-        } ,
+        },
 
         onSubmitPress: function () {
-            var othis=this;
+            var othis = this;
             const oModel = this.getView().getModel();
             const oView = this.getView();
-        
-            // var aItems = this.getView().byId('customerTable').getSelectedItems();
- 
-            this.getView().setBusy(true);
 
-            const oCustomerTable = oView.byId("customerTable") ;
+            const sSelectedKey = this.mdl_zFilter.getProperty("/Create/SelectedKey");
+            oView.setBusy(true);
 
-        const aItems = oCustomerTable.getItems();
+            const formatToODataDate = function (dateString) {
+                const oDate = new Date(dateString);
+                return `/Date(${oDate.getTime()})/`;
+            };
 
-        const aCustReq = [];
+            if (sSelectedKey === "Customer") {
 
-        aItems.forEach(function (oItem) {
-            const oCtx = oItem.getBindingContext();
-            const oData = oCtx.getObject();
-            if (oData.SelectedMain) {
-                const formatToODataDate = function (dateString) {
-                    const oDate = new Date(dateString);
-                    return `/Date(${oDate.getTime()})/`;
+                const oTable = oView.byId("customerTable"); 
+                const aSelectedItems = oTable.getSelectedItems();
+
+                if (!aSelectedItems.length) {
+                    sap.m.MessageToast.show("Please select at least one customer record.");
+                    oView.setBusy(false);
+                    return;
+                } 
+                const aCustReq = [];
+
+                aSelectedItems.forEach(function (oItem) {
+                    const oData = oItem.getBindingContext().getObject();
+                    const aCells = oItem.getCells();
+                    const sApprovalAmt = aCells[8].getValue();
+                        aCustReq.push({
+                            "RequestNo": "",
+                            "DateAson": formatToODataDate(oData.DateAson || new Date()),  
+                            "Kunnr": oData.Kunnr,
+                            "Pspid": oData.Pspid || "",
+                            "Name1": oData.Name1,
+                            "Paval": oData.Paval || "",
+                            "Project": oData.Project || "",
+                            "ProjectName": oData.ProjectName || "",
+                            "UnitNo": oData.UnitNo || "",
+                            "Docnr": oData.Docnr,
+                            "Gjahr": oData.Gjahr,
+                            "Bukrs": oData.Bukrs,
+                            "Budat": formatToODataDate(oData.Budat),
+                            "TotalAmt": oData.TotalAmt,
+                            "PayMethod": oData.PayMethod || "",
+                            "ApprovalAmt": sApprovalAmt,
+                            "Bankl": oData.Bankl || ""
+                        }); 
+                }); 
+
+                const oPayload = {
+                    RequestNo: "",
+                    CustReq: aCustReq
                 };
 
-                aCustReq.push({
+
+                oModel.create("/CustomerReqSet", oPayload, {
+                    success: function () {
+                        oView.setBusy(false);
+                        console.log("Customer submission successful!");
+                    },
+                    error: function (oError) {
+                        oView.setBusy(false);
+                        console.error("Customer POST failed", oError);
+                    }
+                });
+
+
+
+
+            }
+            else if (sSelectedKey === "Vendor") {
+                const oSmartTable = oView.byId("vendorTable");
+                const oTable = oSmartTable.getTable();
+                const aItems1 = oTable.getItems();
+
+                const aVenReq = [];
+
+                // Get VendorData from model
+                const oVendorData = this.mdl_zFilter.getProperty("/Create/VendorData");
+
+                aItems1.forEach(function (oItem) {
+                    const oCtx = oItem.getBindingContext();
+                    const oData = oCtx.getObject();
+
+                    if (oData.Selected) {
+                        const formatToODataDate = function (dateString) {
+                            const oDate = new Date(dateString);
+                            return `/Date(${oDate.getTime()})/`;
+                        };
+
+                        const sLifnr = oData.Lifnr;
+                        const sPayMethod = oVendorData[sLifnr] ? oVendorData[sLifnr].PayMethod : "";
+
+                        aVenReq.push({
+                            Lifnr: sLifnr,
+                            Category: "I",
+                            Docnr: oData.Docnr,
+                            Bukrs: oData.Bukrs,
+                            Gjahr: oData.Gjahr,
+                            Budat: formatToODataDate(oData.Budat),
+                            DocAmt: oData.DocAmt,
+                            PayMethod: sPayMethod,
+                            ApprovalAmt: oData.ApprovalAmt,
+                            Project: oData.Project || "",
+                            ProjectName: oData.ProjectName || "",
+                            RequestNo: ""
+                        });
+                    }
+                });
+
+                if (aVenReq.length === 0) {
+                    console.log("Please select at least one vendor record.");
+                    return;
+                }
+
+                const oPayload = {
                     RequestNo: "",
-                    DateAson: formatToODataDate(oData.DateAson || new Date()), // fallback to today
-                    Kunnr: oData.Kunnr,
-                    Pspid: oData.Pspid || "",
-                    Name1: oData.Name1,
-                    Paval: oData.Paval || "",
-                    Project: oData.Project || "",
-                    ProjectName: oData.ProjectName || "",
-                    UnitNo: oData.UnitNo || "",
-                    Docnr: oData.Docnr,
-                    Gjahr: oData.Gjahr,
-                    Bukrs: oData.Bukrs,
-                    Budat: formatToODataDate(oData.Budat),
-                    TotalAmt: oData.TotalAmt,
-                    PayMethod: oData.PayMethod || "",
-                    ApprovalAmt: oData.ApprovalAmt,
-                    Bankl: oData.Bankl || ""
+                    VenReq: aVenReq
+                };
+
+                oView.setBusy(true);
+
+                oModel1.create("/VendorReqSet", oPayload, {
+                    success: function () {
+                        oView.setBusy(false);
+                        // sap.m.MessageToast.show("Vendor invoice request submitted successfully.");
+                        console.log("Vendor POST successful");
+                    },
+                    error: function (oError) {
+                        oView.setBusy(false);
+                        console.error("Vendor POST failed", oError);
+                    }
                 });
             }
-        });
+        },
+        onCheckboxSelect1: function (oEvent) {
+            const bSelected = oEvent.getParameter("selected");
+            const oCheckBox = oEvent.getSource();
+            const oRow = oCheckBox.getParent(); 
+            const oContext = oRow.getBindingContext();  
+            const aCells = oRow.getCells();
+            const oInput = aCells.find(cell => cell.isA("sap.m.Input"));
+            const sTotalAmt = oContext.getProperty("TotalAmt");
 
-        if (aCustReq.length === 0) {
-            sap.m.MessageToast.show("Please select at least one customer record.");
-            othis.getView().setBusy(false);
-            return;
-        }
-
-        const oPayload = {
-            RequestNo: "",
-            CustReq: aCustReq
-        };
-
-         
-        oModel.create("/CustomerReqSet", oPayload, {
-            success: function () {
-                othis.getView().setBusy(false);
-                console.log("Customer submission successful!");
-            },
-            error: function (oError) {
-                othis.getView().setBusy(false);
-                console.error("Customer POST failed", oError);
+            
+            if (bSelected) {  
+                oInput.setValue(sTotalAmt) ;
+                oInput.setEditable(false);
+            } else {  
+                oInput.setEditable(true);
             }
-        });
-    } 
+         
+        },
+        formatter: {
+            getDefaultQty: function () {
+                return "";
+            } 
+        },
+        onQtyLiveChange: function (oEvent) {
+            var oInput = oEvent.getSource();
+            var sValue = oInput.getValue();
+            var oContext = oInput.getBindingContext();
+            if (!oContext) {
+                console.warn("No binding context for input field.");
+                return;
+            }
+            var oRow = oInput.getParent();
+    var oCheckBox = oRow.getCells().find(cell => cell.isA("sap.m.CheckBox"));
+    var iValue = parseInt(sValue, 10);
+            var TotalAmount = parseInt(oContext.getProperty("TotalAmt"), 10) || 0;
+            if (!/^\d+$/.test(sValue)) {
+                oInput.setValueState("Error");
+                oInput.setValueStateText("Maintain a valid Payment");
+                oCheckBox.setSelected(false);
+                return;
+            }
+            if (isNaN(iValue) || sValue < 1) {
+                oInput.setValueState("Error");
+                oInput.setValueStateText("Add valid value");
+                oCheckBox.setSelected(false);
+            } else if (iValue > TotalAmount) {
+                oInput.setValueState("Error");
+                oInput.setValueStateText("Payable amount exceeds Total Amount");
+                oCheckBox.setSelected(false);
+            }  
+            else {
+                oInput.setValueState("None");
+                if (iValue === TotalAmount) {
+                    oCheckBox.setSelected(true);
+                    oInput.setEditable(false);
+                } else {
+                    oCheckBox.setSelected(false);
+                    oInput.setEditable(true);
+                }
+            }           
+
+        },
+
+        
+
     });
 });
