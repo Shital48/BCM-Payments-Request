@@ -225,19 +225,62 @@ sap.ui.define([
             const sLifnr = this._oButton.getBindingContext().getProperty("Lifnr");
             const oVendorData = this.mdl_zFilter.getProperty("/VendorData");
 
-            oVendorData[sLifnr] = oDialogState;
+            oVendorData[sLifnr] = oDialogState; 
             const updatedInvoices = oDialog.getModel("filtered").getProperty("/results");
             if (updatedInvoices) {
+                if (oDialogState.PayMethodSelectedKey === "OPTION_Full") {
+                    updatedInvoices.forEach(function (invoice) {
+                        invoice.ApprovalAmt = invoice.DocAmt;
+                        invoice.PayMethod = "X";
+                    });
+                }
                 oVendorData[sLifnr].Invoices = updatedInvoices;
             }
             this.mdl_zFilter.setProperty("/VendorData", oVendorData);
 
-            const sNewText = oDialogState.PayMethodSelectedKey ? this._selectedPayMethodText : "";
+            const sNewText = oDialogState.PayMethodSelectedKey;
             if (this._oButton) {
                 this._oButton.setText(sNewText);
             }
             oDialog.close();
         },
+        onFullPaymentSelected: function (oEvent) {
+            const bSelected = oEvent.getParameter("selected");
+            const oContext = oEvent.getSource().getBindingContext("filtered");
+            const record = oContext.getObject();
+            if (bSelected) {
+            record.ApprovalAmt = record.DocAmt;
+            record.PayMethod = "X";
+            }else{
+                record.ApprovalAmt = "0.000";
+                record.PayMethod = "";
+            }
+            const oModel = oContext.getModel();
+            oModel.refresh();
+
+        },
+        onApprovalAmtChange: function (oEvent) {
+            const oInput = oEvent.getSource();
+            const sNewApprovalAmt = oInput.getValue();
+            const approvalAmt = parseFloat(sNewApprovalAmt);
+
+            const oContext = oEvent.getSource().getBindingContext("filtered");
+            const record = oContext.getObject();
+            const docAmt = parseFloat(record.DocAmt);
+
+            if (docAmt === approvalAmt) {
+                record.PayMethod = "X";
+            }
+            else{
+                record.PayMethod = "";
+            }
+            const oModel = oContext.getModel();
+            oModel.refresh();
+
+        } ,
+        
+
+
 
         //FOOTER
 
@@ -290,7 +333,7 @@ sap.ui.define([
                         "Bankl": oData.Bankl || ""
                     });
                 });
-                console.log("acustrequest" , aCustReq)
+                console.log("acustrequest", aCustReq)
 
                 const oPayload = {
                     RequestNo: "",
@@ -311,7 +354,7 @@ sap.ui.define([
 
             }
             else if (sSelectedKey === "Vendor") {
-                const oVendorTable = oView.byId("vendorTable"); 
+                const oVendorTable = oView.byId("vendorTable");
                 const aSelectedVendors = oVendorTable.getSelectedItems();
 
                 if (!aSelectedVendors.length) {
@@ -320,33 +363,35 @@ sap.ui.define([
                     return;
                 }
                 const aVenReq = [];
-                const oVendorData = this.mdl_zFilter.getProperty("/Create/VendorData");
+                const oVendorData = this.mdl_zFilter.getProperty("/VendorData");
 
-                aSelectedVendors.forEach(function (oItem) { 
-                    const oData = oItem.getBindingContext().getObject(); 
+                aSelectedVendors.forEach(function (oItem) {
+                    const oData = oItem.getBindingContext().getObject();
                     console.log("Full data from EntitySet:", oData);
 
-                        const sLifnr = oData.Lifnr;
-                        const sPayMethod = oData.PayMethod;
+                    const sLifnr = oData.Lifnr;
+                    const sPayMethod = oData.PayMethod;
 
-                        var aInvoices = this.mdl_zFilter.getData().oVendorData[sLifnr].Invoices;
+                    const aInvoices = oVendorData[sLifnr]?.Invoices || [];
+
+                    aInvoices.forEach(function (invoice) {
                         aVenReq.push({
-                            "Lifnr": aInvoices.sLifnr,
-                            "Category":aInvoices.Category,
-                            "Docnr": aInvoices.Docnr,
-                            "Bukrs": aInvoices.Bukrs,
-                            "Gjahr": aInvoices.Gjahr,
-                            "Budat":  aInvoices.Budat,
-                            "DocAmt": aInvoices.DocAmt,
-                            "PayMethod": sPayMethod,
-                            "ApprovalAmt": aInvoices.ApprovalAmt,
-                            "Project": aInvoices.Project || "",
-                            "ProjectName": aInvoices.ProjectName || "",
+                            "Lifnr": invoice.Lifnr,
+                            "Category": invoice.Category,
+                            "Docnr": invoice.Docnr,
+                            "Bukrs": invoice.Bukrs,
+                            "Gjahr": invoice.Gjahr,
+                            "Budat": invoice.Budat,
+                            "DocAmt": invoice.DocAmt,
+                            "PayMethod": invoice.PayMethod,
+                            "ApprovalAmt": invoice.ApprovalAmt,
+                            "Project": invoice.Project || "",
+                            "ProjectName": invoice.ProjectName || "",
                             "RequestNo": ""
                         });
-                    
+                    });
                 });
-                console.log("avenrequest" , aVenReq)
+                console.log("aVenReq", aVenReq)
 
                 if (aVenReq.length === 0) {
                     console.log("Please select at least one vendor record.");
@@ -356,7 +401,7 @@ sap.ui.define([
                 const oPayload = {
                     RequestNo: "",
                     VenReq: aVenReq
-                }; 
+                };
 
                 oModel.create("/VendorReqSet", oPayload, {
                     success: function () {
@@ -371,6 +416,6 @@ sap.ui.define([
                 });
             }
         }
- 
+
     });
 });

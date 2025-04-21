@@ -16,9 +16,9 @@ function (JSONModel, Device) {
             return oModel;
         },
         createLocalJson: function () {
-            var oCreateData = this.getRequestBlank();
+            var oVendorData = this.getRequestBlank();
             var oModel = new JSONModel({
-                "Create": oCreateData
+                "VendorData": oVendorData
             });
             return oModel;
         },
@@ -27,7 +27,7 @@ function (JSONModel, Device) {
             return { 
                 SelectedKey: "Vendor",
                 "VendorData":{}, 
-                "PaymentMethod":"" 
+                "PaymentMethod":"", 
                  
             }
         }
