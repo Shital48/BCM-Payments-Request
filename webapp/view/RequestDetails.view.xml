@@ -48,6 +48,7 @@
                         <smartFilterBar:ControlConfiguration
                             key="DateAson"
                             visibleInAdvancedArea="true"
+                            mandatory="mandatory"
                             index="0"
                         />
                         <smartFilterBar:ControlConfiguration
@@ -87,31 +88,16 @@
                     initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt,DateAson"
                     beforeRebindTable="onBeforeRebindTable"
                 >
-                    <Table
-                        mode="MultiSelect"
+                    <Table 
                         id="vendorTable"
+                        mode="MultiSelect"
                     >
-                        <columns>
+                        <columns>                             
                             <Column>
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "selectCheckbox", "columnIndex": 0, "visible": true, "leadingProperty": ""}'
-                                    />
-                                </customData>
-                                <header>
-                                    <CheckBox
-                                        id="selectAllCheckbox"
-                                        select=".onSelectAllCheckbox"
-                                        tooltip="Select All"
-                                    />
-                                </header>
-                            </Column>
-                            <Column>
-                                <customData>
-                                    <core:CustomData
-                                        key="p13nData"
-                                        value='{"columnKey": "Lifnr", "leadingProperty": "Lifnr", "columnIndex": 1}'
+                                        value='{"columnKey": "Lifnr", "leadingProperty": "Lifnr", "columnIndex": 0}'
                                     />
                                 </customData>
                                 <Text text="{i18n>VendorName}" />
@@ -120,7 +106,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "TotalAmt", "leadingProperty": "TotalAmt", "columnIndex": 2}'
+                                        value='{"columnKey": "TotalAmt", "leadingProperty": "TotalAmt", "columnIndex": 1}'
                                     />
                                 </customData>
                                 <Text text="{i18n>TotalAmount}" />
@@ -129,7 +115,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "Msme", "leadingProperty": "Msme", "columnIndex": 3}'
+                                        value='{"columnKey": "Msme", "leadingProperty": "Msme", "columnIndex": 2}'
                                     />
                                 </customData>
                                 <Text text="{i18n>Msme}" />
@@ -138,7 +124,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "ApprovalAmt", "leadingProperty": "ApprovalAmt", "columnIndex": 4}'
+                                        value='{"columnKey": "ApprovalAmt", "leadingProperty": "ApprovalAmt", "columnIndex": 3}'
                                     />
                                 </customData>
                                 <Text text="{i18n>ApprovalAmount}" />
@@ -147,7 +133,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "PayMethod", "leadingProperty": "PayMethod", "columnIndex": 5}'
+                                        value='{"columnKey": "PayMethod", "leadingProperty": "PayMethod", "columnIndex": 4}'
                                     />
                                 </customData>
                                 <Text text="{i18n>PaymentMethod}" />
@@ -156,7 +142,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "InvoiceAmt", "leadingProperty": "InvoiceAmt", "columnIndex": 6}'
+                                        value='{"columnKey": "InvoiceAmt", "leadingProperty": "InvoiceAmt", "columnIndex": 5}'
                                     />
                                 </customData>
                                 <Text text="{i18n>InvoiceAmount}" />
@@ -165,7 +151,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "AdvanceAmt", "leadingProperty": "AdvanceAmt", "columnIndex": 7}'
+                                        value='{"columnKey": "AdvanceAmt", "leadingProperty": "AdvanceAmt", "columnIndex": 6}'
                                     />
                                 </customData>
                                 <Text text="{i18n>AdvanceAmount}" />
@@ -174,7 +160,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "RetentionAmt", "leadingProperty": "RetentionAmt", "columnIndex": 8}'
+                                        value='{"columnKey": "RetentionAmt", "leadingProperty": "RetentionAmt", "columnIndex": 7}'
                                     />
                                 </customData>
                                 <Text text="{i18n>RetentionAmount}" />
@@ -183,22 +169,15 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "DateAson", "leadingProperty": "DateAson", "columnIndex": 9}'
+                                        value='{"columnKey": "DateAson", "leadingProperty": "DateAson", "columnIndex": 8}'
                                     />
-                                </customData>
-                                <Text text="Date1" />
+                                </customData> 
                             </Column>
                         </columns>
 
                         <items>
                             <ColumnListItem>
-                                <cells>
-                                    <CheckBox
-                                        selected="{Selected}"
-                                        select=".onCheckboxSelect"
-                                    />
-
-                                    <Text text="{Lifnr}" />
+                                <cells>                                <Text text="{Lifnr}" />
                                     <Text text="{TotalAmt}" />
                                     <Text text="{Msme}" />
                                     <Text text="{ApprovalAmt}" />
@@ -209,10 +188,7 @@
                                     />
                                     <Text text="{InvoiceAmt}" />
                                     <Text text="{AdvanceAmt}" />
-                                    <Text text="{RetentionAmt}" />
-                                    <Text
-                                        text="{path:'DateAson',formatter:'.formatDate'}"
-                                    />
+                                    <Text text="{RetentionAmt}" /> 
                                 </cells>
                             </ColumnListItem>
                         </items>
@@ -230,8 +206,7 @@
             <VBox
                 fitContainer="true"
                 id="customersSection"
-                visible="false"
-            >
+                visible="false"  >
                 <smartFilterBar:SmartFilterBar
                     id="customerFilterBar"
                     entitySet="CustomerRetSet"

@@ -24,6 +24,9 @@ sap.ui.define([
         onBeforeRendering: function () {
             this.mdl_zFilter = this.getOwnerComponent().getModel('zRequestModel');
         },
+
+        //Header 
+
         onSelectionChange: function (oEvent) {
             var selectedKey = oEvent.getSource().getSelectedKey();
             this._selectedPayMethodText = oEvent.getSource().getSelectedItem().getText();
@@ -40,39 +43,86 @@ sap.ui.define([
                 oView.byId("vendorsSection").setVisible(false);
             }
         },
+        formatDate: function (sDate) {
+            if (!sDate) {
+                return "";
+            }
+            var oDate = new Date(sDate);
+            return DateFormat.getDateTimeInstance({ pattern: "dd/MM/yyyy" }).format(oDate);
+        },
+        onCheckboxSelect1: function (oEvent) {
+            const bSelected = oEvent.getParameter("selected");
+            const oCheckBox = oEvent.getSource();
+            const oRow = oCheckBox.getParent();
+            const oContext = oRow.getBindingContext();
+            const aCells = oRow.getCells();
+            const oInput = aCells.find(cell => cell.isA("sap.m.Input"));
+            const sTotalAmt = oContext.getProperty("TotalAmt");
+
+
+            if (bSelected) {
+                oInput.setValue(sTotalAmt);
+                oInput.setEditable(false);
+            } else {
+                oInput.setEditable(true);
+            }
+
+        },
+        formatter: {
+            getDefaultQty: function () {
+                return "";
+            }
+        },
+        onQtyLiveChange: function (oEvent) {
+            var oInput = oEvent.getSource();
+            var sValue = oInput.getValue();
+            var oContext = oInput.getBindingContext();
+            if (!oContext) {
+                console.warn("No binding context for input field.");
+                return;
+            }
+            var oRow = oInput.getParent();
+            var oCheckBox = oRow.getCells().find(cell => cell.isA("sap.m.CheckBox"));
+            var iValue = parseInt(sValue, 10);
+            var TotalAmount = parseInt(oContext.getProperty("TotalAmt"), 10) || 0;
+            if (!/^\d+$/.test(sValue)) {
+                oInput.setValueState("Error");
+                oInput.setValueStateText("Maintain a valid Payment");
+                oCheckBox.setSelected(false);
+                return;
+            }
+            if (isNaN(iValue) || sValue < 1) {
+                oInput.setValueState("Error");
+                oInput.setValueStateText("Add valid value");
+                oCheckBox.setSelected(false);
+            } else if (iValue > TotalAmount) {
+                oInput.setValueState("Error");
+                oInput.setValueStateText("Payable amount exceeds Total Amount");
+                oCheckBox.setSelected(false);
+            }
+            else {
+                oInput.setValueState("None");
+                if (iValue === TotalAmount) {
+                    oCheckBox.setSelected(true);
+                    oInput.setEditable(false);
+                } else {
+                    oCheckBox.setSelected(false);
+                    oInput.setEditable(true);
+                }
+            }
+
+        },
+
+
+
+        //VENDOR
+
         onBeforeRebindTable: function (oEvent) {
             var oBindingParams = oEvent.getParameter("bindingParams");
             oBindingParams.parameters = oBindingParams.parameters || {};
             oBindingParams.parameters.expand = "VenDet";
         },
 
-        onPayMethodDialogClose: function () {
-            this._oPayMethodDialog.close();
-        },
-        onSelectAllCheckbox: function (oEvent) {
-            const bSelected = oEvent.getParameter("selected");
-            const oSmartTable = this.byId("vendorTable");
-            const oTable = oSmartTable.getTable();
-            const aItems = oTable.getItems();
-
-            aItems.forEach(function (oItem) {
-                const oCtx = oItem.getBindingContext();
-                if (oCtx) {
-                    oCtx.getModel().setProperty(oCtx.getPath() + "/Selected", bSelected);
-                }
-            });
-        },
-
-        onCheckboxSelect: function () {
-            const oSmartTable = this.byId("vendorTable");
-            const oTable = oSmartTable.getTable();
-            const aItems = oTable.getItems();
-
-            const bAllSelected = aItems.every(item => item.getBindingContext().getProperty("Selected"));
-            const oHeaderCheckBox = this.byId("selectAllCheckbox");
-
-            oHeaderCheckBox.setSelected(bAllSelected);
-        },
         onPayMethodPress: function (oEvent) {
             this._oButton = oEvent.getSource();
             const oContext = this._oButton.getBindingContext();
@@ -114,7 +164,6 @@ sap.ui.define([
                     this.getView().addDependent(oDialog);
 
                     this._dialogMap[sLifnr] = oDialog;
-
                     this._loadInvoiceData(sLifnr, sDateAson, oDialog, oVendorData);
                     oDialog.open();
                 }.bind(this));
@@ -187,26 +236,10 @@ sap.ui.define([
             if (this._oButton) {
                 this._oButton.setText(sNewText);
             }
-
-            //         const oSelect = Fragment.byId(`invoiceDialog-${sLifnr}`, "payMethodSelect");
-            // if (oSelect) {
-            //     const oSelectedItem = oSelect.getSelectedItem();
-            //     if (this._oButton && oSelectedItem) {
-            //         this._oButton.setText(oSelectedItem.getText());
-            //     } else {
-            //         this._oButton.setText(""); // Set to blank if nothing selected
-            //     }
-            // }
-
             oDialog.close();
         },
-        formatDate: function (sDate) {
-            if (!sDate) {
-                return "";
-            }
-            var oDate = new Date(sDate);
-            return DateFormat.getDateTimeInstance({ pattern: "dd/MM/yyyy" }).format(oDate);
-        },
+
+        //FOOTER
 
         onSubmitPress: function () {
             var othis = this;
@@ -223,40 +256,41 @@ sap.ui.define([
 
             if (sSelectedKey === "Customer") {
 
-                const oTable = oView.byId("customerTable"); 
+                const oTable = oView.byId("customerTable");
                 const aSelectedItems = oTable.getSelectedItems();
 
                 if (!aSelectedItems.length) {
                     sap.m.MessageToast.show("Please select at least one customer record.");
                     oView.setBusy(false);
                     return;
-                } 
+                }
                 const aCustReq = [];
 
                 aSelectedItems.forEach(function (oItem) {
                     const oData = oItem.getBindingContext().getObject();
                     const aCells = oItem.getCells();
                     const sApprovalAmt = aCells[8].getValue();
-                        aCustReq.push({
-                            "RequestNo": "",
-                            "DateAson": formatToODataDate(oData.DateAson || new Date()),  
-                            "Kunnr": oData.Kunnr,
-                            "Pspid": oData.Pspid || "",
-                            "Name1": oData.Name1,
-                            "Paval": oData.Paval || "",
-                            "Project": oData.Project || "",
-                            "ProjectName": oData.ProjectName || "",
-                            "UnitNo": oData.UnitNo || "",
-                            "Docnr": oData.Docnr,
-                            "Gjahr": oData.Gjahr,
-                            "Bukrs": oData.Bukrs,
-                            "Budat": formatToODataDate(oData.Budat),
-                            "TotalAmt": oData.TotalAmt,
-                            "PayMethod": oData.PayMethod || "",
-                            "ApprovalAmt": sApprovalAmt,
-                            "Bankl": oData.Bankl || ""
-                        }); 
-                }); 
+                    aCustReq.push({
+                        "RequestNo": "",
+                        "DateAson": formatToODataDate(oData.DateAson || new Date()),
+                        "Kunnr": oData.Kunnr,
+                        "Pspid": oData.Pspid || "",
+                        "Name1": oData.Name1,
+                        "Paval": oData.Paval || "",
+                        "Project": oData.Project || "",
+                        "ProjectName": oData.ProjectName || "",
+                        "UnitNo": oData.UnitNo || "",
+                        "Docnr": oData.Docnr,
+                        "Gjahr": oData.Gjahr,
+                        "Bukrs": oData.Bukrs,
+                        "Budat": formatToODataDate(oData.Budat),
+                        "TotalAmt": oData.TotalAmt,
+                        "PayMethod": oData.PayMethod || "",
+                        "ApprovalAmt": sApprovalAmt,
+                        "Bankl": oData.Bankl || ""
+                    });
+                });
+                console.log("acustrequest" , aCustReq)
 
                 const oPayload = {
                     RequestNo: "",
@@ -275,49 +309,44 @@ sap.ui.define([
                     }
                 });
 
-
-
-
             }
             else if (sSelectedKey === "Vendor") {
-                const oSmartTable = oView.byId("vendorTable");
-                const oTable = oSmartTable.getTable();
-                const aItems1 = oTable.getItems();
+                const oVendorTable = oView.byId("vendorTable"); 
+                const aSelectedVendors = oVendorTable.getSelectedItems();
 
+                if (!aSelectedVendors.length) {
+                    sap.m.MessageToast.show("Please select at least one Vendor record.");
+                    oView.setBusy(false);
+                    return;
+                }
                 const aVenReq = [];
-
-                // Get VendorData from model
                 const oVendorData = this.mdl_zFilter.getProperty("/Create/VendorData");
 
-                aItems1.forEach(function (oItem) {
-                    const oCtx = oItem.getBindingContext();
-                    const oData = oCtx.getObject();
-
-                    if (oData.Selected) {
-                        const formatToODataDate = function (dateString) {
-                            const oDate = new Date(dateString);
-                            return `/Date(${oDate.getTime()})/`;
-                        };
+                aSelectedVendors.forEach(function (oItem) { 
+                    const oData = oItem.getBindingContext().getObject(); 
+                    console.log("Full data from EntitySet:", oData);
 
                         const sLifnr = oData.Lifnr;
-                        const sPayMethod = oVendorData[sLifnr] ? oVendorData[sLifnr].PayMethod : "";
+                        const sPayMethod = oData.PayMethod;
 
+                        var aInvoices = this.mdl_zFilter.getData().oVendorData[sLifnr].Invoices;
                         aVenReq.push({
-                            Lifnr: sLifnr,
-                            Category: "I",
-                            Docnr: oData.Docnr,
-                            Bukrs: oData.Bukrs,
-                            Gjahr: oData.Gjahr,
-                            Budat: formatToODataDate(oData.Budat),
-                            DocAmt: oData.DocAmt,
-                            PayMethod: sPayMethod,
-                            ApprovalAmt: oData.ApprovalAmt,
-                            Project: oData.Project || "",
-                            ProjectName: oData.ProjectName || "",
-                            RequestNo: ""
+                            "Lifnr": aInvoices.sLifnr,
+                            "Category":aInvoices.Category,
+                            "Docnr": aInvoices.Docnr,
+                            "Bukrs": aInvoices.Bukrs,
+                            "Gjahr": aInvoices.Gjahr,
+                            "Budat":  aInvoices.Budat,
+                            "DocAmt": aInvoices.DocAmt,
+                            "PayMethod": sPayMethod,
+                            "ApprovalAmt": aInvoices.ApprovalAmt,
+                            "Project": aInvoices.Project || "",
+                            "ProjectName": aInvoices.ProjectName || "",
+                            "RequestNo": ""
                         });
-                    }
+                    
                 });
+                console.log("avenrequest" , aVenReq)
 
                 if (aVenReq.length === 0) {
                     console.log("Please select at least one vendor record.");
@@ -327,11 +356,9 @@ sap.ui.define([
                 const oPayload = {
                     RequestNo: "",
                     VenReq: aVenReq
-                };
+                }; 
 
-                oView.setBusy(true);
-
-                oModel1.create("/VendorReqSet", oPayload, {
+                oModel.create("/VendorReqSet", oPayload, {
                     success: function () {
                         oView.setBusy(false);
                         // sap.m.MessageToast.show("Vendor invoice request submitted successfully.");
@@ -343,71 +370,7 @@ sap.ui.define([
                     }
                 });
             }
-        },
-        onCheckboxSelect1: function (oEvent) {
-            const bSelected = oEvent.getParameter("selected");
-            const oCheckBox = oEvent.getSource();
-            const oRow = oCheckBox.getParent(); 
-            const oContext = oRow.getBindingContext();  
-            const aCells = oRow.getCells();
-            const oInput = aCells.find(cell => cell.isA("sap.m.Input"));
-            const sTotalAmt = oContext.getProperty("TotalAmt");
-
-            
-            if (bSelected) {  
-                oInput.setValue(sTotalAmt) ;
-                oInput.setEditable(false);
-            } else {  
-                oInput.setEditable(true);
-            }
-         
-        },
-        formatter: {
-            getDefaultQty: function () {
-                return "";
-            } 
-        },
-        onQtyLiveChange: function (oEvent) {
-            var oInput = oEvent.getSource();
-            var sValue = oInput.getValue();
-            var oContext = oInput.getBindingContext();
-            if (!oContext) {
-                console.warn("No binding context for input field.");
-                return;
-            }
-            var oRow = oInput.getParent();
-    var oCheckBox = oRow.getCells().find(cell => cell.isA("sap.m.CheckBox"));
-    var iValue = parseInt(sValue, 10);
-            var TotalAmount = parseInt(oContext.getProperty("TotalAmt"), 10) || 0;
-            if (!/^\d+$/.test(sValue)) {
-                oInput.setValueState("Error");
-                oInput.setValueStateText("Maintain a valid Payment");
-                oCheckBox.setSelected(false);
-                return;
-            }
-            if (isNaN(iValue) || sValue < 1) {
-                oInput.setValueState("Error");
-                oInput.setValueStateText("Add valid value");
-                oCheckBox.setSelected(false);
-            } else if (iValue > TotalAmount) {
-                oInput.setValueState("Error");
-                oInput.setValueStateText("Payable amount exceeds Total Amount");
-                oCheckBox.setSelected(false);
-            }  
-            else {
-                oInput.setValueState("None");
-                if (iValue === TotalAmount) {
-                    oCheckBox.setSelected(true);
-                    oInput.setEditable(false);
-                } else {
-                    oCheckBox.setSelected(false);
-                    oInput.setEditable(true);
-                }
-            }           
-
-        },
-
-        
-
+        }
+ 
     });
 });
