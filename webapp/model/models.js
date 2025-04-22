@@ -18,14 +18,14 @@ function (JSONModel, Device) {
         createLocalJson: function () {
             var oVendorData = this.getVendorBlank(); 
             var oModel = new JSONModel({
-                "VendorData": oVendorData 
+                "VendorDetails": oVendorData 
             });
             return oModel;
         },
 
         getVendorBlank: function () {
             return { 
-                SelectedKey: "",
+                SelectedKey: "Vendors",
                 "VendorData":{}                  
             }
         } 

@@ -16,7 +16,8 @@
         <Select
             id="payMethodChange.id"
             selectedKey="{dialogState>/PayMethodSelectedKey}"
-            width="30%" 
+            width="30%"
+            change="onPayMethodChange"
             class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin"
         >
             <core:Item
@@ -89,18 +90,22 @@
                         <Text
                             text="{path:'filtered>Budat',formatter:'.formatDate'}"
                         />
-                        <Text text="{filtered>DocAmt}" /> 
+                        <Text text="{filtered>DocAmt}" />
                         <CheckBox
                             selected="{= ${dialogState>/PayMethodSelectedKey} === 'OPTION_Full' || ${filtered>PayMethod} === 'X'}"
                             enabled="{= ${dialogState>/PayMethodSelectedKey} === 'OPTION_Partial' }"
                             select=".onFullPaymentSelected"
-                        /> 
+                        />
                         <Input
                             value="{filtered>ApprovalAmt}"
-                            editable="{= ${dialogState>/PayMethodSelectedKey} === 'OPTION_Partial'}"
+                            editable="{parts: [
+        {path: 'dialogState>/PayMethodSelectedKey'},
+        {path: 'filtered>PayMethod'}
+    ], formatter: '.editableBasedOnPayMethod'}"
                             placeholder="Enter amount"
                             liveChange=".onApprovalAmtChange"
                         />
+
                         <Text text="{filtered>Project}" />
                     </cells>
                 </ColumnListItem>

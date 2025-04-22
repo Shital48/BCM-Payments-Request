@@ -34,11 +34,11 @@ sap.ui.define([
             var oView = this.getView();
 
             if (selectedKey === "OPTION_VENDER") {
-                this.mdl_zFilter.setProperty("/VendorData/SelectedKey", "Vendors");
+                this.mdl_zFilter.setProperty("/VendorDetails/SelectedKey", "Vendors");
                 oView.byId("vendorsSection").setVisible(true);
                 oView.byId("customersSection").setVisible(false);
             } else if (selectedKey === "OPTION_CUSTOMER") {
-                this.mdl_zFilter.setProperty("/VendorData/SelectedKey", "Customers");
+                this.mdl_zFilter.setProperty("/VendorDetails/SelectedKey", "Customers");
                 oView.byId("customersSection").setVisible(true);
                 oView.byId("vendorsSection").setVisible(false);
             }
@@ -143,12 +143,12 @@ sap.ui.define([
             var sLifnr = oData.Lifnr;
             var oDateAson = oData.DateAson;
             var sDateAson = new Date(oDateAson).toISOString().split(".")[0];
-            const oVendorData = this.mdl_zFilter.getProperty("/VendorData") || {};
+            const oVendorData = this.mdl_zFilter.getProperty("/VendorDetails") || {};
             if (!oVendorData[sLifnr]) {
                 oVendorData[sLifnr] = {
                     PayMethodSelectedKey: "OPTION_Select"
                 };
-                this.mdl_zFilter.setProperty("/VendorData", oVendorData);
+                this.mdl_zFilter.setProperty("/VendorDetails", oVendorData);
             }
             const oDialogStateModel = new JSONModel(Object.assign({}, oVendorData[sLifnr]));
 
@@ -200,7 +200,7 @@ sap.ui.define([
                                 }
 
                                 oVendorData[sLifnr].Invoices = aVenDetResults;
-                                this.mdl_zFilter.setProperty("/VendorData", oVendorData);
+                                this.mdl_zFilter.setProperty("/VendorDetails", oVendorData);
                             }
                         }
                     }.bind(this),
@@ -228,7 +228,7 @@ sap.ui.define([
             const oDialogState = oDialog.getModel("dialogState").getData();
 
             const sLifnr = this._oButton.getBindingContext().getProperty("Lifnr");
-            const oVendorData = this.mdl_zFilter.getProperty("/VendorData");
+            const oVendorData = this.mdl_zFilter.getProperty("/VendorDetails");
 
             oVendorData[sLifnr] = oDialogState;
             const updatedInvoices = oDialog.getModel("filtered").getProperty("/results");
@@ -241,7 +241,7 @@ sap.ui.define([
                 }
                 oVendorData[sLifnr].Invoices = updatedInvoices;
             }
-            this.mdl_zFilter.setProperty("/VendorData", oVendorData);
+            this.mdl_zFilter.setProperty("/VendorDetails", oVendorData);
 
             const sNewText = oDialogState.PayMethodSelectedKey;
             if (this._oButton) {
@@ -260,9 +260,37 @@ sap.ui.define([
                 record.ApprovalAmt = "0.000";
                 record.PayMethod = "";
             }
-            
+            const oModel = oContext.getModel();
+            oModel.checkUpdate(true);
 
         },
+        editableBasedOnPayMethod: function (sGlobalPayMethod, sRowPayMethod) {
+            return sGlobalPayMethod === "OPTION_Partial" && sRowPayMethod !== "X";
+        },
+        
+        onPayMethodChange: function (oEvent) {
+            const sKey = oEvent.getSource().getSelectedKey(); 
+            const sLifnr = this._oButton.getBindingContext().getProperty("Lifnr");
+            const oDialog = this._dialogMap[sLifnr];
+            const oFilteredModel = oDialog.getModel("filtered");
+    const aInvoices = oFilteredModel.getProperty("/results");
+
+            if (sKey === "OPTION_Full") {
+                aInvoices.forEach(function (oInvoice) {
+                    oInvoice.PayMethod = "X";
+                    oInvoice.ApprovalAmt = oInvoice.DocAmt;
+                });
+            } else if (sKey === "OPTION_Partial") {
+                aInvoices.forEach(function (oInvoice) {
+                    oInvoice.PayMethod = "";
+                    oInvoice.ApprovalAmt = "0.000";  
+                });
+            }
+         
+            oFilteredModel.setProperty("/results", aInvoices);
+            oFilteredModel.checkUpdate(true);  
+        },
+        
         onApprovalAmtChange: function (oEvent) {
             const oInput = oEvent.getSource();
             const sNewApprovalAmt = oInput.getValue();
@@ -291,7 +319,7 @@ sap.ui.define([
             const oModel = this.getView().getModel();
             const oView = this.getView();
 
-            const sSelectedKey = this.mdl_zFilter.getProperty("/VendorData/SelectedKey");
+            const sSelectedKey = this.mdl_zFilter.getProperty("/VendorDetails/SelectedKey");
             oView.setBusy(true);
 
             const formatToODataDate = function (dateString) {
@@ -368,7 +396,7 @@ sap.ui.define([
                     return;
                 }
                 const aVenReq = [];
-                const oVendorData = this.mdl_zFilter.getProperty("/VendorData");
+                const oVendorData = this.mdl_zFilter.getProperty("/VendorDetails");
 
                 aSelectedVendors.forEach(function (oItem) {
                     const oData = oItem.getBindingContext().getObject();
@@ -417,8 +445,7 @@ sap.ui.define([
                     },
                     error: function (oError) {
                         oView.setBusy(false);
-                        console.error("Vendor POST failed", oError);
-                        oSmartTable.rebindTable();
+                        console.error("Vendor POST failed", oError); 
                         console.log("Model::::", this.mdl_zFilter.getData());
                     }
                 });
