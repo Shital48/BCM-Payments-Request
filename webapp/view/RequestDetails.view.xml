@@ -202,6 +202,7 @@
                     </smartTable:layoutData>
                 </smartTable:SmartTable>
             </VBox>
+ 
 
             <VBox
                 fitContainer="true"
@@ -255,7 +256,7 @@
                     class="sapUiResponsiveContentPadding"
                     ignoreFromPersonalisation=""
                     enableAutoColumnWidth="true"
-                    initiallyVisibleFields="Kunnr,Name1,Project,UnitNo,Docnr,Budat,TotalAmt,ApprovalAmt"
+                    initiallyVisibleFields="Kunnr,Name1,Project,UnitNo,Docnr,Budat,TotalAmt,ApprovalAmt,Bukrs,DateAson,Pspid ,Paval,ProjectName,Gjahr,PayMethod,Bankl"
                 >
                     <Table
                         id="customerTable"
@@ -347,6 +348,8 @@
                                 </customData>
                                 <Text text="{i18n>ApprovalAmt}" />
                             </Column>
+
+                            
                         </columns>
 
                         <items>
@@ -363,12 +366,12 @@
                                     <Text text="{TotalAmt}" />
                                     <CheckBox select=".onCheckboxSelect1" />
                                     <Input
-                                        value="{path: 'ApprovalAmt', formatter: '.formatter.getDefaultQty'}"
+                                        value="{ApprovalAmt}"
                                         editable="true"
                                         placeholder="Enter amount"
                                         liveChange=".onQtyLiveChange"
-                                        valueLiveUpdate="true"
-                                    />
+                                        valueLiveUpdate="true"  
+                                    /> 
                                 </cells>
                             </ColumnListItem>
                         </items>

@@ -16,21 +16,19 @@ function (JSONModel, Device) {
             return oModel;
         },
         createLocalJson: function () {
-            var oVendorData = this.getRequestBlank();
+            var oVendorData = this.getVendorBlank(); 
             var oModel = new JSONModel({
-                "VendorData": oVendorData
+                "VendorData": oVendorData 
             });
             return oModel;
         },
 
-        getRequestBlank: function () {
+        getVendorBlank: function () {
             return { 
-                SelectedKey: "Vendor",
-                "VendorData":{}, 
-                "PaymentMethod":"", 
-                 
+                SelectedKey: "",
+                "VendorData":{}                  
             }
-        }
+        } 
     };
 
 });

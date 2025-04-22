@@ -34,11 +34,11 @@ sap.ui.define([
             var oView = this.getView();
 
             if (selectedKey === "OPTION_VENDER") {
-                this.mdl_zFilter.setProperty("/Create/SelectedKey", "Vendor");
+                this.mdl_zFilter.setProperty("/VendorData/SelectedKey", "Vendors");
                 oView.byId("vendorsSection").setVisible(true);
                 oView.byId("customersSection").setVisible(false);
             } else if (selectedKey === "OPTION_CUSTOMER") {
-                this.mdl_zFilter.setProperty("/Create/SelectedKey", "Customer");
+                this.mdl_zFilter.setProperty("/VendorData/SelectedKey", "Customers");
                 oView.byId("customersSection").setVisible(true);
                 oView.byId("vendorsSection").setVisible(false);
             }
@@ -53,21 +53,24 @@ sap.ui.define([
         onCheckboxSelect1: function (oEvent) {
             const bSelected = oEvent.getParameter("selected");
             const oCheckBox = oEvent.getSource();
+            const oContext1 = oCheckBox.getBindingContext();
+            const record = oContext1.getObject();
             const oRow = oCheckBox.getParent();
             const oContext = oRow.getBindingContext();
             const aCells = oRow.getCells();
             const oInput = aCells.find(cell => cell.isA("sap.m.Input"));
             const sTotalAmt = oContext.getProperty("TotalAmt");
 
-
             if (bSelected) {
                 oInput.setValue(sTotalAmt);
                 oInput.setEditable(false);
+                record.PayMethod = "X";
             } else {
                 oInput.setEditable(true);
-            }
-
-        },
+                oInput.setValue("0.000");
+                record.PayMethod = "";
+            }             
+        }, 
         formatter: {
             getDefaultQty: function () {
                 return "";
@@ -77,40 +80,42 @@ sap.ui.define([
             var oInput = oEvent.getSource();
             var sValue = oInput.getValue();
             var oContext = oInput.getBindingContext();
+            const record = oContext.getObject();
             if (!oContext) {
                 console.warn("No binding context for input field.");
                 return;
             }
+            if (!record.OriginalTotalAmt) {
+                record.OriginalTotalAmt = record.TotalAmt;
+            }
             var oRow = oInput.getParent();
             var oCheckBox = oRow.getCells().find(cell => cell.isA("sap.m.CheckBox"));
             var iValue = parseInt(sValue, 10);
-            var TotalAmount = parseInt(oContext.getProperty("TotalAmt"), 10) || 0;
-            if (!/^\d+$/.test(sValue)) {
-                oInput.setValueState("Error");
-                oInput.setValueStateText("Maintain a valid Payment");
-                oCheckBox.setSelected(false);
-                return;
-            }
+            var TotalAmount = parseInt(record.OriginalTotalAmt, 10) || 0;
+
+            // if (/^\d+$/.test(sValue)) {
+            //     oInput.setValueState("Error");
+            //     oInput.setValueStateText("Maintain a valid Payment"); 
+            //     return;
+            // }
             if (isNaN(iValue) || sValue < 1) {
                 oInput.setValueState("Error");
-                oInput.setValueStateText("Add valid value");
-                oCheckBox.setSelected(false);
+                oInput.setValueStateText("Add valid value"); 
             } else if (iValue > TotalAmount) {
                 oInput.setValueState("Error");
-                oInput.setValueStateText("Payable amount exceeds Total Amount");
-                oCheckBox.setSelected(false);
+                oInput.setValueStateText("Payable amount exceeds Total Amount"); 
             }
             else {
                 oInput.setValueState("None");
                 if (iValue === TotalAmount) {
                     oCheckBox.setSelected(true);
-                    oInput.setEditable(false);
+                    oInput.setEditable(false); 
                 } else {
                     oCheckBox.setSelected(false);
-                    oInput.setEditable(true);
+                    oInput.setEditable(true); 
                 }
             }
-
+            
         },
 
 
@@ -225,7 +230,7 @@ sap.ui.define([
             const sLifnr = this._oButton.getBindingContext().getProperty("Lifnr");
             const oVendorData = this.mdl_zFilter.getProperty("/VendorData");
 
-            oVendorData[sLifnr] = oDialogState; 
+            oVendorData[sLifnr] = oDialogState;
             const updatedInvoices = oDialog.getModel("filtered").getProperty("/results");
             if (updatedInvoices) {
                 if (oDialogState.PayMethodSelectedKey === "OPTION_Full") {
@@ -249,14 +254,13 @@ sap.ui.define([
             const oContext = oEvent.getSource().getBindingContext("filtered");
             const record = oContext.getObject();
             if (bSelected) {
-            record.ApprovalAmt = record.DocAmt;
-            record.PayMethod = "X";
-            }else{
+                record.ApprovalAmt = record.DocAmt;
+                record.PayMethod = "X";
+            } else {
                 record.ApprovalAmt = "0.000";
                 record.PayMethod = "";
             }
-            const oModel = oContext.getModel();
-            oModel.refresh();
+            
 
         },
         onApprovalAmtChange: function (oEvent) {
@@ -264,21 +268,19 @@ sap.ui.define([
             const sNewApprovalAmt = oInput.getValue();
             const approvalAmt = parseFloat(sNewApprovalAmt);
 
-            const oContext = oEvent.getSource().getBindingContext("filtered");
+            const oContext = oInput.getBindingContext("filtered");
             const record = oContext.getObject();
             const docAmt = parseFloat(record.DocAmt);
 
             if (docAmt === approvalAmt) {
                 record.PayMethod = "X";
             }
-            else{
+            else {
                 record.PayMethod = "";
             }
-            const oModel = oContext.getModel();
-            oModel.refresh();
+            
+        },
 
-        } ,
-        
 
 
 
@@ -289,7 +291,7 @@ sap.ui.define([
             const oModel = this.getView().getModel();
             const oView = this.getView();
 
-            const sSelectedKey = this.mdl_zFilter.getProperty("/Create/SelectedKey");
+            const sSelectedKey = this.mdl_zFilter.getProperty("/VendorData/SelectedKey");
             oView.setBusy(true);
 
             const formatToODataDate = function (dateString) {
@@ -297,7 +299,7 @@ sap.ui.define([
                 return `/Date(${oDate.getTime()})/`;
             };
 
-            if (sSelectedKey === "Customer") {
+            if (sSelectedKey === "Customers") {
 
                 const oTable = oView.byId("customerTable");
                 const aSelectedItems = oTable.getSelectedItems();
@@ -311,8 +313,11 @@ sap.ui.define([
 
                 aSelectedItems.forEach(function (oItem) {
                     const oData = oItem.getBindingContext().getObject();
+                     
                     const aCells = oItem.getCells();
                     const sApprovalAmt = aCells[8].getValue();
+                    const isFullPayment = parseFloat(sApprovalAmt) === parseFloat(oData.TotalAmt);
+
                     aCustReq.push({
                         "RequestNo": "",
                         "DateAson": formatToODataDate(oData.DateAson || new Date()),
@@ -322,13 +327,13 @@ sap.ui.define([
                         "Paval": oData.Paval || "",
                         "Project": oData.Project || "",
                         "ProjectName": oData.ProjectName || "",
-                        "UnitNo": oData.UnitNo || "",
+                        "UnitNo": oData.UnitNo || "",                      
                         "Docnr": oData.Docnr,
                         "Gjahr": oData.Gjahr,
                         "Bukrs": oData.Bukrs,
                         "Budat": formatToODataDate(oData.Budat),
                         "TotalAmt": oData.TotalAmt,
-                        "PayMethod": oData.PayMethod || "",
+                        "PayMethod": isFullPayment ? "X" : "",
                         "ApprovalAmt": sApprovalAmt,
                         "Bankl": oData.Bankl || ""
                     });
@@ -353,7 +358,7 @@ sap.ui.define([
                 });
 
             }
-            else if (sSelectedKey === "Vendor") {
+            else if (sSelectedKey === "Vendors") {
                 const oVendorTable = oView.byId("vendorTable");
                 const aSelectedVendors = oVendorTable.getSelectedItems();
 
@@ -408,12 +413,24 @@ sap.ui.define([
                         oView.setBusy(false);
                         // sap.m.MessageToast.show("Vendor invoice request submitted successfully.");
                         console.log("Vendor POST successful");
+                        const oSmartTable = oView.byId("vendorTable").getParent();
                     },
                     error: function (oError) {
                         oView.setBusy(false);
                         console.error("Vendor POST failed", oError);
+                        oSmartTable.rebindTable();
+                        console.log("Model::::", this.mdl_zFilter.getData());
                     }
                 });
+
+                // vendorTable is the inner Table
+                // const oTableBinding = oSmartTable.getTable().getBinding("items");
+
+                // if (oTableBinding) {
+                //     oTableBinding.refresh(); // Refreshes the table binding (pulls latest data from model)
+                // }
+
+
             }
         }
 
