@@ -14,13 +14,13 @@ builder:
       afterTask: generateCachebusterInfo
       configuration:
         target:
-          destination: PED100
+          destination: PEDDEV_100
           url: http://falcon-dev.sap.prestigeconstructions.com:443
-          client: '120'
+          client: '100'
         app:
           name: Z_BCM_REQUEST
           description: BCM Request Application
           package: ZFIORI
-          transport: PEDK935679
+          transport: PEDK935700
         exclude:
           - /test/
