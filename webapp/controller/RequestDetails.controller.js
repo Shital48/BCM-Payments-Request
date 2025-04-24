@@ -5,9 +5,11 @@ sap.ui.define([
     "sap/ui/core/format/DateFormat",
     "sap/ui/model/Filter",
     "sap/ui/core/Fragment",
-    "sap/ui/model/FilterOperator"
+    "sap/ui/model/FilterOperator",
+    "sap/m/MessageToast",
+    "sap/m/MessageBox"
 
-], (models, Controller, JSONModel, DateFormat, Filter, Fragment, FilterOperator) => {
+], (models, Controller, JSONModel, DateFormat, Filter, Fragment, FilterOperator, MessageToast, MessageBox) => {
     "use strict";
 
     return Controller.extend("refunddetails.controller.RequestDetails", {
@@ -69,8 +71,8 @@ sap.ui.define([
                 oInput.setEditable(true);
                 oInput.setValue("0.000");
                 record.PayMethod = "";
-            }             
-        }, 
+            }
+        },
         formatter: {
             getDefaultQty: function () {
                 return "";
@@ -100,22 +102,22 @@ sap.ui.define([
             // }
             if (isNaN(iValue) || sValue < 1) {
                 oInput.setValueState("Error");
-                oInput.setValueStateText("Add valid value"); 
+                oInput.setValueStateText("Add valid value");
             } else if (iValue > TotalAmount) {
                 oInput.setValueState("Error");
-                oInput.setValueStateText("Payable amount exceeds Total Amount"); 
+                oInput.setValueStateText("Payable amount exceeds Total Amount");
             }
             else {
                 oInput.setValueState("None");
                 if (iValue === TotalAmount) {
                     oCheckBox.setSelected(true);
-                    oInput.setEditable(false); 
+                    oInput.setEditable(false);
                 } else {
                     oCheckBox.setSelected(false);
-                    oInput.setEditable(true); 
+                    oInput.setEditable(true);
                 }
             }
-            
+
         },
 
 
@@ -224,6 +226,7 @@ sap.ui.define([
         },
 
         onConfirmDialog: function (oEvent) {
+            var sNewText = "";
             const oDialog = oEvent.getSource().getParent();
             const oDialogState = oDialog.getModel("dialogState").getData();
 
@@ -243,10 +246,15 @@ sap.ui.define([
             }
             this.mdl_zFilter.setProperty("/VendorDetails", oVendorData);
 
-            const sNewText = oDialogState.PayMethodSelectedKey;
-            if (this._oButton) {
-                this._oButton.setText(sNewText);
+            if (oDialogState.PayMethodSelectedKey === "OPTION_Full") {
+                sNewText = "Full";
             }
+            else if (oDialogState.PayMethodSelectedKey === "OPTION_Partial") {
+                sNewText = "Partial";
+            }
+
+            this._oButton.setText(sNewText);
+
             oDialog.close();
         },
         onFullPaymentSelected: function (oEvent) {
@@ -267,13 +275,13 @@ sap.ui.define([
         editableBasedOnPayMethod: function (sGlobalPayMethod, sRowPayMethod) {
             return sGlobalPayMethod === "OPTION_Partial" && sRowPayMethod !== "X";
         },
-        
+
         onPayMethodChange: function (oEvent) {
-            const sKey = oEvent.getSource().getSelectedKey(); 
+            const sKey = oEvent.getSource().getSelectedKey();
             const sLifnr = this._oButton.getBindingContext().getProperty("Lifnr");
             const oDialog = this._dialogMap[sLifnr];
             const oFilteredModel = oDialog.getModel("filtered");
-    const aInvoices = oFilteredModel.getProperty("/results");
+            const aInvoices = oFilteredModel.getProperty("/results");
 
             if (sKey === "OPTION_Full") {
                 aInvoices.forEach(function (oInvoice) {
@@ -283,14 +291,14 @@ sap.ui.define([
             } else if (sKey === "OPTION_Partial") {
                 aInvoices.forEach(function (oInvoice) {
                     oInvoice.PayMethod = "";
-                    oInvoice.ApprovalAmt = "0.000";  
+                    oInvoice.ApprovalAmt = "0.000";
                 });
             }
-         
+
             oFilteredModel.setProperty("/results", aInvoices);
-            oFilteredModel.checkUpdate(true);  
+            oFilteredModel.checkUpdate(true);
         },
-        
+
         onApprovalAmtChange: function (oEvent) {
             const oInput = oEvent.getSource();
             const sNewApprovalAmt = oInput.getValue();
@@ -306,7 +314,7 @@ sap.ui.define([
             else {
                 record.PayMethod = "";
             }
-            
+
         },
 
 
@@ -331,17 +339,34 @@ sap.ui.define([
 
                 const oTable = oView.byId("customerTable");
                 const aSelectedItems = oTable.getSelectedItems();
+                const aCustReq = [];
 
+
+                let bHasMissingPayMethod = false;
                 if (!aSelectedItems.length) {
-                    sap.m.MessageToast.show("Please select at least one customer record.");
+                    MessageToast.show("Please select at least one customer record.");
                     oView.setBusy(false);
                     return;
                 }
-                const aCustReq = [];
+
+                aSelectedItems.forEach(function (oItem1) {
+                    const aCells = oItem1.getCells();
+                    const sTextValue = aCells[8].getValue();
+                    if (sTextValue.trim() === "0.000") {
+                        bHasMissingPayMethod = true;
+                    }
+                });
+
+                if (bHasMissingPayMethod) {
+                    oView.setBusy(false);
+                    MessageToast.show("Please add Payment Method in all selected records.");
+                    return;
+                }
+
 
                 aSelectedItems.forEach(function (oItem) {
                     const oData = oItem.getBindingContext().getObject();
-                     
+
                     const aCells = oItem.getCells();
                     const sApprovalAmt = aCells[8].getValue();
                     const isFullPayment = parseFloat(sApprovalAmt) === parseFloat(oData.TotalAmt);
@@ -355,7 +380,7 @@ sap.ui.define([
                         "Paval": oData.Paval || "",
                         "Project": oData.Project || "",
                         "ProjectName": oData.ProjectName || "",
-                        "UnitNo": oData.UnitNo || "",                      
+                        "UnitNo": oData.UnitNo || "",
                         "Docnr": oData.Docnr,
                         "Gjahr": oData.Gjahr,
                         "Bukrs": oData.Bukrs,
@@ -363,7 +388,8 @@ sap.ui.define([
                         "TotalAmt": oData.TotalAmt,
                         "PayMethod": isFullPayment ? "X" : "",
                         "ApprovalAmt": sApprovalAmt,
-                        "Bankl": oData.Bankl || ""
+                        "Bankl": oData.Bankl || "",
+                        "Buzei": oData.Buzei
                     });
                 });
                 console.log("acustrequest", aCustReq)
@@ -377,11 +403,12 @@ sap.ui.define([
                 oModel.create("/CustomerReqSet", oPayload, {
                     success: function () {
                         oView.setBusy(false);
-                        console.log("Customer submission successful!");
+                        MessageBox.success("Customer submission successful!");
                     },
                     error: function (oError) {
                         oView.setBusy(false);
-                        console.error("Customer POST failed", oError);
+                        console.error("Error: ", oError);
+                        MessageBox.error("Customer submission failed. Please try again.");
                     }
                 });
 
@@ -391,10 +418,29 @@ sap.ui.define([
                 const aSelectedVendors = oVendorTable.getSelectedItems();
 
                 if (!aSelectedVendors.length) {
-                    sap.m.MessageToast.show("Please select at least one Vendor record.");
+                    MessageToast.show("Please select at least one Vendor record.");
                     oView.setBusy(false);
                     return;
                 }
+
+                let bHasMissingPayMethod = false;
+                aSelectedVendors.forEach(function (oItem1) {
+                    const aCells = oItem1.getCells();
+                    const oButton = aCells[4];
+                    const sButtonText = oButton.getText();
+
+                    if (!sButtonText.trim()) {
+                        bHasMissingPayMethod = true;
+                    }
+                });
+
+                if (bHasMissingPayMethod) {
+                    oView.setBusy(false);
+                    MessageToast.show("Please add Payment Method in all selected records.");
+                    return;
+                }
+
+
                 const aVenReq = [];
                 const oVendorData = this.mdl_zFilter.getProperty("/VendorDetails");
 
@@ -420,6 +466,7 @@ sap.ui.define([
                             "ApprovalAmt": invoice.ApprovalAmt,
                             "Project": invoice.Project || "",
                             "ProjectName": invoice.ProjectName || "",
+                            "Buzei": invoice.Buzei,
                             "RequestNo": ""
                         });
                     });
@@ -439,14 +486,23 @@ sap.ui.define([
                 oModel.create("/VendorReqSet", oPayload, {
                     success: function () {
                         oView.setBusy(false);
-                        // sap.m.MessageToast.show("Vendor invoice request submitted successfully.");
-                        console.log("Vendor POST successful");
-                        const oSmartTable = oView.byId("vendorTable").getParent();
+                        MessageBox.success("Vendor submission successful!");
+                        const oSmartTable = oView.byId("vendorTable");
+                        const oTableBinding = oSmartTable.getBinding("items");
+
+                        if (oTableBinding) {
+                            oTableBinding.refresh();  
+                        }
+                        // const oDialog = oEvent.getSource().getParent();
+                        // const oDialogState = oDialog.getModel("dialogState").getData();
+                        // oDialogState.PayMethodSelectedKey="";
+
+
                     },
                     error: function (oError) {
                         oView.setBusy(false);
-                        console.error("Vendor POST failed", oError); 
-                        console.log("Model::::", this.mdl_zFilter.getData());
+                        console.error("Error: ", oError);
+                        MessageBox.error("Vendor submission failed. Please try again.");
                     }
                 });
 

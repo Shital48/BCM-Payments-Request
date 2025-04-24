@@ -255,8 +255,8 @@
                     enableAutoBinding="true"
                     class="sapUiResponsiveContentPadding"
                     ignoreFromPersonalisation=""
-                    enableAutoColumnWidth="true"
-                    initiallyVisibleFields="Kunnr,Name1,Project,UnitNo,Docnr,Budat,TotalAmt,ApprovalAmt,Bukrs,DateAson,Pspid ,Paval,ProjectName,Gjahr,PayMethod,Bankl"
+                    enableAutoColumnWidth="true"                    
+                    initiallyVisibleFields="Kunnr,Name1,Project,UnitNo,Docnr,Budat,TotalAmt,ApprovalAmt"
                 >
                     <Table
                         id="customerTable"
@@ -339,11 +339,13 @@
                                 </header>
                             </Column>
 
-                            <Column>
+                            <Column 
+                            >
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "ApprovalAmt", "leadingProperty": "ApprovalAmt", "columnIndex": 8}'
+                                        value='{"columnKey": "ApprovalAmt", "leadingProperty": "ApprovalAmt", "columnIndex": 8, 
+                            "additionalProperty": "Bukrs,DateAson,Pspid ,Paval,ProjectName,Gjahr,PayMethod,Bankl,Buzei"}'
                                     />
                                 </customData>
                                 <Text text="{i18n>ApprovalAmt}" />
