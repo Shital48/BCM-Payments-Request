@@ -25,8 +25,7 @@ function (JSONModel, Device) {
 
         getVendorBlank: function () {
             return { 
-                SelectedKey: "Vendors",
-                "VendorData":{}                  
+                SelectedKey: "Vendors"                  
             }
         } 
     };

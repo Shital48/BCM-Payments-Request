@@ -132,6 +132,9 @@ sap.ui.define([
 
         onPayMethodPress: function (oEvent) {
             this._oButton = oEvent.getSource();
+            this.rowContext=this._oButton.getParent();        
+             
+
             const oContext = this._oButton.getBindingContext();
             if (!oContext) {
                 console.log("No binding context found for this button.");
@@ -227,6 +230,7 @@ sap.ui.define([
 
         onConfirmDialog: function (oEvent) {
             var sNewText = "";
+            let fTotalApprovalAmt = 0;
             const oDialog = oEvent.getSource().getParent();
             const oDialogState = oDialog.getModel("dialogState").getData();
 
@@ -236,15 +240,23 @@ sap.ui.define([
             oVendorData[sLifnr] = oDialogState;
             const updatedInvoices = oDialog.getModel("filtered").getProperty("/results");
             if (updatedInvoices) {
-                if (oDialogState.PayMethodSelectedKey === "OPTION_Full") {
-                    updatedInvoices.forEach(function (invoice) {
+
+                updatedInvoices.forEach(function (invoice) {
+                    if (oDialogState.PayMethodSelectedKey === "OPTION_Full") {
+
                         invoice.ApprovalAmt = invoice.DocAmt;
                         invoice.PayMethod = "X";
-                    });
-                }
+                    }
+
+                    fTotalApprovalAmt += parseFloat(invoice.ApprovalAmt);
+                });
+
                 oVendorData[sLifnr].Invoices = updatedInvoices;
             }
-            this.mdl_zFilter.setProperty("/VendorDetails", oVendorData);
+            
+            this.mdl_zFilter.setProperty("/VendorDetails", oVendorData); 
+            console.log("Total Amount:::" + fTotalApprovalAmt) 
+            this.rowContext.getCells()[3].setText(fTotalApprovalAmt);
 
             if (oDialogState.PayMethodSelectedKey === "OPTION_Full") {
                 sNewText = "Full";
@@ -253,7 +265,7 @@ sap.ui.define([
                 sNewText = "Partial";
             }
 
-            this._oButton.setText(sNewText);
+            this._oButton.setText(sNewText); 
 
             oDialog.close();
         },
@@ -487,22 +499,14 @@ sap.ui.define([
                     success: function () {
                         oView.setBusy(false);
                         MessageBox.success("Vendor submission successful!");
-                        othis.clearAllFields();
-                        othis.mdl_zFilter.updateBindings();
+                        othis.clearAllFields(); 
                         aSelectedVendors.forEach(function (oItem1) {
                             const aCells = oItem1.getCells();
                             const oButton = aCells[4];
                             oButton.setText("");
                         });
 
-                        // var oData =othis.mdl_zFilter.getData();
-                        // othis.mdl_zFilter.setData(oData);
-                        // othis.mdl_zFilter.refresh(true); 
-
-
-                        //this.mdl_zFilter.getProperty("/VendorDetails") 
-
-
+                        
                     },
                     error: function (oError) {
                         oView.setBusy(false);
@@ -510,15 +514,7 @@ sap.ui.define([
                         MessageBox.error("Vendor submission failed. Please try again.");
                     }
                 });
-
-                // vendorTable is the inner Table
-                // const oTableBinding = oSmartTable.getTable().getBinding("items");
-
-                // if (oTableBinding) {
-                //     oTableBinding.refresh(); // Refreshes the table binding (pulls latest data from model)
-                // }
-
-
+ 
             }
         },
         clearAllFields: function () {
