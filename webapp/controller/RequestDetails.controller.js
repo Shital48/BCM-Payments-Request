@@ -322,7 +322,7 @@ sap.ui.define([
 
         //FOOTER
 
-        onSubmitPress: function () {
+        onSubmitPress: function (oEvent) {
             var othis = this;
             const oModel = this.getView().getModel();
             const oView = this.getView();
@@ -487,15 +487,20 @@ sap.ui.define([
                     success: function () {
                         oView.setBusy(false);
                         MessageBox.success("Vendor submission successful!");
-                        const oSmartTable = oView.byId("vendorTable");
-                        const oTableBinding = oSmartTable.getBinding("items");
+                        othis.clearAllFields();
+                        othis.mdl_zFilter.updateBindings();
+                        aSelectedVendors.forEach(function (oItem1) {
+                            const aCells = oItem1.getCells();
+                            const oButton = aCells[4];
+                            oButton.setText("");
+                        });
 
-                        if (oTableBinding) {
-                            oTableBinding.refresh();  
-                        }
-                        // const oDialog = oEvent.getSource().getParent();
-                        // const oDialogState = oDialog.getModel("dialogState").getData();
-                        // oDialogState.PayMethodSelectedKey="";
+                        // var oData =othis.mdl_zFilter.getData();
+                        // othis.mdl_zFilter.setData(oData);
+                        // othis.mdl_zFilter.refresh(true); 
+
+
+                        //this.mdl_zFilter.getProperty("/VendorDetails") 
 
 
                     },
@@ -515,6 +520,18 @@ sap.ui.define([
 
 
             }
+        },
+        clearAllFields: function () {
+            var oData = this.mdl_zFilter.getData();
+            oData.VendorDetails = models.getVendorBlank();
+            this.onTableRefresh();
+            this.mdl_zFilter.updateBindings();
+        },
+        onTableRefresh: function () {
+            const oSmartTable = this.getView().byId("vendorTable");
+            const oTableBinding = oSmartTable.getBinding("items");
+            oSmartTable.removeSelections(false);
+            oTableBinding.refresh();
         }
 
     });

@@ -123,8 +123,7 @@
         <endButton>
             <Button
                 text="{i18n>Cancel}"
-                press="onCloseInvoiceDialog"
-                enabled="{= ${dialogState>/PayMethodSelectedKey} !== 'OPTION_Select' }"
+                press="onCloseInvoiceDialog" 
             />
         </endButton>
     </Dialog>
