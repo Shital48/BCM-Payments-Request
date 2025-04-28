@@ -85,7 +85,9 @@
             <items>
                 <ColumnListItem type="Active">
                     <cells>
-                        <Text text="{filtered>Category}" />
+                        <Text
+                            text="{path: 'filtered>Category', formatter: '.formatCategory'}"
+                        />
                         <Text text="{filtered>Docnr}" />
                         <Text
                             text="{path:'filtered>Budat',formatter:'.formatDate'}"
@@ -104,6 +106,7 @@
     ], formatter: '.editableBasedOnPayMethod'}"
                             placeholder="Enter amount"
                             liveChange=".onApprovalAmtChange"
+                            valueLiveUpdate="true"
                         />
 
                         <Text text="{filtered>Project}" />
@@ -123,7 +126,7 @@
         <endButton>
             <Button
                 text="{i18n>Cancel}"
-                press="onCloseInvoiceDialog" 
+                press="onCloseInvoiceDialog"
             />
         </endButton>
     </Dialog>

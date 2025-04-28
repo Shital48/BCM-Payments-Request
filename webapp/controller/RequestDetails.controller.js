@@ -310,6 +310,17 @@ sap.ui.define([
             oFilteredModel.setProperty("/results", aInvoices);
             oFilteredModel.checkUpdate(true);
         },
+        formatCategory: function (sCategory) {
+            if (sCategory === "I") {
+                return "Invoice";
+            } else if (sCategory === "A") {
+                return "Advance Request";
+            } else if (sCategory === "R") {
+                return "Retention";
+            }
+            return "";
+        },      
+        
 
         onApprovalAmtChange: function (oEvent) {
             const oInput = oEvent.getSource();
@@ -504,6 +515,8 @@ sap.ui.define([
                             const aCells = oItem1.getCells();
                             const oButton = aCells[4];
                             oButton.setText("");
+                            const ApprovalAmount = aCells[3];
+                            ApprovalAmount.setText("0.000");
                         });
 
                         

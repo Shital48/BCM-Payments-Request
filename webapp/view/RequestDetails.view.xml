@@ -88,11 +88,11 @@
                     initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt,DateAson"
                     beforeRebindTable="onBeforeRebindTable"
                 >
-                    <Table 
+                    <Table
                         id="vendorTable"
                         mode="MultiSelect"
                     >
-                        <columns>                             
+                        <columns>
                             <Column>
                                 <customData>
                                     <core:CustomData
@@ -171,24 +171,25 @@
                                         key="p13nData"
                                         value='{"columnKey": "DateAson", "leadingProperty": "DateAson", "columnIndex": 8}'
                                     />
-                                </customData> 
+                                </customData>
                             </Column>
                         </columns>
 
                         <items>
                             <ColumnListItem>
-                                <cells>                                <Text text="{Lifnr}" />
+                                <cells>
+                                    <Text text="{Lifnr}" />
                                     <Text text="{TotalAmt}" />
                                     <Text text="{Msme}" />
                                     <Text text="{ApprovalAmt}" />
                                     <Button
                                         icon="sap-icon://action"
-                                        text="{= ${filtered>PayMethodType} === 'OPTION_Full' ? 'Full Payment' : 'Partial Payment'}"
+                                        text=""
                                         press=".onPayMethodPress"
                                     />
                                     <Text text="{InvoiceAmt}" />
                                     <Text text="{AdvanceAmt}" />
-                                    <Text text="{RetentionAmt}" /> 
+                                    <Text text="{RetentionAmt}" />
                                 </cells>
                             </ColumnListItem>
                         </items>
@@ -202,12 +203,12 @@
                     </smartTable:layoutData>
                 </smartTable:SmartTable>
             </VBox>
- 
 
             <VBox
                 fitContainer="true"
                 id="customersSection"
-                visible="false"  >
+                visible="false"
+            >
                 <smartFilterBar:SmartFilterBar
                     id="customerFilterBar"
                     entitySet="CustomerRetSet"
@@ -255,7 +256,7 @@
                     enableAutoBinding="true"
                     class="sapUiResponsiveContentPadding"
                     ignoreFromPersonalisation=""
-                    enableAutoColumnWidth="true"                    
+                    enableAutoColumnWidth="true"
                     initiallyVisibleFields="Kunnr,Name1,Project,UnitNo,Docnr,Budat,TotalAmt,ApprovalAmt"
                 >
                     <Table
@@ -339,8 +340,7 @@
                                 </header>
                             </Column>
 
-                            <Column 
-                            >
+                            <Column>
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
@@ -350,8 +350,6 @@
                                 </customData>
                                 <Text text="{i18n>ApprovalAmt}" />
                             </Column>
-
-                            
                         </columns>
 
                         <items>
@@ -372,8 +370,8 @@
                                         editable="true"
                                         placeholder="Enter amount"
                                         liveChange=".onQtyLiveChange"
-                                        valueLiveUpdate="true"  
-                                    /> 
+                                        valueLiveUpdate="true"
+                                    />
                                 </cells>
                             </ColumnListItem>
                         </items>
