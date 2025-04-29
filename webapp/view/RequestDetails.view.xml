@@ -82,8 +82,7 @@
                     header="Vendor List"
                     persistencyKey="VendorSmartTable"
                     enableAutoBinding="true"
-                    class="sapUiResponsiveContentPadding"
-                    ignoreFromPersonalisation=""
+                    class="sapUiResponsiveContentPadding" 
                     enableAutoColumnWidth="true"
                     initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt,DateAson"
                     beforeRebindTable="onBeforeRebindTable"
@@ -97,7 +96,8 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "Lifnr", "leadingProperty": "Lifnr", "columnIndex": 0}'
+                                        value='{"columnKey": "Lifnr", "leadingProperty": "Lifnr", "columnIndex": 0, "additionalProperty": "Name1"}'  
+                            
                                     />
                                 </customData>
                                 <Text text="{i18n>VendorName}" />
@@ -178,7 +178,8 @@
                         <items>
                             <ColumnListItem>
                                 <cells>
-                                    <Text text="{Lifnr}" />
+                                                            
+                                    <Text text="{= ${Lifnr} + ' - ' + ${Name1} }" />
                                     <Text text="{TotalAmt}" />
                                     <Text text="{Msme}" />
                                     <Text text="{ApprovalAmt}" />
@@ -255,7 +256,7 @@
                     persistencyKey="CustomerSmartTable"
                     enableAutoBinding="true"
                     class="sapUiResponsiveContentPadding"
-                    ignoreFromPersonalisation=""
+                    ignoreFromPersonalisation="Bankl,Paval,Bukrs,DateAson,Gjahr,Buzei,PayMethod,Pspid,ProjectName,RequestNo"
                     enableAutoColumnWidth="true"
                     initiallyVisibleFields="Kunnr,Name1,Project,UnitNo,Docnr,Budat,TotalAmt,ApprovalAmt"
                 >

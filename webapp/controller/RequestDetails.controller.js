@@ -39,10 +39,14 @@ sap.ui.define([
                 this.mdl_zFilter.setProperty("/VendorDetails/SelectedKey", "Vendors");
                 oView.byId("vendorsSection").setVisible(true);
                 oView.byId("customersSection").setVisible(false);
+                this.clearAllFields();
+                this.onTableRefresh();
             } else if (selectedKey === "OPTION_CUSTOMER") {
                 this.mdl_zFilter.setProperty("/VendorDetails/SelectedKey", "Customers");
                 oView.byId("customersSection").setVisible(true);
                 oView.byId("vendorsSection").setVisible(false);
+                this.clearAllFields();
+                this.onTableRefresh();
             }
         },
         formatDate: function (sDate) {
@@ -129,11 +133,16 @@ sap.ui.define([
             oBindingParams.parameters = oBindingParams.parameters || {};
             oBindingParams.parameters.expand = "VenDet";
         },
+        formatVendor: function(sLifnr, oContext) {
+            const sName1 = oContext.getProperty("Name1");
+            return sLifnr + " - " + sName1;
+        },
+        
 
         onPayMethodPress: function (oEvent) {
             this._oButton = oEvent.getSource();
-            this.rowContext=this._oButton.getParent();        
-             
+            this.rowContext = this._oButton.getParent();
+
 
             const oContext = this._oButton.getBindingContext();
             if (!oContext) {
@@ -253,9 +262,9 @@ sap.ui.define([
 
                 oVendorData[sLifnr].Invoices = updatedInvoices;
             }
-            
-            this.mdl_zFilter.setProperty("/VendorDetails", oVendorData); 
-            console.log("Total Amount:::" + fTotalApprovalAmt) 
+
+            this.mdl_zFilter.setProperty("/VendorDetails", oVendorData);
+            console.log("Total Amount:::" + fTotalApprovalAmt)
             this.rowContext.getCells()[3].setText(fTotalApprovalAmt);
 
             if (oDialogState.PayMethodSelectedKey === "OPTION_Full") {
@@ -265,7 +274,7 @@ sap.ui.define([
                 sNewText = "Partial";
             }
 
-            this._oButton.setText(sNewText); 
+            this._oButton.setText(sNewText);
 
             oDialog.close();
         },
@@ -319,8 +328,8 @@ sap.ui.define([
                 return "Retention";
             }
             return "";
-        },      
-        
+        },
+
 
         onApprovalAmtChange: function (oEvent) {
             const oInput = oEvent.getSource();
@@ -415,7 +424,6 @@ sap.ui.define([
                         "Buzei": oData.Buzei
                     });
                 });
-                console.log("acustrequest", aCustReq)
 
                 const oPayload = {
                     RequestNo: "",
@@ -427,6 +435,8 @@ sap.ui.define([
                     success: function () {
                         oView.setBusy(false);
                         MessageBox.success("Customer submission successful!");
+                        othis.clearAllFields();
+                        othis.onTableRefresh();
                     },
                     error: function (oError) {
                         oView.setBusy(false);
@@ -469,10 +479,8 @@ sap.ui.define([
 
                 aSelectedVendors.forEach(function (oItem) {
                     const oData = oItem.getBindingContext().getObject();
-                    console.log("Full data from EntitySet:", oData);
 
                     const sLifnr = oData.Lifnr;
-                    const sPayMethod = oData.PayMethod;
 
                     const aInvoices = oVendorData[sLifnr]?.Invoices || [];
 
@@ -510,16 +518,8 @@ sap.ui.define([
                     success: function () {
                         oView.setBusy(false);
                         MessageBox.success("Vendor submission successful!");
-                        othis.clearAllFields(); 
-                        aSelectedVendors.forEach(function (oItem1) {
-                            const aCells = oItem1.getCells();
-                            const oButton = aCells[4];
-                            oButton.setText("");
-                            const ApprovalAmount = aCells[3];
-                            ApprovalAmount.setText("0.000");
-                        });
-
-                        
+                        othis.clearAllFields();
+                        othis.onTableRefresh();
                     },
                     error: function (oError) {
                         oView.setBusy(false);
@@ -527,20 +527,65 @@ sap.ui.define([
                         MessageBox.error("Vendor submission failed. Please try again.");
                     }
                 });
- 
+
             }
         },
         clearAllFields: function () {
-            var oData = this.mdl_zFilter.getData();
-            oData.VendorDetails = models.getVendorBlank();
-            this.onTableRefresh();
-            this.mdl_zFilter.updateBindings();
+            const sSelectedKey = this.mdl_zFilter.getProperty("/VendorDetails/SelectedKey");
+            var oSmartFilterBar;
+            if (sSelectedKey === "Customers") {
+                const oCustomerTable = this.getView().byId("customerTable");
+                oSmartFilterBar = this.byId("customerFilterBar");
+                var aItems = oCustomerTable.getItems(); 
+                aItems.forEach(function (oRow) {
+                    const aCells = oRow.getCells();
+                    const oCheckBox = aCells[7];
+                    if (oCheckBox && oCheckBox.isA("sap.m.CheckBox")) {
+                        oCheckBox.setSelected(false); 
+                    }
+                    const payableAmt = aCells[8];
+                    payableAmt.setValue("0.000"); 
+                });
+                oCustomerTable.removeSelections(false);  
+                
+            } else if (sSelectedKey === "Vendors") { 
+                const oVendorTable = this.getView().byId("vendorTable");
+                oSmartFilterBar = this.byId("vendorFilterBar");
+                var oData = this.mdl_zFilter.getData();
+                oData.VendorDetails = models.getVendorBlank();
+                this.mdl_zFilter.updateBindings();
+                const aItems = oVendorTable.getItems();
+                aItems.forEach(function (oItem1) {
+                    const aCells = oItem1.getCells();
+                    const approvalAmt = aCells[3];
+                    const oButton = aCells[4];
+                    approvalAmt.setText("0.000");
+                    oButton.setText("");                    
+                });
+                oVendorTable.removeSelections(false); 
+                
+            }             
+            var oFilterData = oSmartFilterBar.getFilterData();
+            var oPreservedDate = oFilterData.DateAson; 
+            oSmartFilterBar.clear(); 
+            oSmartFilterBar.setFilterData({
+                DateAson: oPreservedDate
+            });
+            oSmartFilterBar.search();
         },
         onTableRefresh: function () {
-            const oSmartTable = this.getView().byId("vendorTable");
-            const oTableBinding = oSmartTable.getBinding("items");
-            oSmartTable.removeSelections(false);
-            oTableBinding.refresh();
+
+            const sSelectedKey = this.mdl_zFilter.getProperty("/VendorDetails/SelectedKey");
+            const oSmartTable = this.getView().byId(sSelectedKey === "Customers" ? "customerTable" : "vendorTable");
+            if (oSmartTable) {
+                const oTableBinding = oSmartTable.getBinding("items");
+                oSmartTable.removeSelections(false); 
+                oTableBinding.refresh(); 
+            }            
+        },
+        
+        onCancelPress: function () {
+            this.clearAllFields(); 
         }
 
     });
