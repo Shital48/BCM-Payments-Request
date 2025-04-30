@@ -85,6 +85,7 @@
                     class="sapUiResponsiveContentPadding" 
                     enableAutoColumnWidth="true"
                     initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt,DateAson"
+                    ignoreFromPersonalisation="Bankl,Paval,Bukrs,Name1,Pspid,RequestNo"
                     beforeRebindTable="onBeforeRebindTable"
                 >
                     <Table
@@ -164,15 +165,7 @@
                                     />
                                 </customData>
                                 <Text text="{i18n>RetentionAmount}" />
-                            </Column>
-                            <Column>
-                                <customData>
-                                    <core:CustomData
-                                        key="p13nData"
-                                        value='{"columnKey": "DateAson", "leadingProperty": "DateAson", "columnIndex": 8}'
-                                    />
-                                </customData>
-                            </Column>
+                            </Column>                             
                         </columns>
 
                         <items>

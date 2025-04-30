@@ -546,7 +546,7 @@ sap.ui.define([
                     const payableAmt = aCells[8];
                     payableAmt.setValue("0.000"); 
                 });
-                oCustomerTable.removeSelections(false);  
+                oCustomerTable.removeSelections(true);  
                 
             } else if (sSelectedKey === "Vendors") { 
                 const oVendorTable = this.getView().byId("vendorTable");
@@ -562,7 +562,7 @@ sap.ui.define([
                     approvalAmt.setText("0.000");
                     oButton.setText("");                    
                 });
-                oVendorTable.removeSelections(false); 
+                oVendorTable.removeSelections(true); 
                 
             }             
             var oFilterData = oSmartFilterBar.getFilterData();
@@ -579,7 +579,7 @@ sap.ui.define([
             const oSmartTable = this.getView().byId(sSelectedKey === "Customers" ? "customerTable" : "vendorTable");
             if (oSmartTable) {
                 const oTableBinding = oSmartTable.getBinding("items");
-                oSmartTable.removeSelections(false); 
+                // oSmartTable.removeSelections(true); 
                 oTableBinding.refresh(); 
             }            
         },
