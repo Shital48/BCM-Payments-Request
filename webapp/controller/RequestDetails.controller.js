@@ -347,6 +347,18 @@ sap.ui.define([
                 record.PayMethod = "";
             }
 
+            if (isNaN(sNewApprovalAmt) || approvalAmt < 1) {
+                oInput.setValueState("Error");
+                oInput.setValueStateText("Add valid value");
+            } else if (approvalAmt > docAmt) {
+                oInput.setValueState("Error");
+                oInput.setValueStateText("Payable amount exceeds Total Amount");
+            }
+            else { 
+                oInput.setValueState("None");
+                oInput.setValueStateText("");
+            }
+           
         },
 
 

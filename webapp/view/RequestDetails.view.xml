@@ -183,6 +183,7 @@
                                     />
                                     <Text text="{InvoiceAmt}" />
                                     <Text text="{AdvanceAmt}" />
+                                    
                                     <Text text="{RetentionAmt}" />
                                 </cells>
                             </ColumnListItem>
