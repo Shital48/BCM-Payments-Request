@@ -107,6 +107,7 @@
                             placeholder="Enter amount"
                             liveChange=".onApprovalAmtChange"
                             valueLiveUpdate="true"
+                            type="Number"
                         />
 
                         <Text text="{filtered>Project}" />

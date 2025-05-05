@@ -39,14 +39,12 @@ sap.ui.define([
                 this.mdl_zFilter.setProperty("/VendorDetails/SelectedKey", "Vendors");
                 oView.byId("vendorsSection").setVisible(true);
                 oView.byId("customersSection").setVisible(false);
-                this.clearAllFields();
-                this.onTableRefresh();
+                this.clearAllFields(); 
             } else if (selectedKey === "OPTION_CUSTOMER") {
                 this.mdl_zFilter.setProperty("/VendorDetails/SelectedKey", "Customers");
                 oView.byId("customersSection").setVisible(true);
                 oView.byId("vendorsSection").setVisible(false);
-                this.clearAllFields();
-                this.onTableRefresh();
+                this.clearAllFields(); 
             }
         },
         formatDate: function (sDate) {
@@ -104,7 +102,7 @@ sap.ui.define([
             //     oInput.setValueStateText("Maintain a valid Payment"); 
             //     return;
             // }
-            if (isNaN(iValue) || sValue < 1) {
+            if (isNaN(iValue) || sValue < 0) {
                 oInput.setValueState("Error");
                 oInput.setValueStateText("Add valid value");
             } else if (iValue > TotalAmount) {
@@ -250,7 +248,11 @@ sap.ui.define([
             const updatedInvoices = oDialog.getModel("filtered").getProperty("/results");
             if (updatedInvoices) {
 
-                updatedInvoices.forEach(function (invoice) {
+                for (let invoice of updatedInvoices) {
+                    if (parseFloat(invoice.ApprovalAmt) > parseFloat(invoice.DocAmt)) { 
+                        MessageBox.warning("Approval amount cannot be greater than Total Amount. Please enter a valid value.");
+                        return;
+                    }
                     if (oDialogState.PayMethodSelectedKey === "OPTION_Full") {
 
                         invoice.ApprovalAmt = invoice.DocAmt;
@@ -258,7 +260,7 @@ sap.ui.define([
                     }
 
                     fTotalApprovalAmt += parseFloat(invoice.ApprovalAmt);
-                });
+                }
 
                 oVendorData[sLifnr].Invoices = updatedInvoices;
             }
@@ -347,7 +349,7 @@ sap.ui.define([
                 record.PayMethod = "";
             }
 
-            if (isNaN(sNewApprovalAmt) || approvalAmt < 1) {
+            if (isNaN(sNewApprovalAmt) || approvalAmt < 0) {
                 oInput.setValueState("Error");
                 oInput.setValueStateText("Add valid value");
             } else if (approvalAmt > docAmt) {
@@ -408,11 +410,17 @@ sap.ui.define([
                 }
 
 
-                aSelectedItems.forEach(function (oItem) {
+                for (let oItem of aSelectedItems) {
                     const oData = oItem.getBindingContext().getObject();
 
                     const aCells = oItem.getCells();
                     const sApprovalAmt = aCells[8].getValue();
+                    
+                    if (parseFloat(sApprovalAmt) > parseFloat(oData.TotalAmt)) {
+                        oView.setBusy(false);
+                        MessageBox.warning("Approval amount cannot be greater than Total Amount. Please enter a valid value.");
+                        return;
+                    }
                     const isFullPayment = parseFloat(sApprovalAmt) === parseFloat(oData.TotalAmt);
 
                     aCustReq.push({
@@ -435,7 +443,7 @@ sap.ui.define([
                         "Bankl": oData.Bankl || "",
                         "Buzei": oData.Buzei
                     });
-                });
+                }
 
                 const oPayload = {
                     RequestNo: "",

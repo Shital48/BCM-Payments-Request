@@ -49,23 +49,27 @@
                             key="DateAson"
                             visibleInAdvancedArea="true"
                             mandatory="mandatory"
-                            index="0"
+                            index="4"
                         />
                         <smartFilterBar:ControlConfiguration
                             key="Paval"
                             visibleInAdvancedArea="true"
+                            index="0" 
                         />
                         <smartFilterBar:ControlConfiguration
                             key="Bukrs"
                             visibleInAdvancedArea="true"
+                            index="1"
                         />
                         <smartFilterBar:ControlConfiguration
                             key="Pspid"
                             visibleInAdvancedArea="true"
+                            index="3"
                         />
                         <smartFilterBar:ControlConfiguration
                             key="Lifnr"
                             visibleInAdvancedArea="true"
+                            index="2"
                         />
                     </smartFilterBar:controlConfiguration>
                     <smartFilterBar:layoutData>
@@ -216,23 +220,27 @@
                             key="DateAson"
                             visibleInAdvancedArea="true"
                             mandatory="mandatory"
-                            index="0"
+                            index="4"
                         />
                         <smartFilterBar:ControlConfiguration
                             key="Paval"
                             visibleInAdvancedArea="true"
+                            index="0" 
                         />
                         <smartFilterBar:ControlConfiguration
                             key="Bukrs"
                             visibleInAdvancedArea="true"
+                            index="1"
                         />
                         <smartFilterBar:ControlConfiguration
                             key="Pspid"
                             visibleInAdvancedArea="true"
+                            index="3"
                         />
                         <smartFilterBar:ControlConfiguration
                             key="Kunnr"
                             visibleInAdvancedArea="true"
+                            index="2"
                         />
                     </smartFilterBar:controlConfiguration>
                     <smartFilterBar:layoutData>
@@ -366,6 +374,7 @@
                                         placeholder="Enter amount"
                                         liveChange=".onQtyLiveChange"
                                         valueLiveUpdate="true"
+                                        type="Number"
                                     />
                                 </cells>
                             </ColumnListItem>

@@ -20,10 +20,7 @@
                                 </Record>
                                 <Record Type="Common.ValueListParameterDisplayOnly">
                                     <PropertyValue Property="ValueListProperty" String="Bukrs" />
-                                </Record>
-                                <Record Type="Common.ValueListParameterDisplayOnly">
-                                    <PropertyValue Property="ValueListProperty" String="Paval" />
-                                </Record>
+                                </Record>                                
                             </Collection>
                         </PropertyValue>
                     </Record>
@@ -41,10 +38,7 @@
                                 <Record Type="Common.ValueListParameterInOut">
                                     <PropertyValue Property="LocalDataProperty" PropertyPath="Bukrs" />
                                     <PropertyValue Property="ValueListProperty" String="Bukrs" />
-                                </Record>
-                                <Record Type="Common.ValueListParameterDisplayOnly">
-                                    <PropertyValue Property="ValueListProperty" String="Bukrs" />
-                                </Record>
+                                </Record> 
                                 <Record Type="Common.ValueListParameterDisplayOnly">
                                     <PropertyValue Property="ValueListProperty" String="Ort01" />
                                 </Record>
@@ -95,10 +89,7 @@
                                 <Record Type="Common.ValueListParameterInOut">
                                     <PropertyValue Property="LocalDataProperty" PropertyPath="Kunnr" />
                                     <PropertyValue Property="ValueListProperty" String="Kunnr" />
-                                </Record>
-                                <Record Type="Common.ValueListParameterDisplayOnly">
-                                    <PropertyValue Property="ValueListProperty" String="Kunnr" />
-                                </Record>
+                                </Record>                                 
                                 <Record Type="Common.ValueListParameterDisplayOnly">
                                     <PropertyValue Property="ValueListProperty" String="Land1" />
                                 </Record>
@@ -143,10 +134,7 @@
                                 </Record>
                                 <Record Type="Common.ValueListParameterDisplayOnly">
                                     <PropertyValue Property="ValueListProperty" String="Bukrs" />
-                                </Record>
-                                <Record Type="Common.ValueListParameterDisplayOnly">
-                                    <PropertyValue Property="ValueListProperty" String="Paval" />
-                                </Record>
+                                </Record> 
                             </Collection>
                         </PropertyValue>
                     </Record>
@@ -164,10 +152,7 @@
                                 <Record Type="Common.ValueListParameterInOut">
                                     <PropertyValue Property="LocalDataProperty" PropertyPath="Bukrs" />
                                     <PropertyValue Property="ValueListProperty" String="Bukrs" />
-                                </Record>
-                                <Record Type="Common.ValueListParameterDisplayOnly">
-                                    <PropertyValue Property="ValueListProperty" String="Bukrs" />
-                                </Record>
+                                </Record> 
                                 <Record Type="Common.ValueListParameterDisplayOnly">
                                     <PropertyValue Property="ValueListProperty" String="Ort01" />
                                 </Record>
@@ -197,10 +182,7 @@
                                 <Record Type="Common.ValueListParameterInOut">
                                     <PropertyValue Property="LocalDataProperty" PropertyPath="Lifnr" />
                                     <PropertyValue Property="ValueListProperty" String="Lifnr" />
-                                </Record>
-                                <Record Type="Common.ValueListParameterDisplayOnly">
-                                    <PropertyValue Property="ValueListProperty" String="Lifnr" />
-                                </Record>
+                                </Record>                                
                                 <Record Type="Common.ValueListParameterDisplayOnly">
                                     <PropertyValue Property="ValueListProperty" String="Land1" />
                                 </Record>
