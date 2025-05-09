@@ -55,6 +55,7 @@
                             key="Paval"
                             visibleInAdvancedArea="true"
                             index="0" 
+                            mandatory="mandatory"
                         />
                         <smartFilterBar:ControlConfiguration
                             key="Bukrs"
@@ -88,7 +89,7 @@
                     enableAutoBinding="true"
                     class="sapUiResponsiveContentPadding" 
                     enableAutoColumnWidth="true"
-                    initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt,DateAson"
+                    initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt"
                     ignoreFromPersonalisation="Bankl,Paval,Bukrs,Name1,Pspid,RequestNo"
                     beforeRebindTable="onBeforeRebindTable"
                 >
@@ -101,7 +102,7 @@
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "Lifnr", "leadingProperty": "Lifnr", "columnIndex": 0, "additionalProperty": "Name1"}'  
+                                        value='{"columnKey": "Lifnr", "leadingProperty": "Lifnr", "columnIndex": 0, "additionalProperty": "Name1,DateAson"}'  
                             
                                     />
                                 </customData>
@@ -226,6 +227,7 @@
                             key="Paval"
                             visibleInAdvancedArea="true"
                             index="0" 
+                            mandatory="mandatory"
                         />
                         <smartFilterBar:ControlConfiguration
                             key="Bukrs"

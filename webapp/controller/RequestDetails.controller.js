@@ -71,7 +71,7 @@ sap.ui.define([
                 record.PayMethod = "X";
             } else {
                 oInput.setEditable(true);
-                oInput.setValue("0.000");
+                oInput.setValue("0.00");
                 record.PayMethod = "";
             }
         },
@@ -83,12 +83,10 @@ sap.ui.define([
         onQtyLiveChange: function (oEvent) {
             var oInput = oEvent.getSource();
             var sValue = oInput.getValue();
+            var sFiltered = sValue.replace(/\D/g, ""); 
+                oInput.setValue(sFiltered); 
             var oContext = oInput.getBindingContext();
-            const record = oContext.getObject();
-            if (!oContext) {
-                console.warn("No binding context for input field.");
-                return;
-            }
+            const record = oContext.getObject(); 
             if (!record.OriginalTotalAmt) {
                 record.OriginalTotalAmt = record.TotalAmt;
             }
@@ -96,13 +94,8 @@ sap.ui.define([
             var oCheckBox = oRow.getCells().find(cell => cell.isA("sap.m.CheckBox"));
             var iValue = parseInt(sValue, 10);
             var TotalAmount = parseInt(record.OriginalTotalAmt, 10) || 0;
-
-            // if (/^\d+$/.test(sValue)) {
-            //     oInput.setValueState("Error");
-            //     oInput.setValueStateText("Maintain a valid Payment"); 
-            //     return;
-            // }
-            if (isNaN(iValue) || sValue < 0) {
+            
+            if (isNaN(iValue) || iValue < 0 ) {
                 oInput.setValueState("Error");
                 oInput.setValueStateText("Add valid value");
             } else if (iValue > TotalAmount) {
@@ -288,7 +281,7 @@ sap.ui.define([
                 record.ApprovalAmt = record.DocAmt;
                 record.PayMethod = "X";
             } else {
-                record.ApprovalAmt = "0.000";
+                record.ApprovalAmt = "0.00";
                 record.PayMethod = "";
             }
             const oModel = oContext.getModel();
@@ -314,7 +307,7 @@ sap.ui.define([
             } else if (sKey === "OPTION_Partial") {
                 aInvoices.forEach(function (oInvoice) {
                     oInvoice.PayMethod = "";
-                    oInvoice.ApprovalAmt = "0.000";
+                    oInvoice.ApprovalAmt = "0.00";
                 });
             }
 
@@ -398,7 +391,7 @@ sap.ui.define([
                 aSelectedItems.forEach(function (oItem1) {
                     const aCells = oItem1.getCells();
                     const sTextValue = aCells[8].getValue();
-                    if (sTextValue.trim() === "0.000") {
+                    if (sTextValue.trim() === "0.00") {
                         bHasMissingPayMethod = true;
                     }
                 });
@@ -564,7 +557,7 @@ sap.ui.define([
                         oCheckBox.setSelected(false); 
                     }
                     const payableAmt = aCells[8];
-                    payableAmt.setValue("0.000"); 
+                    payableAmt.setValue("0.00"); 
                 });
                 oCustomerTable.removeSelections(true);  
                 
@@ -579,7 +572,7 @@ sap.ui.define([
                     const aCells = oItem1.getCells();
                     const approvalAmt = aCells[3];
                     const oButton = aCells[4];
-                    approvalAmt.setText("0.000");
+                    approvalAmt.setText("0.00");
                     oButton.setText("");                    
                 });
                 oVendorTable.removeSelections(true); 
@@ -587,9 +580,11 @@ sap.ui.define([
             }             
             var oFilterData = oSmartFilterBar.getFilterData();
             var oPreservedDate = oFilterData.DateAson; 
+            var oPreservedPaval = oFilterData.Paval;
             oSmartFilterBar.clear(); 
             oSmartFilterBar.setFilterData({
-                DateAson: oPreservedDate
+                DateAson: oPreservedDate,
+                Paval: oPreservedPaval
             });
             oSmartFilterBar.search();
         },
