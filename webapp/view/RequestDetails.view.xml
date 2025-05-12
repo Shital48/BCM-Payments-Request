@@ -44,13 +44,7 @@
                     basicSearchFieldName="Lifnr"
                     enableBasicSearch="true"
                 >
-                    <smartFilterBar:controlConfiguration>
-                        <smartFilterBar:ControlConfiguration
-                            key="DateAson"
-                            visibleInAdvancedArea="true"
-                            mandatory="mandatory"
-                            index="4"
-                        />
+                    <smartFilterBar:controlConfiguration>                        
                         <smartFilterBar:ControlConfiguration
                             key="Paval"
                             visibleInAdvancedArea="true"
@@ -61,16 +55,22 @@
                             key="Bukrs"
                             visibleInAdvancedArea="true"
                             index="1"
-                        />
-                        <smartFilterBar:ControlConfiguration
-                            key="Pspid"
-                            visibleInAdvancedArea="true"
-                            index="3"
-                        />
+                        />                       
                         <smartFilterBar:ControlConfiguration
                             key="Lifnr"
                             visibleInAdvancedArea="true"
                             index="2"
+                        />
+                         <smartFilterBar:ControlConfiguration
+                            key="Pspid"
+                            visibleInAdvancedArea="true"
+                            index="3"
+                        />
+                        <smartFilterBar:ControlConfiguration 
+                            key="DateAson"
+                            visibleInAdvancedArea="true"
+                            mandatory="mandatory"
+                            index="4"
                         />
                     </smartFilterBar:controlConfiguration>
                     <smartFilterBar:layoutData>
@@ -183,7 +183,7 @@
                                     <Text text="{ApprovalAmt}" />
                                     <Button
                                         icon="sap-icon://action"
-                                        text=""
+                                        text="Full"
                                         press=".onPayMethodPress"
                                     />
                                     <Text text="{InvoiceAmt}" />

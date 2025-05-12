@@ -25,7 +25,43 @@ sap.ui.define([
 
         onBeforeRendering: function () {
             this.mdl_zFilter = this.getOwnerComponent().getModel('zRequestModel');
+
         },
+        onAfterRendering: function () {
+            var oSmartFilterBar = this.byId("vendorFilterBar");
+            if (oSmartFilterBar) {
+                oSmartFilterBar.attachInitialized(function () {
+                    oSmartFilterBar.setFilterData({
+                        DateAson: {
+                            items: [],
+                            ranges: [{
+                                exclude: false,
+                                operation: "LE",
+                                keyField: "DateAson",
+                                value1: new Date(),
+                                value2: null
+                            }]
+                        }
+
+                    });
+
+                    //     const oConditionModel = oSmartFilterBar.getConditionModel();
+
+                    //     if (oConditionModel) {
+                    //         oConditionModel.setProperty("/DateAson", [
+                    //             {
+                    //                 operator: "LE", 
+                    //                 values: [new Date()],
+                    //                 validated: "NotValidated"
+                    //             }
+                    //         ]);
+                    //     }
+                });
+
+
+            }
+        },
+
 
         //Header 
 
@@ -39,12 +75,12 @@ sap.ui.define([
                 this.mdl_zFilter.setProperty("/VendorDetails/SelectedKey", "Vendors");
                 oView.byId("vendorsSection").setVisible(true);
                 oView.byId("customersSection").setVisible(false);
-                this.clearAllFields(); 
+                this.clearAllFields();
             } else if (selectedKey === "OPTION_CUSTOMER") {
                 this.mdl_zFilter.setProperty("/VendorDetails/SelectedKey", "Customers");
                 oView.byId("customersSection").setVisible(true);
                 oView.byId("vendorsSection").setVisible(false);
-                this.clearAllFields(); 
+                this.clearAllFields();
             }
         },
         formatDate: function (sDate) {
@@ -83,10 +119,10 @@ sap.ui.define([
         onQtyLiveChange: function (oEvent) {
             var oInput = oEvent.getSource();
             var sValue = oInput.getValue();
-            var sFiltered = sValue.replace(/\D/g, ""); 
-                oInput.setValue(sFiltered); 
+            var sFiltered = sValue.replace(/\D/g, "");
+            oInput.setValue(sFiltered);
             var oContext = oInput.getBindingContext();
-            const record = oContext.getObject(); 
+            const record = oContext.getObject();
             if (!record.OriginalTotalAmt) {
                 record.OriginalTotalAmt = record.TotalAmt;
             }
@@ -94,8 +130,8 @@ sap.ui.define([
             var oCheckBox = oRow.getCells().find(cell => cell.isA("sap.m.CheckBox"));
             var iValue = parseInt(sValue, 10);
             var TotalAmount = parseInt(record.OriginalTotalAmt, 10) || 0;
-            
-            if (isNaN(iValue) || iValue < 0 ) {
+
+            if (isNaN(iValue) || iValue < 0) {
                 oInput.setValueState("Error");
                 oInput.setValueStateText("Add valid value");
             } else if (iValue > TotalAmount) {
@@ -124,11 +160,11 @@ sap.ui.define([
             oBindingParams.parameters = oBindingParams.parameters || {};
             oBindingParams.parameters.expand = "VenDet";
         },
-        formatVendor: function(sLifnr, oContext) {
+        formatVendor: function (sLifnr, oContext) {
             const sName1 = oContext.getProperty("Name1");
             return sLifnr + " - " + sName1;
         },
-        
+
 
         onPayMethodPress: function (oEvent) {
             this._oButton = oEvent.getSource();
@@ -151,7 +187,7 @@ sap.ui.define([
             const oVendorData = this.mdl_zFilter.getProperty("/VendorDetails") || {};
             if (!oVendorData[sLifnr]) {
                 oVendorData[sLifnr] = {
-                    PayMethodSelectedKey: "OPTION_Select"
+                    PayMethodSelectedKey: "OPTION_Full"
                 };
                 this.mdl_zFilter.setProperty("/VendorDetails", oVendorData);
             }
@@ -182,6 +218,8 @@ sap.ui.define([
         _loadInvoiceData: function (sLifnr, sDateAson, oDialog, oVendorData) {
             const oModel = this.getOwnerComponent().getModel();
             oDialog.setBusy(true);
+            const oDialogState = oDialog.getModel("dialogState").getData();
+            const isFullPayment = oDialogState.PayMethodSelectedKey === "OPTION_Full";
 
             if (oVendorData[sLifnr] && oVendorData[sLifnr].Invoices) {
                 const oJSONModel = new JSONModel({ results: oVendorData[sLifnr].Invoices });
@@ -195,19 +233,27 @@ sap.ui.define([
                     },
                     success: function (oData) {
                         oDialog.setBusy(false);
-                        if (oData && oData.results && oData.results.length > 0) {
-                            var aVenDetResults = oData.results[0].VenDet?.results;
-                            if (aVenDetResults?.length > 0) {
-                                const oJSONModel = new JSONModel({ results: aVenDetResults });
-                                oDialog.setModel(oJSONModel, "filtered");
-                                if (!oVendorData[sLifnr]) {
-                                    oVendorData[sLifnr] = {};
-                                }
+                        if (oData.results.length > 0) {
+                            const aVenDetResults = oData.results[0].VenDet?.results || [];
 
-                                oVendorData[sLifnr].Invoices = aVenDetResults;
-                                this.mdl_zFilter.setProperty("/VendorDetails", oVendorData);
+                            if (isFullPayment) {
+                                aVenDetResults.forEach(invoice => {
+                                    invoice.ApprovalAmt = invoice.DocAmt;
+                                    invoice.PayMethod = "X";
+                                });
                             }
+
+
+                            const oJSONModel = new JSONModel({ results: aVenDetResults });
+                            oDialog.setModel(oJSONModel, "filtered");
+                            if (!oVendorData[sLifnr]) {
+                                oVendorData[sLifnr] = {};
+                            }
+
+                            oVendorData[sLifnr].Invoices = aVenDetResults;
+                            this.mdl_zFilter.setProperty("/VendorDetails", oVendorData);
                         }
+
                     }.bind(this),
                     error: function (oError) {
                         oDialog.setBusy(false);
@@ -242,7 +288,7 @@ sap.ui.define([
             if (updatedInvoices) {
 
                 for (let invoice of updatedInvoices) {
-                    if (parseFloat(invoice.ApprovalAmt) > parseFloat(invoice.DocAmt)) { 
+                    if (parseFloat(invoice.ApprovalAmt) > parseFloat(invoice.DocAmt)) {
                         MessageBox.warning("Approval amount cannot be greater than Total Amount. Please enter a valid value.");
                         return;
                     }
@@ -349,11 +395,11 @@ sap.ui.define([
                 oInput.setValueState("Error");
                 oInput.setValueStateText("Payable amount exceeds Total Amount");
             }
-            else { 
+            else {
                 oInput.setValueState("None");
                 oInput.setValueStateText("");
             }
-           
+
         },
 
 
@@ -408,7 +454,7 @@ sap.ui.define([
 
                     const aCells = oItem.getCells();
                     const sApprovalAmt = aCells[8].getValue();
-                    
+
                     if (parseFloat(sApprovalAmt) > parseFloat(oData.TotalAmt)) {
                         oView.setBusy(false);
                         MessageBox.warning("Approval amount cannot be greater than Total Amount. Please enter a valid value.");
@@ -549,19 +595,19 @@ sap.ui.define([
             if (sSelectedKey === "Customers") {
                 const oCustomerTable = this.getView().byId("customerTable");
                 oSmartFilterBar = this.byId("customerFilterBar");
-                var aItems = oCustomerTable.getItems(); 
+                var aItems = oCustomerTable.getItems();
                 aItems.forEach(function (oRow) {
                     const aCells = oRow.getCells();
                     const oCheckBox = aCells[7];
                     if (oCheckBox && oCheckBox.isA("sap.m.CheckBox")) {
-                        oCheckBox.setSelected(false); 
+                        oCheckBox.setSelected(false);
                     }
                     const payableAmt = aCells[8];
-                    payableAmt.setValue("0.00"); 
+                    payableAmt.setValue("0.00");
                 });
-                oCustomerTable.removeSelections(true);  
-                
-            } else if (sSelectedKey === "Vendors") { 
+                oCustomerTable.removeSelections(true);
+
+            } else if (sSelectedKey === "Vendors") {
                 const oVendorTable = this.getView().byId("vendorTable");
                 oSmartFilterBar = this.byId("vendorFilterBar");
                 var oData = this.mdl_zFilter.getData();
@@ -573,15 +619,15 @@ sap.ui.define([
                     const approvalAmt = aCells[3];
                     const oButton = aCells[4];
                     approvalAmt.setText("0.00");
-                    oButton.setText("");                    
+                    oButton.setText("");
                 });
-                oVendorTable.removeSelections(true); 
-                
-            }             
+                oVendorTable.removeSelections(true);
+
+            }
             var oFilterData = oSmartFilterBar.getFilterData();
-            var oPreservedDate = oFilterData.DateAson; 
+            var oPreservedDate = oFilterData.DateAson;
             var oPreservedPaval = oFilterData.Paval;
-            oSmartFilterBar.clear(); 
+            oSmartFilterBar.clear();
             oSmartFilterBar.setFilterData({
                 DateAson: oPreservedDate,
                 Paval: oPreservedPaval
@@ -595,12 +641,12 @@ sap.ui.define([
             if (oSmartTable) {
                 const oTableBinding = oSmartTable.getBinding("items");
                 // oSmartTable.removeSelections(true); 
-                oTableBinding.refresh(); 
-            }            
+                oTableBinding.refresh();
+            }
         },
-        
+
         onCancelPress: function () {
-            this.clearAllFields(); 
+            this.clearAllFields();
         }
 
     });

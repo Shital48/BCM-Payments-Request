@@ -20,10 +20,7 @@
             change="onPayMethodChange"
             class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin"
         >
-            <core:Item
-                key="OPTION_Select"
-                text="Select Payment Mode"
-            />
+            
             <core:Item
                 key="OPTION_Full"
                 text="Full"
@@ -41,7 +38,7 @@
         >
             <headerToolbar>
                 <Toolbar>
-                    <Title text="{filtered>Lifnr}" />
+                    <Title text="{Total amount}" />
                 </Toolbar>
             </headerToolbar>
             <columns>
@@ -120,8 +117,7 @@
             <Button
                 text="{i18n>Confirm}"
                 type="Emphasized"
-                press="onConfirmDialog"
-                enabled="{= ${dialogState>/PayMethodSelectedKey} !== 'OPTION_Select' }"
+                press="onConfirmDialog" 
             />
         </beginButton>
         <endButton>
