@@ -19,7 +19,10 @@
                                     <PropertyValue Property="ValueListProperty" String="Paval" />
                                 </Record>
                                 <Record Type="Common.ValueListParameterDisplayOnly">
-                                    <PropertyValue Property="ValueListProperty" String="Bukrs" />
+                                    <PropertyValue Property="ValueListProperty" String="Bukrs" /> 
+                                    
+                                </Record>     
+                                 <Record Type="Common.ValueListParameterDisplayOnly"> 
                                     <PropertyValue Property="ValueListProperty" String="Butxt" />
                                     
                                 </Record>                                
@@ -135,9 +138,11 @@
                                     <PropertyValue Property="ValueListProperty" String="Paval" />
                                 </Record>
                                 <Record Type="Common.ValueListParameterDisplayOnly">
-                                    <PropertyValue Property="ValueListProperty" String="Bukrs" />
-                                    <PropertyValue Property="ValueListProperty" String="Butxt" />
+                                    <PropertyValue Property="ValueListProperty" String="Bukrs" /> 
                                 </Record> 
+                                <Record Type="Common.ValueListParameterDisplayOnly"> 
+                                    <PropertyValue Property="ValueListProperty" String="Butxt" />
+                                </Record>
                             </Collection>
                         </PropertyValue>
                     </Record>

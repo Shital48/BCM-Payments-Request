@@ -28,10 +28,10 @@ sap.ui.define([
 
         },
         onAfterRendering: function () {
-            var oSmartFilterBar = this.byId("vendorFilterBar");
-            if (oSmartFilterBar) {
-                oSmartFilterBar.attachInitialized(function () {
-                    oSmartFilterBar.setFilterData({
+            var oSmartFilterBar1 = this.byId("vendorFilterBar");
+            if (oSmartFilterBar1) {
+                oSmartFilterBar1.attachInitialized(function () {
+                    oSmartFilterBar1.setFilterData({
                         DateAson: {
                             items: [],
                             ranges: [{
@@ -47,10 +47,10 @@ sap.ui.define([
 
             }
 
-            var oSmartFilterBar = this.byId("customerFilterBar");
-            if (oSmartFilterBar) {
-                oSmartFilterBar.attachInitialized(function () {
-                    oSmartFilterBar.setFilterData({
+            var oSmartFilterBar2 = this.byId("customerFilterBar");
+            if (oSmartFilterBar2) {
+                oSmartFilterBar2.attachInitialized(function () {
+                    oSmartFilterBar2.setFilterData({
                         DateAson: {
                             items: [],
                             ranges: [{
