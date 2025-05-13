@@ -20,6 +20,8 @@
                                 </Record>
                                 <Record Type="Common.ValueListParameterDisplayOnly">
                                     <PropertyValue Property="ValueListProperty" String="Bukrs" />
+                                    <PropertyValue Property="ValueListProperty" String="Butxt" />
+                                    
                                 </Record>                                
                             </Collection>
                         </PropertyValue>
@@ -57,7 +59,7 @@
                 </Annotation>
             </Annotations>
 
-            <Annotations Target="ZFI_BCM_PAYMENT_SRV.CustomerRet/Pspid">
+            <!-- <Annotations Target="ZFI_BCM_PAYMENT_SRV.CustomerRet/Pspid">
                 <Annotation Term="Common.ValueList">
                     <Record>
                         <PropertyValue Property="Label" String="Project def." />
@@ -76,7 +78,7 @@
                         </PropertyValue>
                     </Record>
                 </Annotation>
-            </Annotations>
+            </Annotations> -->
 
             <Annotations Target="ZFI_BCM_PAYMENT_SRV.CustomerRet/Kunnr">
                 <Annotation Term="Common.ValueList">
@@ -134,6 +136,7 @@
                                 </Record>
                                 <Record Type="Common.ValueListParameterDisplayOnly">
                                     <PropertyValue Property="ValueListProperty" String="Bukrs" />
+                                    <PropertyValue Property="ValueListProperty" String="Butxt" />
                                 </Record> 
                             </Collection>
                         </PropertyValue>
@@ -198,13 +201,17 @@
                                 <Record Type="Common.ValueListParameterDisplayOnly">
                                     <PropertyValue Property="ValueListProperty" String="Regio" />
                                 </Record>
+                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Ktokk" />
+                                </Record>
+                                
                             </Collection>
                         </PropertyValue>
                     </Record>
                 </Annotation>
             </Annotations>
             
-             <Annotations Target="ZFI_BCM_PAYMENT_SRV.VendorInv/Pspid">
+             <!-- <Annotations Target="ZFI_BCM_PAYMENT_SRV.VendorInv/Pspid">
                 <Annotation Term="Common.ValueList">
                     <Record>
                         <PropertyValue Property="Label" String="Project def." />
@@ -224,6 +231,94 @@
                         </PropertyValue>
                     </Record>
                 </Annotation>
+            </Annotations> -->
+
+            <Annotations Target="ZFI_BCM_PAYMENT_SRV.VendorInv/Gsber">
+                <Annotation Term="Common.ValueList">
+                    <Record>
+                        <PropertyValue Property="Label" String="Business Area" />
+                        <PropertyValue Property="CollectionPath" String="BusinessAreaSet" />
+                        <PropertyValue Property="SearchSupported" Bool="true" />
+                        <PropertyValue Property="Parameters">
+                            <Collection>
+                                <Record Type="Common.ValueListParameterInOut">
+                                    <PropertyValue Property="LocalDataProperty" PropertyPath="Gsber" />
+                                    <PropertyValue Property="ValueListProperty" String="Gsber" />
+                                </Record>
+                                  
+                                     <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Gtext" />
+                                </Record>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+            </Annotations>
+
+            <Annotations Target="ZFI_BCM_PAYMENT_SRV.VendorInv/Ktokk">
+                <Annotation Term="Common.ValueList">
+                    <Record>
+                        <PropertyValue Property="Label" String="Account group" />
+                        <PropertyValue Property="CollectionPath" String="VenAccountGrpSet" />
+                        <PropertyValue Property="SearchSupported" Bool="true" />
+                        <PropertyValue Property="Parameters">
+                            <Collection>
+                                <Record Type="Common.ValueListParameterInOut">
+                                    <PropertyValue Property="LocalDataProperty" PropertyPath="Ktokk" />
+                                    <PropertyValue Property="ValueListProperty" String="Ktokk" />
+                                </Record>
+                                  
+                                     <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Txt30" />
+                                </Record>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+            </Annotations>
+
+            <Annotations Target="ZFI_BCM_PAYMENT_SRV.CustomerRet/Ktokd">
+                <Annotation Term="Common.ValueList">
+                    <Record>
+                        <PropertyValue Property="Label" String="Account group" />
+                        <PropertyValue Property="CollectionPath" String="CustAccountGrpSet" />
+                        <PropertyValue Property="SearchSupported" Bool="true" />
+                        <PropertyValue Property="Parameters">
+                            <Collection>
+                                <Record Type="Common.ValueListParameterInOut">
+                                    <PropertyValue Property="LocalDataProperty" PropertyPath="Ktokd" />
+                                    <PropertyValue Property="ValueListProperty" String="Ktokd" />
+                                </Record>
+                                  
+                                     <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Txt30" />
+                                </Record>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+            </Annotations>
+
+            <Annotations Target="ZFI_BCM_PAYMENT_SRV.CustomerRet/Gsber">
+                <Annotation Term="Common.ValueList">
+                    <Record>
+                        <PropertyValue Property="Label" String="Business Area" />
+                        <PropertyValue Property="CollectionPath" String="BusinessAreaSet" />
+                        <PropertyValue Property="SearchSupported" Bool="true" />
+                        <PropertyValue Property="Parameters">
+                            <Collection>
+                                <Record Type="Common.ValueListParameterInOut">
+                                    <PropertyValue Property="LocalDataProperty" PropertyPath="Gsber" />
+                                    <PropertyValue Property="ValueListProperty" String="Gsber" />
+                                </Record>
+                                  
+                                     <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Gtext" />
+                                </Record>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
             </Annotations>
 
             <Annotations Target="ZFI_BCM_PAYMENT_SRV.CustomerRet/DateAson">
@@ -234,6 +329,40 @@
                 </Annotation>
                 <Annotation Term="com.sap.vocabularies.UI.v1.Mandatory" Bool="true" />
             </Annotations>
+
+
+
+            <!-- <Annotations Target="ZFI_BCM_PAYMENT_SRV.VendorInvDetSet">
+    <Annotation Term="com.sap.vocabularies.UI.v1.LineItem">
+        <Collection>
+            <Record Type="com.sap.vocabularies.UI.v1.DataField">
+                <PropertyValue Property="Value" Path="Docnr"/>
+                <PropertyValue Property="Label" String="Document Number"/>
+            </Record>
+            <Record Type="com.sap.vocabularies.UI.v1.DataField">
+                <PropertyValue Property="Value" Path="Lifnr"/>
+                <PropertyValue Property="Label" String="Vendor Number"/>
+            </Record>
+            <Record Type="com.sap.vocabularies.UI.v1.DataField">
+                <PropertyValue Property="Value" Path="DocAmt"/>
+                <PropertyValue Property="Label" String="Document Amount"/>
+            </Record> 
+        </Collection>
+    </Annotation>
+ 
+    <Annotation Term="com.sap.vocabularies.Hierarchy.v1.Hierarchy">
+        <Record>
+            <PropertyValue Property="HierarchyNode" Path="Docnr"/>
+            <PropertyValue Property="ParentNode" Path="Project"/> 
+            <PropertyValue Property="DrillState" Path="DrillState"/>  
+            <PropertyValue Property="NodeIDIsStable" Bool="true"/>
+            <PropertyValue Property="NodeDescendantCount" Path="NodeDescendantCount"/>  
+        </Record>
+    </Annotation>
+</Annotations> -->
+
+
+
         </Schema>
     </edmx:DataServices>
 </edmx:Edmx>

@@ -42,22 +42,27 @@ sap.ui.define([
                                 value2: null
                             }]
                         }
-
-                    });
-
-                    //     const oConditionModel = oSmartFilterBar.getConditionModel();
-
-                    //     if (oConditionModel) {
-                    //         oConditionModel.setProperty("/DateAson", [
-                    //             {
-                    //                 operator: "LE", 
-                    //                 values: [new Date()],
-                    //                 validated: "NotValidated"
-                    //             }
-                    //         ]);
-                    //     }
+                    }); 
                 });
 
+            }
+
+            var oSmartFilterBar = this.byId("customerFilterBar");
+            if (oSmartFilterBar) {
+                oSmartFilterBar.attachInitialized(function () {
+                    oSmartFilterBar.setFilterData({
+                        DateAson: {
+                            items: [],
+                            ranges: [{
+                                exclude: false,
+                                operation: "LE",
+                                keyField: "DateAson",
+                                value1: new Date(),
+                                value2: null
+                            }]
+                        }
+                    }); 
+                });
 
             }
         },

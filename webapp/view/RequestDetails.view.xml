@@ -4,6 +4,7 @@
     xmlns:core="sap.ui.core"
     displayBlock="true"
     xmlns="sap.m"
+    xmlns:table="sap.ui.table"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
     xmlns:html="http://www.w3.org/1999/xhtml"
@@ -35,15 +36,13 @@
             <VBox
                 fitContainer="true"
                 id="vendorsSection"
-                visible="true"
-            >
+                visible="true"            >
                 <smartFilterBar:SmartFilterBar
                     id="vendorFilterBar"
                     entitySet="VendorInvSet"
                     persistencyKey="VendorSmartFilter"
                     basicSearchFieldName="Lifnr"
-                    enableBasicSearch="true"
-                >
+                    enableBasicSearch="true"                >
                     <smartFilterBar:controlConfiguration>                        
                         <smartFilterBar:ControlConfiguration
                             key="Paval"
@@ -61,16 +60,24 @@
                             visibleInAdvancedArea="true"
                             index="2"
                         />
-                         <smartFilterBar:ControlConfiguration
-                            key="Pspid"
+                        
+                        <smartFilterBar:ControlConfiguration
+                            key="Gsber"
                             visibleInAdvancedArea="true"
                             index="3"
-                        />
+                        /> 
+                        
+                        <smartFilterBar:ControlConfiguration
+                            key="Ktokk"
+                            visibleInAdvancedArea="true"
+                            index="4"
+                        />    
+                                
                         <smartFilterBar:ControlConfiguration 
                             key="DateAson"
                             visibleInAdvancedArea="true"
                             mandatory="mandatory"
-                            index="4"
+                            index="5"
                         />
                     </smartFilterBar:controlConfiguration>
                     <smartFilterBar:layoutData>
@@ -78,9 +85,10 @@
                     </smartFilterBar:layoutData>
                 </smartFilterBar:SmartFilterBar>
                 <smartTable:SmartTable
-                    entitySet="VendorInvSet"
-                    tableType="ResponsiveTable"
-                    smartFilterId="vendorFilterBar"
+                    id="vendorSmartTreeTable"
+                    entitySet="VendorInvSet" 
+                    tableType="TreeTable"
+                    smartFilterId="vendorFilterBar" 
                     enableExport="true"
                     useVariantManagement="true"
                     useTablePersonalisation="true"
@@ -91,13 +99,10 @@
                     enableAutoColumnWidth="true"
                     initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt"
                     ignoreFromPersonalisation="Bankl,Paval,Bukrs,Name1,Pspid,RequestNo"
-                    beforeRebindTable="onBeforeRebindTable"
+                    beforeRebindTable="onBeforeRebindTable" 
+                    requestAtLeastFields="HierarchyNode,ParentNode,Level"
                 >
-                    <Table
-                        id="vendorTable"
-                        mode="MultiSelect"
-                    >
-                        <columns>
+                     <!-- <smartTable:columns>
                             <Column>
                                 <customData>
                                     <core:CustomData
@@ -171,9 +176,9 @@
                                 </customData>
                                 <Text text="{i18n>RetentionAmount}" />
                             </Column>                             
-                        </columns>
+                        </SmartTable:columns>
 
-                        <items>
+                        <SmartTable:items>
                             <ColumnListItem>
                                 <cells>
                                                             
@@ -192,23 +197,21 @@
                                     <Text text="{RetentionAmt}" />
                                 </cells>
                             </ColumnListItem>
-                        </items>
-                    </Table>
+                        </SmartTable:items>  -->
 
-                    <smartTable:layoutData>
+                    <!-- <smartTable:layoutData>
                         <FlexItemData
                             growFactor="1"
                             baseSize="0%"
-                        />
-                    </smartTable:layoutData>
+                        /> 
+                    </smartTable:layoutData>-->
                 </smartTable:SmartTable>
             </VBox>
 
             <VBox
                 fitContainer="true"
                 id="customersSection"
-                visible="false"
-            >
+                visible="false"            >
                 <smartFilterBar:SmartFilterBar
                     id="customerFilterBar"
                     entitySet="CustomerRetSet"
@@ -217,12 +220,7 @@
                     enableBasicSearch="true"
                 >
                     <smartFilterBar:controlConfiguration>
-                        <smartFilterBar:ControlConfiguration
-                            key="DateAson"
-                            visibleInAdvancedArea="true"
-                            mandatory="mandatory"
-                            index="4"
-                        />
+                       
                         <smartFilterBar:ControlConfiguration
                             key="Paval"
                             visibleInAdvancedArea="true"
@@ -235,14 +233,26 @@
                             index="1"
                         />
                         <smartFilterBar:ControlConfiguration
-                            key="Pspid"
-                            visibleInAdvancedArea="true"
-                            index="3"
-                        />
-                        <smartFilterBar:ControlConfiguration
                             key="Kunnr"
                             visibleInAdvancedArea="true"
                             index="2"
+                        />
+                         <smartFilterBar:ControlConfiguration
+                            key="Gsber"
+                            visibleInAdvancedArea="true"
+                            index="3"
+                        /> 
+                        
+                        <smartFilterBar:ControlConfiguration
+                            key="Ktokd"
+                            visibleInAdvancedArea="true"
+                            index="4"
+                        />   
+                         <smartFilterBar:ControlConfiguration
+                            key="DateAson"
+                            visibleInAdvancedArea="true"
+                            mandatory="mandatory"
+                            index="5"
                         />
                     </smartFilterBar:controlConfiguration>
                     <smartFilterBar:layoutData>
