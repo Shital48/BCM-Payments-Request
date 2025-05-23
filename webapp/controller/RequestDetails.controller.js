@@ -7,9 +7,11 @@ sap.ui.define([
     "sap/ui/core/Fragment",
     "sap/ui/model/FilterOperator",
     "sap/m/MessageToast",
-    "sap/m/MessageBox"
+    "sap/m/MessageBox",
+    "sap/ui/comp/smarttable/SmartTable",
+  "sap/ui/table/TreeTable"
 
-], (models, Controller, JSONModel, DateFormat, Filter, Fragment, FilterOperator, MessageToast, MessageBox) => {
+], (models, Controller, JSONModel, DateFormat, Filter, Fragment, FilterOperator, MessageToast, MessageBox,SmartTable, TreeTable) => {
     "use strict";
 
     return Controller.extend("refunddetails.controller.RequestDetails", {
@@ -121,6 +123,12 @@ sap.ui.define([
                 return "";
             }
         },
+        formatAmount: function(value) {
+            if (value === undefined || value === null) {
+                return "0.00";  
+            }
+            return parseFloat(value).toFixed(2);  
+        },
         onQtyLiveChange: function (oEvent) {
             var oInput = oEvent.getSource();
             var sValue = oInput.getValue();
@@ -160,12 +168,43 @@ sap.ui.define([
 
         //VENDOR
 
-        onBeforeRebindTable: function (oEvent) {
-            var oBindingParams = oEvent.getParameter("bindingParams");
-            oBindingParams.parameters = oBindingParams.parameters || {};
-            oBindingParams.parameters.expand = "VenDet";
+        // onBeforeRebindTable: function (oEvent) {
+        //     var oBindingParams = oEvent.getParameter("bindingParams");
+        //     oBindingParams.parameters = oBindingParams.parameters || {};
+        //     oBindingParams.parameters.expand = "VenDet";
+        // },
+
+        onBeforeRebindTable: function (oEvent) { 
+//                 const oSmartTable = this.byId("vendorSmartTreeTable");
+//                 const oModel = this.getView().getModel();
+              
+//                 oModel.metadataLoaded().then(() => {
+//                   const oTable = oSmartTable.getTable();
+              
+//                   if (oTable && oTable.isA("sap.ui.table.TreeTable")) {
+//                     const oModel = this.getView().getModel(); // ODataModel
+//                     const oBindingInfo = {
+//                       path: "/VendorInvSet",
+//                       parameters: {
+//                         treeAnnotationProperties: {
+//                           hierarchyLevelFor: "Level",
+//                           hierarchyNodeFor: "HierarchyNode",
+//                           parentNodeFor: "ParentNode"
+//                         }
+//                       }
+//                 };        
+//                 oTable.bindRows(oBindingInfo); // NOT setHierarchyProperty
+//     }
+//   });     
+
+var oBindingParams = oEvent.getParameter('bindingParams'); 
+			oBindingParams.parameters.numberOfExpandedLevels = 2;
+              
         },
-        formatVendor: function (sLifnr, oContext) {
+       
+
+
+        formatVendor: function  (sLifnr, oContext) {
             const sName1 = oContext.getProperty("Name1");
             return sLifnr + " - " + sName1;
         },
@@ -471,6 +510,7 @@ sap.ui.define([
                         "RequestNo": "",
                         "DateAson": formatToODataDate(oData.DateAson || new Date()),
                         "Kunnr": oData.Kunnr,
+                        "Gsber" :oData.Gsber,
                         "Pspid": oData.Pspid || "",
                         "Name1": oData.Name1,
                         "Paval": oData.Paval || "",
@@ -551,6 +591,7 @@ sap.ui.define([
                     aInvoices.forEach(function (invoice) {
                         aVenReq.push({
                             "Lifnr": invoice.Lifnr,
+                            "Gsber" :invoice.Gsber,
                             "Category": invoice.Category,
                             "Docnr": invoice.Docnr,
                             "Bukrs": invoice.Bukrs,

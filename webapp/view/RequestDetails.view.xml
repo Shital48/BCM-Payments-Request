@@ -4,6 +4,7 @@
     xmlns:core="sap.ui.core"
     displayBlock="true"
     xmlns="sap.m"
+    
     xmlns:table="sap.ui.table"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
@@ -37,7 +38,7 @@
                 fitContainer="true"
                 id="vendorsSection"
                 visible="true"            >
-                <smartFilterBar:SmartFilterBar
+                 <smartFilterBar:SmartFilterBar
                     id="vendorFilterBar"
                     entitySet="VendorInvSet"
                     persistencyKey="VendorSmartFilter"
@@ -83,31 +84,34 @@
                     <smartFilterBar:layoutData>
                         <FlexItemData shrinkFactor="0" />
                     </smartFilterBar:layoutData>
-                </smartFilterBar:SmartFilterBar>
-                <smartTable:SmartTable
-                    id="vendorSmartTreeTable"
-                    entitySet="VendorInvSet" 
-                    tableType="TreeTable"
-                    smartFilterId="vendorFilterBar" 
+                </smartFilterBar:SmartFilterBar> 
+                
+
+                 <smartTable:SmartTable
+         id="vendorSmartTreeTable"
+        entitySet="VendorInvSet"
+        tableType="TreeTable" 
+        smartFilterId="vendorFilterBar" 
                     enableExport="true"
-                    useVariantManagement="true"
-                    useTablePersonalisation="true"
-                    header="Vendor List"
-                    persistencyKey="VendorSmartTable"
-                    enableAutoBinding="true"
-                    class="sapUiResponsiveContentPadding" 
+        useVariantManagement="true"
+        useTablePersonalisation="true"
+        header="Vendor List"  
+        persistencyKey="VendorSmartTable"
+        enableAutoBinding="true"
+        class="sapUiResponsiveContentPadding" 
                     enableAutoColumnWidth="true"
-                    initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt"
+                     initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt"
                     ignoreFromPersonalisation="Bankl,Paval,Bukrs,Name1,Pspid,RequestNo"
                     beforeRebindTable="onBeforeRebindTable" 
-                    requestAtLeastFields="HierarchyNode,ParentNode,Level"
-                >
-                     <!-- <smartTable:columns>
+                    requestAtLeastFields="HierarchyNode,ParentNode,Level" 
+    >
+                
+                      <SmartTable:columns>
                             <Column>
                                 <customData>
                                     <core:CustomData
                                         key="p13nData"
-                                        value='{"columnKey": "Lifnr", "leadingProperty": "Lifnr", "columnIndex": 0, "additionalProperty": "Name1,DateAson"}'  
+                                        value='{"columnKey": "Lifnr", "leadingProperty": "Lifnr", "columnIndex": 0, "additionalProperty": "Name1,DateAson,Gsber"}'  
                             
                                     />
                                 </customData>
@@ -172,7 +176,7 @@
                                     <core:CustomData
                                         key="p13nData"
                                         value='{"columnKey": "RetentionAmt", "leadingProperty": "RetentionAmt", "columnIndex": 7}'
-                                    />
+                                          />
                                 </customData>
                                 <Text text="{i18n>RetentionAmount}" />
                             </Column>                             
@@ -183,9 +187,9 @@
                                 <cells>
                                                             
                                     <Text text="{= ${Lifnr} + ' - ' + ${Name1} }" />
-                                    <Text text="{TotalAmt}" />
+                                    <Text text="{path: 'TotalAmt', formatter: '.formatAmount'}" textAlign="End"/>
                                     <Text text="{Msme}" />
-                                    <Text text="{ApprovalAmt}" />
+                                    <Text text="{ApprovalAmt}" textAlign="End"/>
                                     <Button
                                         icon="sap-icon://action"
                                         text="Full"
@@ -197,15 +201,15 @@
                                     <Text text="{RetentionAmt}" />
                                 </cells>
                             </ColumnListItem>
-                        </SmartTable:items>  -->
+                        </SmartTable:items>  
 
-                    <!-- <smartTable:layoutData>
+                    <smartTable:layoutData>
                         <FlexItemData
                             growFactor="1"
                             baseSize="0%"
                         /> 
-                    </smartTable:layoutData>-->
-                </smartTable:SmartTable>
+                    </smartTable:layoutData>
+                 </smartTable:SmartTable> 
             </VBox>
 
             <VBox
@@ -360,7 +364,7 @@
                                     <core:CustomData
                                         key="p13nData"
                                         value='{"columnKey": "ApprovalAmt", "leadingProperty": "ApprovalAmt", "columnIndex": 8, 
-                            "additionalProperty": "Bukrs,DateAson,Pspid ,Paval,ProjectName,Gjahr,PayMethod,Bankl,Buzei"}'
+                            "additionalProperty": "Bukrs,DateAson,Pspid ,Paval,ProjectName,Gjahr,PayMethod,Bankl,Buzei,Gsber"}'
                                     />
                                 </customData>
                                 <Text text="{i18n>ApprovalAmt}" />
