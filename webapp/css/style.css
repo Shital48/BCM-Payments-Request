@@ -2,3 +2,27 @@
 .whiteBackgroundPage {
     background-color: white !important; 
 }
+/* Enter your custom styles here */
+.redText {
+    color: red;
+}
+
+.greenText {
+    color: green;
+}
+
+.boldText {
+    font-weight: bold;
+}
+.smallText {
+    font-size: 0.75rem; /* Smaller text size */
+}
+
+.alignRight {
+    align-items: flex-end;
+    text-align: right;
+}
+.paddedItem {
+    padding: 0.75rem; /* Adds padding from all sides */
+}
+

@@ -3,26 +3,27 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns:core="sap.ui.core"
     displayBlock="true"
-    xmlns="sap.m"
-    
-    xmlns:table="sap.ui.table"
+    xmlns="sap.m"    
+    xmlns:ui="sap.ui.table"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
     xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns:app="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1"
     height="100%"
+    xmlns:rowmodes="sap.ui.table.rowmodes"
 >
     <Page
         id="page"
         class="whiteBackgroundPage"
-    >
-        <content>
+        showHeader="false"
+    > 
+        
             <Select
                 id="mySelect"
                 selectedKey="OPTION_VENDER"
-                width="30%"
+                width="400px"
                 change="onSelectionChange"
-                class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin"
+                class="sapUiSmallMarginBegin"
             >
                 <core:Item
                     key="OPTION_VENDER"
@@ -34,16 +35,21 @@
                 />
             </Select>
 
-            <VBox
+            <!-- <VBox
                 fitContainer="true"
                 id="vendorsSection"
-                visible="true"            >
+                visible="true"            > -->
+
+
+<!-- ADD BASIC SEARCH FIELD PROJECT -->
+
                  <smartFilterBar:SmartFilterBar
                     id="vendorFilterBar"
                     entitySet="VendorInvSet"
                     persistencyKey="VendorSmartFilter"
                     basicSearchFieldName="Lifnr"
-                    enableBasicSearch="true"                >
+                    enableBasicSearch="true"  
+                    search=".onVendorFilterSearch"              >
                     <smartFilterBar:controlConfiguration>                        
                         <smartFilterBar:ControlConfiguration
                             key="Paval"
@@ -64,155 +70,208 @@
                         
                         <smartFilterBar:ControlConfiguration
                             key="Gsber"
-                            visibleInAdvancedArea="true"
+                            visibleInAdvancedArea="false"
                             index="3"
                         /> 
-                        
                         <smartFilterBar:ControlConfiguration
-                            key="Ktokk"
-                            visibleInAdvancedArea="true"
+                            key="Ktokk" 
+                            visibleInAdvancedArea="false"
                             index="4"
-                        />    
+                        />  
+                        
+                        <!-- Need to modify for city filter-->
+                        <smartFilterBar:ControlConfiguration 
+                            key="Ktokk"
+                            visibleInAdvancedArea="true" 
+                            index="5"                            
+                            label="City"
+                        />  
                                 
                         <smartFilterBar:ControlConfiguration 
                             key="DateAson"
                             visibleInAdvancedArea="true"
                             mandatory="mandatory"
-                            index="5"
+                            index="6"
                         />
                     </smartFilterBar:controlConfiguration>
                     <smartFilterBar:layoutData>
                         <FlexItemData shrinkFactor="0" />
                     </smartFilterBar:layoutData>
-                </smartFilterBar:SmartFilterBar> 
-                
+                </smartFilterBar:SmartFilterBar>               
 
-                 <smartTable:SmartTable
-         id="vendorSmartTreeTable"
-        entitySet="VendorInvSet"
-        tableType="TreeTable" 
-        smartFilterId="vendorFilterBar" 
-                    enableExport="true"
-        useVariantManagement="true"
-        useTablePersonalisation="true"
-        header="Vendor List"  
-        persistencyKey="VendorSmartTable"
-        enableAutoBinding="true"
-        class="sapUiResponsiveContentPadding" 
-                    enableAutoColumnWidth="true"
-                     initiallyVisibleFields="Lifnr,TotalAmt,Msme,ApprovalAmt,PayMethod,InvoiceAmt,AdvanceAmt,RetentionAmt"
-                    ignoreFromPersonalisation="Bankl,Paval,Bukrs,Name1,Pspid,RequestNo"
-                    beforeRebindTable="onBeforeRebindTable" 
-                    requestAtLeastFields="HierarchyNode,ParentNode,Level" 
-    >
-                
-                      <SmartTable:columns>
-                            <Column>
-                                <customData>
-                                    <core:CustomData
-                                        key="p13nData"
-                                        value='{"columnKey": "Lifnr", "leadingProperty": "Lifnr", "columnIndex": 0, "additionalProperty": "Name1,DateAson,Gsber"}'  
+ 
+                     <SplitContainer id="splitContainer">
+                <masterPages>
+                    <Page
+                        id="masterPage"
+                        title="Projects"
+                    >
+                        <List
+                            id="projectList" 
+                            items="{zRequestModel>/filteredVendors}"
                             
-                                    />
-                                </customData>
-                                <Text text="{i18n>VendorName}" />
-                            </Column>
-                            <Column>
-                                <customData>
-                                    <core:CustomData
-                                        key="p13nData"
-                                        value='{"columnKey": "TotalAmt", "leadingProperty": "TotalAmt", "columnIndex": 1}'
-                                    />
-                                </customData>
-                                <Text text="{i18n>TotalAmount}" />
-                            </Column>
-                            <Column>
-                                <customData>
-                                    <core:CustomData
-                                        key="p13nData"
-                                        value='{"columnKey": "Msme", "leadingProperty": "Msme", "columnIndex": 2}'
-                                    />
-                                </customData>
-                                <Text text="{i18n>Msme}" />
-                            </Column>
-                            <Column>
-                                <customData>
-                                    <core:CustomData
-                                        key="p13nData"
-                                        value='{"columnKey": "ApprovalAmt", "leadingProperty": "ApprovalAmt", "columnIndex": 3}'
-                                    />
-                                </customData>
-                                <Text text="{i18n>ApprovalAmount}" />
-                            </Column>
-                            <Column>
-                                <customData>
-                                    <core:CustomData
-                                        key="p13nData"
-                                        value='{"columnKey": "PayMethod", "leadingProperty": "PayMethod", "columnIndex": 4}'
-                                    />
-                                </customData>
-                                <Text text="{i18n>PaymentMethod}" />
-                            </Column>
-                            <Column>
-                                <customData>
-                                    <core:CustomData
-                                        key="p13nData"
-                                        value='{"columnKey": "InvoiceAmt", "leadingProperty": "InvoiceAmt", "columnIndex": 5}'
-                                    />
-                                </customData>
-                                <Text text="{i18n>InvoiceAmount}" />
-                            </Column>
-                            <Column>
-                                <customData>
-                                    <core:CustomData
-                                        key="p13nData"
-                                        value='{"columnKey": "AdvanceAmt", "leadingProperty": "AdvanceAmt", "columnIndex": 6}'
-                                    />
-                                </customData>
-                                <Text text="{i18n>AdvanceAmount}" />
-                            </Column>
-                            <Column>
-                                <customData>
-                                    <core:CustomData
-                                        key="p13nData"
-                                        value='{"columnKey": "RetentionAmt", "leadingProperty": "RetentionAmt", "columnIndex": 7}'
-                                          />
-                                </customData>
-                                <Text text="{i18n>RetentionAmount}" />
-                            </Column>                             
-                        </SmartTable:columns>
+                            mode="SingleSelectMaster"
+                            selectionChange=".onProjectPress"
+                        >                           
 
-                        <SmartTable:items>
-                            <ColumnListItem>
-                                <cells>
-                                                            
-                                    <Text text="{= ${Lifnr} + ' - ' + ${Name1} }" />
-                                    <Text text="{path: 'TotalAmt', formatter: '.formatAmount'}" textAlign="End"/>
-                                    <Text text="{Msme}" />
-                                    <Text text="{ApprovalAmt}" textAlign="End"/>
-                                    <Button
-                                        icon="sap-icon://action"
-                                        text="Full"
-                                        press=".onPayMethodPress"
-                                    />
-                                    <Text text="{InvoiceAmt}" />
-                                    <Text text="{AdvanceAmt}" />
+                            <CustomListItem>                            
+
+                                <VBox
+                                    width="100%"
+                                    class="customListItem paddedItem"
+                                >
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{zRequestModel>Gsber}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="{zRequestModel>TotalAmt}"
+                                            class="redText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{zRequestModel>AdvanceAmt}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="{zRequestModel>ApprovalAmt}"
+                                            class="greenText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                </VBox>
+                            </CustomListItem>
+                        </List>
+                    </Page>
+                </masterPages>
+
+                <detailPages>
+                    <Page
+                        id="detailPage"
+                        title="Vendor Details"
+                        enableScrolling="false"
+                    >
+                        <VBox
+                            id="detailContent"
+                            class="sapUiSmallMargin" 
+                            height="100%"
+                        >
+ 
+
+                <ScrollContainer horizontal="true" vertical="true" height="100%" width="100%">
+                 
+                            <Table
+                                id="vendorsTable"
+                                inset="false"
+                                growing="true"
+                                selectionChange=".onVendorSelection"
+                                growingScrollToLoad="true"
+                                mode="MultiSelect"
+                                items="{ordersModel>/vendors}" 
+                                width="1500px"
+                                sticky="ColumnHeaders" 
+                            >
+                                <columns>
+                                    <Column>
+                                        <Text text="Vendor Name" />
+                                    </Column>
+                                    <Column>
+                                        <Text text="Total Amount" />
+                                    </Column>
+                                    <Column>
+                                        <Text text="MSME" />
+                                    </Column>
+                                    <Column>
+                                        <Text text="Invoices" />
+                                    </Column>
+                                    <Column>
+                                        <Text text="Approval Amount" />
+                                    </Column>
+                                    <Column>
+                                        <Text text="Payment Method" />
+                                    </Column>
+                                    <Column>
+                                        <Text text="Invoice Amount" />
+                                    </Column>
+                                     <Column>
+                                        <Text text="Advance Amount" />
+                                    </Column>
+                                     <Column>
+                                        <Text text="Retention Amount" />
+                                    </Column>
+                                    <Column>
+                                        <Text text="AdHoc Amount" />
+                                    </Column>
+                                     
                                     
-                                    <Text text="{RetentionAmt}" />
-                                </cells>
-                            </ColumnListItem>
-                        </SmartTable:items>  
+                                </columns>
 
-                    <smartTable:layoutData>
-                        <FlexItemData
-                            growFactor="1"
-                            baseSize="0%"
-                        /> 
-                    </smartTable:layoutData>
-                 </smartTable:SmartTable> 
-            </VBox>
+                                <items>
+                                    <ColumnListItem>
+                                        <cells>
+                                            <Text
+                                                 
+                                                text="{ordersModel>Lifnr}" 
+                                            />
+                                             <Text
+                                                text="{ordersModel>TotalAmt}"
+                                            />
+                                             <Text
+                                                text="{ordersModel>Msme}"
+                                            />
+                                             <Text
+                                                text="{ordersModel>InvoiceAmt}"
+                                            />
+                                            
+                                            <Input
+                                                value="{ordersModel>ApprovalAmt}"
+                                                editable="true"
+                                                placeholder="Enter amount"
+                                                valueLiveUpdate="true"
+                                                type="Number"
+                                                liveChange=".onFieldValueChange"
+                                            >
+                                                <customData>
+                                                    <core:CustomData
+                                                        key="field"
+                                                        value="ApprovalAmt"
+                                                    />
+                                                </customData>
+                                            </Input>
+                                            <Button
+                                                icon="sap-icon://action"
+                                                text="Full"
+                                                press=".onPayMethodPress"
+                                            /> 
+                                             <Text
+                                                text="{ordersModel>InvoiceAmt}"
+                                            />
+                                             <Text
+                                                text="{ordersModel>AdvanceAmt}"
+                                            />
+                                             <Text
+                                                text="{ordersModel>RetentionAmt}"
+                                            />
+                                            <Text
+                                                text="{ordersModel>RetentionAmt}"
+                                            />
+                                            
 
-            <VBox
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table> 
+                            </ScrollContainer> 
+ </VBox> 
+                    </Page>
+                </detailPages>
+            </SplitContainer> 
+            
+
+            <!-- <VBox
                 fitContainer="true"
                 id="customersSection"
                 visible="false"            >
@@ -221,8 +280,7 @@
                     entitySet="CustomerRetSet"
                     persistencyKey="CustomerSmartFilter"
                     basicSearchFieldName="Bukrs"
-                    enableBasicSearch="true"
-                >
+                    enableBasicSearch="true"                >
                     <smartFilterBar:controlConfiguration>
                        
                         <smartFilterBar:ControlConfiguration
@@ -395,7 +453,7 @@
                                 </cells>
                             </ColumnListItem>
                         </items>
-                    </Table>
+                    </Table> 
 
                     <smartTable:layoutData>
                         <FlexItemData
@@ -404,9 +462,7 @@
                         />
                     </smartTable:layoutData>
                 </smartTable:SmartTable>
-            </VBox>
-        </content>
-
+            </VBox>  -->
         <footer>
             <Toolbar>
                 <ToolbarSpacer />
