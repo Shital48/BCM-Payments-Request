@@ -106,8 +106,9 @@ sap.ui.define([
                 // },
                 filters: that.aFilters,
                 success: function (oData) {
-                    that.projectModel.setProperty("/filteredVendors", oData.results);
+                    that.projectModel.setProperty("/filteredVendors", oData.results); 
                     that.getView().setBusy(false);
+                    that.byId("projectList").getBinding("items").refresh();
                 },
                 error: function () {
                     that.projectModel.setProperty("/filteredVendors", []);
@@ -138,7 +139,7 @@ sap.ui.define([
         },
 
         _loadVendorDetails: function (oProjectId) {
-            var that = this;
+            // var that = this;
             const oModel = this.getView().getModel();
             const sProjectId = oProjectId;
             // APPLY FILTER ON PROJECT TO GET PROJECT VENDORS
@@ -146,14 +147,14 @@ sap.ui.define([
                 new Filter("HierarchyNode", FilterOperator.EQ, oProjectId)
             ]);
 
-            that.getView().setBusy(true);
+            this.getView().setBusy(true);
             oModel.read("/VendorInvSet", {
                 urlParameters: {
                     "$expand": "VenDet"
                 },
                 filters: aCombinedFilters,
                 success: function (oData) {
-                    that.getView().setBusy(false);
+                    this.getView().setBusy(false);
                     const aOrders = oData.results.map(vendors => {
                         const sVendorId = vendors.Lifnr;
                         const oSavedData = this.projectModel.getProperty(`/VendorDetails/${sProjectId}/${sVendorId}`) || {};
@@ -163,7 +164,7 @@ sap.ui.define([
                 }.bind(this),
                 error: function (oError) {
                     // oDialog.setBusy(false);
-                    that.getView().setBusy(false);
+                    this.getView().setBusy(false);
                     console.error("Error fetching filtered data", oError);
                 }
 
