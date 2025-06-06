@@ -15,6 +15,20 @@ sap.ui.define([
     return Controller.extend("refunddetails.controller.RequestDetails", {
         onInit() {
 
+
+
+            var oData = {
+                "Companies": [
+                    { "CompanyCode": "C001", "CompanyName": "Company A" },
+                    { "CompanyCode": "C002", "CompanyName": "Company B" },
+                    { "CompanyCode": "C003", "CompanyName": "Company C" }
+                ]
+            };
+            var oModel = new JSONModel(oData);
+            this.getView().setModel(oModel, "detailModel");
+
+
+
             sap.ui.core.BusyIndicator.show(0);
             this.selectedOrdersModel = new JSONModel({ selectedProducts: [] });
             this.getView().setModel(this.selectedOrdersModel, "selectedOrdersModel");
@@ -107,6 +121,7 @@ sap.ui.define([
                 filters: that.aFilters,
                 success: function (oData) {
                     that.projectModel.setProperty("/filteredVendors", oData.results); 
+                    console.log("Filtered Vendors", oData.results);
                     that.getView().setBusy(false);
                     that.byId("projectList").getBinding("items").refresh();
                 },
@@ -116,6 +131,22 @@ sap.ui.define([
                 }
             });
 
+        },
+       
+        onCompanyCodeSelect: function (oEvent) {
+            const oSelectedItem = oEvent.getParameter("listItem");
+            if (!oSelectedItem) {
+                MessageToast.show("Please select a company code.");
+                return;
+            } 
+            const oNavContainer = this.byId("masterNavContainer");
+            const oBusinessPage = this.byId("BusinessPage");
+        
+            if (oNavContainer && oBusinessPage) {
+                oNavContainer.to(oBusinessPage);
+            } else {
+                MessageToast.show("Navigation to BusinessPage failed.");
+            }
         },
 
 
@@ -202,12 +233,12 @@ sap.ui.define([
             }
         },
 
-        formatAmount: function (value) {
-            if (value === undefined || value === null) {
-                return "0.00";
-            }
-            return parseFloat(value).toFixed(2);
-        },
+        // formatAmount: function (value) {
+        //     if (value === undefined || value === null) {
+        //         return "0.00";
+        //     }
+        //     return parseFloat(value).toFixed(2);
+        // },
         onFieldValueChange: function (oEvent) {
             const oSource = oEvent.getSource();
             const sField = oSource.getCustomData().find(d => d.getKey() === "field")?.getValue();
@@ -805,6 +836,13 @@ sap.ui.define([
 
         onCancelPress: function () {
             this.clearAllFields();
+        },
+        formatAmount: function (value) {
+            if (!value) return "";
+            return parseFloat(value).toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
         }
 
     });

@@ -46,6 +46,7 @@
                  <smartFilterBar:SmartFilterBar
                     id="vendorFilterBar"
                     entitySet="VendorInvSet"
+                    class="customSmartFilterButtons "
                     persistencyKey="VendorSmartFilter"
                     basicSearchFieldName="Lifnr"
                     enableBasicSearch="true"  
@@ -104,9 +105,44 @@
                 <masterPages>
                     <Page
                         id="masterPage"
-                        title="Projects"
+                        title="Company Code"
+                        class="customPageHeader"
                     >
-                        <List
+                    <content>
+                         <NavContainer id="masterNavContainer">
+            
+                <Page id="CompanyPage" title="xyz" showNavButton="true" navButtonPress="onBackToLocation" class="pageHeader">
+                    <List
+                        id="CompanyCode"
+                        items="{zRequestModel>/filteredVendors}"
+                        mode="SingleSelectMaster"
+                        selectionChange=".onCompanyCodeSelect"
+                        growing="true"
+                    >
+                      <CustomListItem>
+                                 <VBox
+                                    width="100%"
+                                    class="customListItem paddedItem"
+                                >
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{zRequestModel>Bukrs}"
+                                            class="largeText"
+                                        />
+                                        <!-- <Text
+                                            text="{detailModel>CompanyName}"
+                                            class="redText largeText"
+                                            textAlign="End"
+                                        /> -->
+                                    </HBox>
+                                </VBox>
+                            </CustomListItem>
+                  </List>
+                </Page>
+
+                 <Page id="BusinessPage" class="pageHeader">
+
+                 <List
                             id="projectList" 
                             items="{zRequestModel>/filteredVendors}"
                             
@@ -145,6 +181,13 @@
                                 </VBox>
                             </CustomListItem>
                         </List>
+                     </Page>
+
+                </NavContainer>
+                
+
+                    </content>
+                       
                     </Page>
                 </masterPages>
 
@@ -153,6 +196,7 @@
                         id="detailPage"
                         title="Vendor Details"
                         enableScrolling="false"
+                        class="customPageHeader"
                     >
                         <VBox
                             id="detailContent"
@@ -165,6 +209,7 @@
                  
                             <Table
                                 id="vendorsTable"
+                                class="customHeaderStyle"
                                 inset="false"
                                 growing="true"
                                 selectionChange=".onVendorSelection"
@@ -173,36 +218,37 @@
                                 items="{ordersModel>/vendors}" 
                                 width="1500px"
                                 sticky="ColumnHeaders" 
+                            
                             >
                                 <columns>
                                     <Column>
                                         <Text text="Vendor Name" />
                                     </Column>
-                                    <Column>
+                                    <Column hAlign="Right">
                                         <Text text="Total Amount" />
                                     </Column>
-                                    <Column>
+                                    <Column hAlign="Center">
                                         <Text text="MSME" />
                                     </Column>
-                                    <Column>
+                                    <Column hAlign="Right">
                                         <Text text="Invoices" />
                                     </Column>
-                                    <Column>
+                                    <Column hAlign="Right">
                                         <Text text="Approval Amount" />
                                     </Column>
-                                    <Column>
+                                    <Column hAlign="Center">
                                         <Text text="Payment Method" />
                                     </Column>
-                                    <Column>
+                                    <Column hAlign="Right">
                                         <Text text="Invoice Amount" />
                                     </Column>
-                                     <Column>
+                                     <Column hAlign="Right">
                                         <Text text="Advance Amount" />
                                     </Column>
-                                     <Column>
+                                     <Column hAlign="Right">
                                         <Text text="Retention Amount" />
                                     </Column>
-                                    <Column>
+                                    <Column hAlign="Right">
                                         <Text text="AdHoc Amount" />
                                     </Column>
                                      
@@ -217,22 +263,22 @@
                                                 text="{ordersModel>Lifnr}" 
                                             />
                                              <Text
-                                                text="{ordersModel>TotalAmt}"
+                                                text="{path:'ordersModel>TotalAmt',formatter: '.formatAmount'}"
                                             />
                                              <Text
                                                 text="{ordersModel>Msme}"
                                             />
                                              <Text
-                                                text="{ordersModel>InvoiceAmt}"
+                                                text="{path:'ordersModel>InvoiceAmt',formatter:'.formatAmount'}"
                                             />
-                                            
                                             <Input
-                                                value="{ordersModel>ApprovalAmt}"
+                                                value="{path:'ordersModel>ApprovalAmt',formatter:'.formatAmount'}"
                                                 editable="true"
                                                 placeholder="Enter amount"
                                                 valueLiveUpdate="true"
                                                 type="Number"
                                                 liveChange=".onFieldValueChange"
+                                                textAlign="Right"
                                             >
                                                 <customData>
                                                     <core:CustomData
@@ -245,18 +291,19 @@
                                                 icon="sap-icon://action"
                                                 text="Full"
                                                 press=".onPayMethodPress"
+                                                class="fullButtonStyle" 
                                             /> 
                                              <Text
-                                                text="{ordersModel>InvoiceAmt}"
+                                                text="{path:'ordersModel>InvoiceAmt',formatter:'.formatAmount'}"
                                             />
                                              <Text
-                                                text="{ordersModel>AdvanceAmt}"
+                                                text="{path:'ordersModel>AdvanceAmt',formatter:'.formatAmount'}"
                                             />
                                              <Text
-                                                text="{ordersModel>RetentionAmt}"
+                                                text="{path:'ordersModel>RetentionAmt',formatter:'.formatAmount'}"
                                             />
                                             <Text
-                                                text="{ordersModel>RetentionAmt}"
+                                                text="{path:'ordersModel>RetentionAmt',formatter:'.formatAmount'}"
                                             />
                                             
 
