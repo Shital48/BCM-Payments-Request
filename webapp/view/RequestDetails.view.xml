@@ -3,7 +3,7 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns:core="sap.ui.core"
     displayBlock="true"
-    xmlns="sap.m"    
+    xmlns="sap.m"
     xmlns:ui="sap.ui.table"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
@@ -16,197 +16,192 @@
         id="page"
         class="whiteBackgroundPage"
         showHeader="false"
-    > 
-        
-            <Select
-                id="mySelect"
-                selectedKey="OPTION_VENDER"
-                width="400px"
-                change="onSelectionChange"
-                class="sapUiSmallMarginBegin"
-            >
-                <core:Item
-                    key="OPTION_VENDER"
-                    text="Vendors"
-                />
-                <core:Item
-                    key="OPTION_CUSTOMER"
-                    text="Customers"
-                />
-            </Select>
+    >
+        <Select
+            id="mySelect"
+            selectedKey="OPTION_VENDER"
+            width="400px"
+            change="onSelectionChange"
+            class="sapUiSmallMarginBegin"
+        >
+            <core:Item
+                key="OPTION_VENDER"
+                text="Vendors"
+            />
+            <core:Item
+                key="OPTION_CUSTOMER"
+                text="Customers"
+            />
+        </Select>
 
-            <!-- <VBox
+        <!-- <VBox
                 fitContainer="true"
                 id="vendorsSection"
                 visible="true"            > -->
 
+        <!-- ADD BASIC SEARCH FIELD PROJECT -->
 
-<!-- ADD BASIC SEARCH FIELD PROJECT -->
-
-                 <smartFilterBar:SmartFilterBar
-                    id="vendorFilterBar"
-                    entitySet="VendorInvSet"
-                    class="customSmartFilterButtons "
-                    persistencyKey="VendorSmartFilter"
-                    basicSearchFieldName="Lifnr"
-                    enableBasicSearch="true"  
-                    search=".onVendorFilterSearch"              >
-                    <smartFilterBar:controlConfiguration>                        
-                        <smartFilterBar:ControlConfiguration
+        <smartFilterBar:SmartFilterBar
+            id="vendorFilterBar"
+            entitySet="VendorInvSet"
+            class="customSmartFilterButtons "
+            persistencyKey="VendorSmartFilter"
+            basicSearchFieldName="Lifnr"
+            enableBasicSearch="true"
+            search=".onVendorFilterSearch"
+        >
+            <smartFilterBar:controlConfiguration>
+            <smartFilterBar:ControlConfiguration
                             key="Paval"
                             visibleInAdvancedArea="true"
                             index="0" 
                             mandatory="mandatory"
                         />
-                        <smartFilterBar:ControlConfiguration
-                            key="Bukrs"
-                            visibleInAdvancedArea="true"
-                            index="1"
-                        />                       
-                        <smartFilterBar:ControlConfiguration
-                            key="Lifnr"
-                            visibleInAdvancedArea="true"
-                            index="2"
-                        />
-                        
-                        <smartFilterBar:ControlConfiguration
-                            key="Gsber"
-                            visibleInAdvancedArea="false"
-                            index="3"
-                        /> 
-                        <smartFilterBar:ControlConfiguration
-                            key="Ktokk" 
-                            visibleInAdvancedArea="false"
-                            index="4"
-                        />  
-                        
-                        <!-- Need to modify for city filter-->
-                        <smartFilterBar:ControlConfiguration 
-                            key="Ktokk"
-                            visibleInAdvancedArea="true" 
-                            index="5"                            
-                            label="City"
-                        />  
-                                
-                        <smartFilterBar:ControlConfiguration 
-                            key="DateAson"
-                            visibleInAdvancedArea="true"
-                            mandatory="mandatory"
-                            index="6"
-                        />
-                    </smartFilterBar:controlConfiguration>
-                    <smartFilterBar:layoutData>
-                        <FlexItemData shrinkFactor="0" />
-                    </smartFilterBar:layoutData>
-                </smartFilterBar:SmartFilterBar>               
+                <smartFilterBar:ControlConfiguration
+                    key="Bukrs"
+                    visibleInAdvancedArea="true"
+                    index="1"
+                />
+                <smartFilterBar:ControlConfiguration
+                    key="Lifnr"
+                    visibleInAdvancedArea="true"
+                    index="2"
+                />
 
- 
-                     <SplitContainer id="splitContainer">
-                <masterPages>
-                    <Page
-                        id="masterPage"
-                        title="Company Code"
-                        class="customPageHeader"
-                    >
+                <smartFilterBar:ControlConfiguration
+                    key="Gsber"
+                    visibleInAdvancedArea="false"
+                    mandatory="mandatory"
+                    index="3"
+                />
+                <smartFilterBar:ControlConfiguration
+                    key="Ktokk"
+                    visibleInAdvancedArea="false"
+                    index="4"
+                />
+
+                <!-- Need to modify for city filter-->
+                <smartFilterBar:ControlConfiguration
+                    key="Ktokk"
+                    visibleInAdvancedArea="true"
+                    index="5"
+                    label="City"
+                />
+                <smartFilterBar:ControlConfiguration
+                    key="DateAson"
+                    visibleInAdvancedArea="true"
+                    mandatory="mandatory"
+                    index="6"
+                />
+            </smartFilterBar:controlConfiguration>
+            <smartFilterBar:layoutData>
+                <FlexItemData shrinkFactor="0" />
+            </smartFilterBar:layoutData>
+        </smartFilterBar:SmartFilterBar>
+
+        <SplitContainer id="splitContainer">
+            <masterPages>
+                <Page
+                    id="masterPage"
+                    title="Company Code"
+                    class="customPageHeader"
+                    showNavButton="true"
+                    navButtonPress="onNavBack"
+                >
                     <content>
-                         <NavContainer id="masterNavContainer">
-            
-                <Page id="CompanyPage" title="xyz" showNavButton="true" navButtonPress="onBackToLocation" class="pageHeader">
-                    <List
-                        id="CompanyCode"
-                        items="{zRequestModel>/filteredVendors}"
-                        mode="SingleSelectMaster"
-                        selectionChange=".onCompanyCodeSelect"
-                        growing="true"
-                    >
-                      <CustomListItem>
-                                 <VBox
-                                    width="100%"
-                                    class="customListItem paddedItem"
-                                >
-                                    <HBox justifyContent="SpaceBetween">
-                                        <Text
-                                            text="{zRequestModel>Bukrs}"
-                                            class="largeText"
-                                        />
-                                        <!-- <Text
-                                            text="{detailModel>CompanyName}"
-                                            class="redText largeText"
-                                            textAlign="End"
-                                        /> -->
-                                    </HBox>
-                                </VBox>
-                            </CustomListItem>
-                  </List>
-                </Page>
-
-                 <Page id="BusinessPage" class="pageHeader">
-
-                 <List
-                            id="projectList" 
-                            items="{zRequestModel>/filteredVendors}"
-                            
+                        <!--  City List (Top Level) -->
+                        <List
+                            id="cityList" 
                             mode="SingleSelectMaster"
-                            selectionChange=".onProjectPress"
-                        >                           
-
-                            <CustomListItem>                            
-
-                                <VBox
-                                    width="100%"
-                                    class="customListItem paddedItem"
-                                >
-                                    <HBox justifyContent="SpaceBetween">
-                                        <Text
-                                            text="{zRequestModel>Gsber}"
-                                            class="smallText"
-                                        />
-                                        <Text
-                                            text="{zRequestModel>TotalAmt}"
-                                            class="redText smallText"
-                                            textAlign="End"
-                                        />
-                                    </HBox>
-                                    <HBox justifyContent="SpaceBetween">
-                                        <Text
-                                            text="{zRequestModel>AdvanceAmt}"
-                                            class="smallText"
-                                        />
-                                        <Text
-                                            text="{zRequestModel>ApprovalAmt}"
-                                            class="greenText smallText"
-                                            textAlign="End"
-                                        />
-                                    </HBox>
-                                </VBox>
-                            </CustomListItem>
-                        </List>
-                     </Page>
-
-                </NavContainer>
-                
-
-                    </content>
-                       
-                    </Page>
-                </masterPages>
-
-                <detailPages>
-                    <Page
-                        id="detailPage"
-                        title="Vendor Details"
-                        enableScrolling="false"
-                        class="customPageHeader"
-                    >
-                        <VBox
-                            id="detailContent"
-                            class="sapUiSmallMargin" 
-                            height="100%"
+                            selectionChange="onCitySelect"
+                            visible="false"
+                            growing="true"
                         >
- 
+                            <items>
+                                <ObjectListItem title="{Zzcity}" />
+                            </items>
+                        </List>
 
-                <ScrollContainer horizontal="true" vertical="true" height="100%" width="100%">
-                 
+                        <!--  Business Segment List (CityBus) -->
+                        <List
+                            id="busSegList"
+                            visible="false"
+                            mode="SingleSelectMaster"
+                            selectionChange="onBusSegSelect"
+                        >
+                            <items>
+                                <ObjectListItem title="{BusSeg}" />
+                            </items>
+                        </List>
+
+                        <!--  Business Component List (BusComp) -->
+                        <List
+                            id="busCompList"
+                            visible="false"
+                            mode="SingleSelectMaster"
+                            selectionChange="onBusCompSelect"
+                        >
+                            <items>
+                                <ObjectListItem title="{Bukrs}" />
+                            </items>
+                        </List>
+
+                        <!--  Project/Vendor List (ProjVen with VenDet) -->
+                        <List
+                            id="projectList"
+                            visible="false"
+                            mode="SingleSelectMaster"
+                            selectionChange="onProjectPress"
+                        >
+                            <!-- <CustomListItem>
+            <VBox width="100%" class="customListItem paddedItem">
+              <HBox justifyContent="SpaceBetween">
+                <Text text="{zRequestModel>Gsber}" class="smallText" />
+                <Text
+                  text="{zRequestModel>TotalAmt}"
+                  class="redText smallText"
+                  textAlign="End"
+                />
+              </HBox>
+              <HBox justifyContent="SpaceBetween">
+                <Text
+                  text="{zRequestModel>AdvanceAmt}"
+                  class="smallText"
+                />
+                <Text
+                  text="{zRequestModel>ApprovalAmt}"
+                  class="greenText smallText"
+                  textAlign="End"
+                />
+              </HBox>
+            </VBox>
+          </CustomListItem> -->
+                            <items>
+                                <ObjectListItem title="{Gsber}" />
+                            </items>
+                        </List>
+                    </content>
+                </Page>
+            </masterPages>
+
+            <detailPages>
+                <Page
+                    id="detailPage"
+                    title="Vendor Details"
+                    enableScrolling="false"
+                    class="customPageHeader"
+                >
+                    <VBox
+                        id="detailContent"
+                        class="sapUiSmallMargin"
+                        height="100%"
+                    >
+                        <ScrollContainer
+                            horizontal="true"
+                            vertical="true"
+                            height="100%"
+                            width="100%"
+                        >
                             <Table
                                 id="vendorsTable"
                                 class="customHeaderStyle"
@@ -215,10 +210,9 @@
                                 selectionChange=".onVendorSelection"
                                 growingScrollToLoad="true"
                                 mode="MultiSelect"
-                                items="{ordersModel>/vendors}" 
+                                items="{ordersModel>/vendors}"
                                 width="1500px"
-                                sticky="ColumnHeaders" 
-                            
+                                sticky="ColumnHeaders"
                             >
                                 <columns>
                                     <Column>
@@ -242,33 +236,26 @@
                                     <Column hAlign="Right">
                                         <Text text="Invoice Amount" />
                                     </Column>
-                                     <Column hAlign="Right">
+                                    <Column hAlign="Right">
                                         <Text text="Advance Amount" />
                                     </Column>
-                                     <Column hAlign="Right">
+                                    <Column hAlign="Right">
                                         <Text text="Retention Amount" />
                                     </Column>
                                     <Column hAlign="Right">
                                         <Text text="AdHoc Amount" />
                                     </Column>
-                                     
-                                    
                                 </columns>
 
                                 <items>
                                     <ColumnListItem>
                                         <cells>
+                                            <Text text="{ordersModel>Lifnr}" />
                                             <Text
-                                                 
-                                                text="{ordersModel>Lifnr}" 
-                                            />
-                                             <Text
                                                 text="{path:'ordersModel>TotalAmt',formatter: '.formatAmount'}"
                                             />
-                                             <Text
-                                                text="{ordersModel>Msme}"
-                                            />
-                                             <Text
+                                            <Text text="{ordersModel>Msme}" />
+                                            <Text
                                                 text="{path:'ordersModel>InvoiceAmt',formatter:'.formatAmount'}"
                                             />
                                             <Input
@@ -291,34 +278,31 @@
                                                 icon="sap-icon://action"
                                                 text="Full"
                                                 press=".onPayMethodPress"
-                                                class="fullButtonStyle" 
-                                            /> 
-                                             <Text
+                                                class="fullButtonStyle"
+                                            />
+                                            <Text
                                                 text="{path:'ordersModel>InvoiceAmt',formatter:'.formatAmount'}"
                                             />
-                                             <Text
+                                            <Text
                                                 text="{path:'ordersModel>AdvanceAmt',formatter:'.formatAmount'}"
                                             />
-                                             <Text
+                                            <Text
                                                 text="{path:'ordersModel>RetentionAmt',formatter:'.formatAmount'}"
                                             />
                                             <Text
                                                 text="{path:'ordersModel>RetentionAmt',formatter:'.formatAmount'}"
                                             />
-                                            
-
                                         </cells>
                                     </ColumnListItem>
                                 </items>
-                            </Table> 
-                            </ScrollContainer> 
- </VBox> 
-                    </Page>
-                </detailPages>
-            </SplitContainer> 
-            
+                            </Table>
+                        </ScrollContainer>
+                    </VBox>
+                </Page>
+            </detailPages>
+        </SplitContainer>
 
-            <!-- <VBox
+        <!-- <VBox
                 fitContainer="true"
                 id="customersSection"
                 visible="false"            >

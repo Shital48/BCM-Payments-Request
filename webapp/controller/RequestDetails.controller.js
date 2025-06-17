@@ -15,20 +15,7 @@ sap.ui.define([
     return Controller.extend("refunddetails.controller.RequestDetails", {
         onInit() {
 
-
-
-            var oData = {
-                "Companies": [
-                    { "CompanyCode": "C001", "CompanyName": "Company A" },
-                    { "CompanyCode": "C002", "CompanyName": "Company B" },
-                    { "CompanyCode": "C003", "CompanyName": "Company C" }
-                ]
-            };
-            var oModel = new JSONModel(oData);
-            this.getView().setModel(oModel, "detailModel");
-
-
-
+            this.byId("masterPage").setShowNavButton(false); 
             sap.ui.core.BusyIndicator.show(0);
             this.selectedOrdersModel = new JSONModel({ selectedProducts: [] });
             this.getView().setModel(this.selectedOrdersModel, "selectedOrdersModel");
@@ -59,7 +46,6 @@ sap.ui.define([
                         }
                     });
                 });
-
             }
 
             var oSmartFilterBar2 = this.byId("customerFilterBar");
@@ -79,7 +65,7 @@ sap.ui.define([
                     });
                 });
 
-            }
+            } 
         },
 
 
@@ -104,86 +90,38 @@ sap.ui.define([
             }
         },
 
-        //  CAN DIRECTLY BIND WITHOUT STORING IN JSON
-
-        onVendorFilterSearch: function (oEvent) {
-            var that = this;
-            const oModel = this.getOwnerComponent().getModel();
-            var oSmartFilterBar = this.byId("vendorFilterBar");
-            this.aFilters = oSmartFilterBar.getFilters();
-
-            this.getView().setBusy(true);
-            oModel.read("/VendorInvSet", {
-                // urlParameters: {
-                //     // "$expand": "VenDet",
-                //     "$filter":  aFilters
-                // },
-                filters: that.aFilters,
-                success: function (oData) {
-                    that.projectModel.setProperty("/filteredVendors", oData.results); 
-                    console.log("Filtered Vendors", oData.results);
-                    that.getView().setBusy(false);
-                    that.byId("projectList").getBinding("items").refresh();
-                },
-                error: function () {
-                    that.projectModel.setProperty("/filteredVendors", []);
-                    that.getView().setBusy(false);
-                }
-            });
-
-        },
-       
-        onCompanyCodeSelect: function (oEvent) {
-            const oSelectedItem = oEvent.getParameter("listItem");
-            if (!oSelectedItem) {
-                MessageToast.show("Please select a company code.");
-                return;
-            } 
-            const oNavContainer = this.byId("masterNavContainer");
-            const oBusinessPage = this.byId("BusinessPage");
         
-            if (oNavContainer && oBusinessPage) {
-                oNavContainer.to(oBusinessPage);
-            } else {
-                MessageToast.show("Navigation to BusinessPage failed.");
-            }
-        },
-
-
-        // BIND ENTITYSET DEIRECTLY
-
-
         onProjectPress: function (oEvent) {
-            var oListItem = oEvent.getParameter("listItem");
-            var oContext = oListItem.getBindingContext("zRequestModel");
-            var oProject = oContext.getObject();
-            //GET PROJECT OR COMPANY CODE OR GSBER
-            var ProjectId = oProject.HierarchyNode;
+            // this._currentLevel = "busSeg"; 
+            const context = oEvent.getSource().getSelectedItem().getBindingContext().getObject();
+            const city = context.Zzcity;
+            const busSeg = context.BusSeg; 
+            const bukrs=context.Bukrs;
+            const gsber=context.Gsber; 
+            var sPath = `/ProjLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
+
+            var ProjectId = gsber; 
             // const oProjData = this.projectModel.getData().ProjectDetails || {};
             const oProjData = this.projectModel.getProperty("/VendorDetails") || {};
             if (!oProjData[ProjectId]) {
-                oProjData[ProjectId] = { CompanyName: oProject.Bukrs };
+                oProjData[ProjectId] = { CompanyName: context.Bukrs };
             }
             this.projectModel.setProperty("/VendorDetails", oProjData);
             this.currentProjectId = ProjectId;
-            this._loadVendorDetails(ProjectId);
+            this._loadVendorDetails(ProjectId,sPath);
         },
 
-        _loadVendorDetails: function (oProjectId) {
+        _loadVendorDetails: function (oProjectId,oSPath) {
             // var that = this;
             const oModel = this.getView().getModel();
             const sProjectId = oProjectId;
+            const sOSPath=oSPath;
             // APPLY FILTER ON PROJECT TO GET PROJECT VENDORS
-            var aCombinedFilters = this.aFilters.concat([
-                new Filter("HierarchyNode", FilterOperator.EQ, oProjectId)
-            ]);
-
             this.getView().setBusy(true);
-            oModel.read("/VendorInvSet", {
+            oModel.read(sOSPath, {
                 urlParameters: {
                     "$expand": "VenDet"
-                },
-                filters: aCombinedFilters,
+                }, 
                 success: function (oData) {
                     this.getView().setBusy(false);
                     const aOrders = oData.results.map(vendors => {
@@ -843,7 +781,111 @@ sap.ui.define([
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
-        }
+        },
+
+        
+        onVendorFilterSearch: function (oEvent) {
+            this._currentLevel = "city";
+            this.byId("cityList").setVisible(true);
+            var that = this; 
+            var oSmartFilterBar = this.byId("vendorFilterBar");
+            var aFilters = oSmartFilterBar.getFilters();
+        
+            this.getView().setBusy(true);
+        
+            this.byId("cityList").bindItems({
+                path: "/CityLevelSet",
+                 filters: aFilters,
+                template: new sap.m.ObjectListItem({
+                    title: "{Zzcity}"
+                }),
+                events: {
+                    dataReceived: function () {
+                        that.getView().setBusy(false);
+                    }
+                }
+            });
+        },
+        
+       
+        onCitySelect: function (oEvent) {
+            this._currentLevel = "busSeg";
+            this.byId("masterPage").setShowNavButton(true);
+
+            const city = oEvent.getSource().getSelectedItem().getBindingContext().getObject().Zzcity;
+          
+            // Show next level, hide others
+            this.byId("cityList").setVisible(false);
+            this.byId("busSegList").setVisible(true);
+            this.byId("busSegList").bindItems({
+              path: `/CityLevelSet('${city}')/CityBus`,
+              template: new sap.m.ObjectListItem({ title: "{BusSeg}" })
+            });
+          },
+          
+          onBusSegSelect: function (oEvent) {
+            this._currentLevel = "busComp";
+            const context = oEvent.getSource().getSelectedItem().getBindingContext().getObject();
+            const city = context.Zzcity;
+            const busSeg = context.BusSeg;
+          
+            this.byId("busSegList").setVisible(false);
+            this.byId("busCompList").setVisible(true);
+            this.byId("busCompList").bindItems({
+              path: `/BusSegLevelSet(Zzcity='${city}',BusSeg='${busSeg}')/BusComp`,
+              template: new sap.m.ObjectListItem({ title: "{Bukrs}" })
+            });
+          },
+          
+          onBusCompSelect: function (oEvent) {
+            this._currentLevel = "project";
+            const context = oEvent.getSource().getSelectedItem().getBindingContext().getObject();
+            const city = context.Zzcity;
+            const busSeg = context.BusSeg; 
+            const bukrs=context.Bukrs;
+            this.byId("busCompList").setVisible(false);
+            this.byId("projectList").setVisible(true);
+
+            this.byId("projectList").bindItems({
+              path: `/CompanyLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}')/CompProj`,
+              template: new sap.m.ObjectListItem({ title: "{Gsber}" })
+            });
+             
+          },
+          onNavBack: function () {
+            if (this._currentLevel === "project") {
+              this._setListVisibility("busComp");
+              this._currentLevel = "busComp";
+            } else if (this._currentLevel === "busComp") {
+              this._setListVisibility("busSeg");
+              this._currentLevel = "busSeg";
+            } else if(this._currentLevel === "busSeg"){
+              this._setListVisibility("city");
+              this._currentLevel = "city";
+            }
+            // else if(this._currentLevel === "city"){
+            //     this._setListVisibility("city");
+            //     this._currentLevel = "city";
+            // }
+
+
+          },
+          _setListVisibility: function(level) {
+            this.byId("cityList").setVisible(level === "city");
+            this.byId("busSegList").setVisible(level === "busSeg");
+            this.byId("busCompList").setVisible(level === "busComp");
+            this.byId("projectList").setVisible(level === "project");
+
+            const oPage = this.byId("masterPage");
+  if (level === "city") {
+    oPage.setShowNavButton(false);
+  } else {
+    oPage.setShowNavButton(true);
+  }
+          }
+          
+          
+          
 
     });
 });
