@@ -15,7 +15,7 @@ sap.ui.define([
     return Controller.extend("refunddetails.controller.RequestDetails", {
         onInit() {
 
-            this.byId("masterPage").setShowNavButton(false); 
+            this.byId("masterPage").setShowNavButton(false);
             sap.ui.core.BusyIndicator.show(0);
             this.selectedOrdersModel = new JSONModel({ selectedProducts: [] });
             this.getView().setModel(this.selectedOrdersModel, "selectedOrdersModel");
@@ -65,7 +65,7 @@ sap.ui.define([
                     });
                 });
 
-            } 
+            }
         },
 
 
@@ -90,17 +90,17 @@ sap.ui.define([
             }
         },
 
-        
+
         onProjectPress: function (oEvent) {
             // this._currentLevel = "busSeg"; 
             const context = oEvent.getSource().getSelectedItem().getBindingContext().getObject();
             const city = context.Zzcity;
-            const busSeg = context.BusSeg; 
-            const bukrs=context.Bukrs;
-            const gsber=context.Gsber; 
+            const busSeg = context.BusSeg;
+            const bukrs = context.Bukrs;
+            const gsber = context.Gsber;
             var sPath = `/ProjLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
 
-            var ProjectId = gsber; 
+            var ProjectId = gsber;
             // const oProjData = this.projectModel.getData().ProjectDetails || {};
             const oProjData = this.projectModel.getProperty("/VendorDetails") || {};
             if (!oProjData[ProjectId]) {
@@ -108,20 +108,20 @@ sap.ui.define([
             }
             this.projectModel.setProperty("/VendorDetails", oProjData);
             this.currentProjectId = ProjectId;
-            this._loadVendorDetails(ProjectId,sPath);
+            this._loadVendorDetails(ProjectId, sPath);
         },
 
-        _loadVendorDetails: function (oProjectId,oSPath) {
+        _loadVendorDetails: function (oProjectId, oSPath) {
             // var that = this;
             const oModel = this.getView().getModel();
             const sProjectId = oProjectId;
-            const sOSPath=oSPath;
+            const sOSPath = oSPath;
             // APPLY FILTER ON PROJECT TO GET PROJECT VENDORS
             this.getView().setBusy(true);
             oModel.read(sOSPath, {
                 urlParameters: {
                     "$expand": "VenDet"
-                }, 
+                },
                 success: function (oData) {
                     this.getView().setBusy(false);
                     const aOrders = oData.results.map(vendors => {
@@ -186,22 +186,16 @@ sap.ui.define([
 
             const oContext = oSource.getBindingContext("dialogModel") || oSource.getBindingContext("ordersModel");
             const oRowData = oContext?.getObject();
-
             const sVendorId = oRowData?.Lifnr;
             const sOrderId = oRowData?.Docnr;
-            const sTotalAmt = parseFloat(oRowData?.TotalAmt);
-            const sDocumentAmt = parseFloat(oRowData?.DocAmt);
 
             if (!sVendorId || !oRowData) return;
 
-            let vValue;
-
+            let vValue = oEvent.getParameter("value"); 
+            const approvalAmt = parseFloat(vValue || 0);
             if (oSource.isA("sap.m.Input")) {
                 vValue = oEvent.getParameter("value");
-            } else {
-                vValue = oSource.getProperty("value") || oSource.getText();
             }
-
             const oData = this.projectModel.getProperty("/VendorDetails") || {};
 
             if (!oData[sProjectId])
@@ -209,98 +203,59 @@ sap.ui.define([
             if (!oData[sProjectId][sVendorId])
                 oData[sProjectId][sVendorId] = {};
 
-            const approvalAmt = parseFloat(vValue);
+            const oSavedData = oData[sProjectId][sVendorId];
 
-            // Check if it's an order detail row (popup)
+
+            // Invoice Dialog Input Change
             if (sOrderId) {
-                if (!oData[sProjectId][sVendorId][sOrderId]) {
-                    oData[sProjectId][sVendorId][sOrderId] = {};
-                }
-                oData[sProjectId][sVendorId][sOrderId][sField] = vValue;
+                if (!oSavedData[sOrderId]) oSavedData[sOrderId] = {};
+                oSavedData[sOrderId][sField] = vValue;
 
-                if (sField === "ApprovalAmt") {
-                    if (sDocumentAmt === approvalAmt) {
-                        oRowData.PayMethod = "X";
-                    } else {
-                        oRowData.PayMethod = "";
-                    }
-
-                    if (isNaN(approvalAmt) || approvalAmt < 0) {
-                        oSource.setValueState("Error");
-                        oSource.setValueStateText("Add valid value");
-                    } else if (approvalAmt > sDocumentAmt) {
-                        oSource.setValueState("Error");
-                        oSource.setValueStateText("Payable amount exceeds Document Amount");
-                    } else {
-                        oSource.setValueState("None");
-                        oSource.setValueStateText("");
-                    }
+                // Validate
+                const sDocAmt = parseFloat(oRowData?.DocAmt || 0);
+                if (isNaN(approvalAmt) || approvalAmt < 0) {
+                    oSource.setValueState("Error");
+                    oSource.setValueStateText("Enter valid amount");
+                } else if (approvalAmt > sDocAmt) {
+                    oSource.setValueState("Error");
+                    oSource.setValueStateText("Exceeds Doc Amount");
+                } else {
+                    oSource.setValueState("None");
                 }
 
+                // SCENARIO 2: Update vendor-level ApprovalAmt
+                const oDialogModel = oContext.getModel("dialogModel");
+                const aDetails = oDialogModel.getData();
+                const total = aDetails.reduce((sum, row) => sum + parseFloat(row.ApprovalAmt || 0), 0);
+
+                const oOrdersModel = this.getView().getModel("ordersModel");
+                const aOrders = oOrdersModel.getProperty("/vendors"); // Adjust path as needed
+                const oVendorOrder = aOrders.find(row => row.Lifnr === sVendorId);
+                if (oVendorOrder) {
+                    oVendorOrder.ApprovalAmt = total.toFixed(2);
+                    oSavedData.ApprovalAmt = total.toFixed(2);
+                }
             } else {
-                // Else it's product-level field (main table)
-                oData[sProjectId][sVendorId][sField] = vValue;
+                // ----------- Vendor Table Input Change ------------
+                oSavedData[sField] = vValue;
 
-                if (sField === "ApprovalAmt") {
-                    // if (sTotalAmt === approvalAmt) {
-                    //     oRowData.PayMethod = "X";
-                    // } else {
-                    //     oRowData.PayMethod = "";
-                    // }
+                const oVenDet = oRowData?.VenDet;
+                const approvalAmount = parseFloat(vValue || 0);
+                let remaining = approvalAmount;
 
-                    if (isNaN(approvalAmt) || approvalAmt < 0) {
-                        oSource.setValueState("Error");
-                        oSource.setValueStateText("Add valid value");
-                    } else if (approvalAmt > sTotalAmt) {
-                        oSource.setValueState("Error");
-                        oSource.setValueStateText("Payable amount exceeds Total Amount");
-                    } else {
-                        oSource.setValueState("None");
-                        oSource.setValueStateText("");
-                    }
+                const sortedDetails = oVenDet.results?.slice().sort((a, b) => parseFloat(b.DocAmt) - parseFloat(a.DocAmt)) || [];
 
-                    const oView = this.getView();
-                    const sProjectId = this.currentProjectId;
-        
-                    //ADD VENDOR ID
-                    const pProduct = oEvent.getSource().getBindingContext("ordersModel").getObject();
-                    const oVenDet = pProduct.VenDet;
-                    const sVendorId = oVenDet.results?.[0]?.Lifnr;
-                    const oSavedData = this.projectModel.getProperty(`/VendorDetails/${sProjectId}/${sVendorId}`) || {};
-                    const approvalAmount = parseFloat(oSavedData.ApprovalAmt || 0);
-                    let remainingApproval = approvalAmount;
-        
-                    const aMergedDetails = oVenDet.results.map(oDetail => {
-                        const sDocId = oDetail.Docnr;
-                        const savedDetail = oSavedData[sDocId] || {};
-                        const docAmt = parseFloat(oDetail.DocAmt || 0);
-        
-                        let distributedAmt = 0;
-                        if (remainingApproval > 0) {
-                            distributedAmt = Math.min(docAmt, remainingApproval);
-                            remainingApproval -= distributedAmt;
-                        }
-                        return { ...oDetail, ApprovalAmt: distributedAmt.toFixed(2) };
-                    });
+                const aMerged = sortedDetails.map(doc => {
+                    const distAmt = Math.min(remaining, parseFloat(doc.DocAmt));
+                    remaining -= distAmt;
+                    if (!oSavedData[doc.Docnr]) oSavedData[doc.Docnr] = {};
+                    oSavedData[doc.Docnr].ApprovalAmt = distAmt.toFixed(2);
+                    return { ...doc, ApprovalAmt: distAmt.toFixed(2) };
+                });
 
-                    // this.projectModel.setProperty(`/VendorDetails/${sProjectId}/${sVendorId}`, oSavedData);
-
-        
-                    if (!this._pDialog) {
-                        this._pDialog = Fragment.load({
-                            name: "refunddetails.view.InvoiceDetail",
-                            controller: this
-                        }).then(function (oDialog) {
-                            oView.addDependent(oDialog);
-                            return oDialog;
-                        });
-                    }
-        
-                    this._pDialog.then(function (oDialog) {
-                        const oDialogModel = new JSONModel(aMergedDetails);
-                        oDialog.setModel(oDialogModel, "dialogModel"); 
-                    });
-                }
+                // Save data into dialog model for later use
+                this.dialogModelCache = this.dialogModelCache || {};
+                this.dialogModelCache[`${sProjectId}_${sVendorId}`] = aMerged;
             }
 
             this.projectModel.setProperty("/VendorDetails", oData);
@@ -311,98 +266,88 @@ sap.ui.define([
             return sLifnr + " - " + sName1;
         },
 
-
         onPayMethodPress: function (oEvent) {
             this.oSource1 = oEvent.getSource();
-            const pProduct = oEvent.getSource().getBindingContext("ordersModel").getObject();
-            this.sProduct=pProduct;
-            const oRowElement = oEvent.getSource().getParent(); // Assuming Button is in the row's cell (HBox or VBox)
-
-            // Find ApprovalAmt Input inside the same row
-            const aInputs = oRowElement.findAggregatedObjects(true, (control) => {
+            const pProduct = this.sProduct = oEvent.getSource().getBindingContext("ordersModel").getObject();
+            const sProjectId = this.currentProjectId;
+            const sVendorId = pProduct.Lifnr;
+        
+            // Validate vendor input
+            const aInputs = oEvent.getSource().getParent().findAggregatedObjects(true, control => {
                 return control.isA("sap.m.Input") &&
                     control.getCustomData().some(data => data.getKey() === "field" && data.getValue() === "ApprovalAmt");
             });
-
             const oApprovalInput = aInputs[0];
-
-            // Check for input error
-            if (oApprovalInput && oApprovalInput.getValueState() === "Error") {
+            if (oApprovalInput?.getValueState() === "Error") {
                 MessageBox.warning("Please correct the Approval Amount before proceeding.");
-                return; // Prevent opening the dialog
+                return;
             }
-
-            const oVenDet = pProduct.VenDet;
-            this._openOrderDetailDialog(oVenDet.results);
-
-        },
-
-        _openOrderDetailDialog: function (aDetails) {
+        
             const oView = this.getView();
-            const sProjectId = this.currentProjectId;
-            const pProduct = this.sProduct;
-
-            //ADD VENDOR ID
-            const sVendorId = aDetails?.[0]?.Lifnr;
             const oSavedData = this.projectModel.getProperty(`/VendorDetails/${sProjectId}/${sVendorId}`) || {};
-             
-            const aMergedDetails = aDetails.map(oDetail => {
-                const sDocId = oDetail.Docnr;
-                const savedDetail = oSavedData[sDocId] || {}; 
- 
-                return { ...oDetail, ...savedDetail};
+            const aDetails = pProduct?.VenDet?.results || [];
+        
+            const aMerged = aDetails.map(doc => {
+                const docId = doc.Docnr;
+                const saved = oSavedData[docId] || {};
+                return { ...doc, ApprovalAmt: saved.ApprovalAmt || "0.00" };
             });
-
-            if (!this._pDialog) {
-                this._pDialog = Fragment.load({
-                    name: "refunddetails.view.InvoiceDetail",
-                    controller: this
-                }).then(function (oDialog) {
-                    oView.addDependent(oDialog);
-                    return oDialog;
-                });
-            }
-
-            this._pDialog.then(function (oDialog) {
-                if(parseFloat(pProduct.ApprovalAmt) === 0)
-                {
-                    const oDialogModel = new JSONModel(aMergedDetails);
-                oDialog.setModel(oDialogModel, "dialogModel");
-                }                
-                oDialog.open();
+        
+            this._pDialog = this._pDialog || Fragment.load({
+                name: "refunddetails.view.InvoiceDetail",
+                controller: this
+            }).then(dialog => {
+                oView.addDependent(dialog);
+                return dialog;
+            });
+        
+            this._pDialog.then(dialog => {
+                const dialogData = this.dialogModelCache?.[`${sProjectId}_${sVendorId}`] || aMerged;
+                dialog.setModel(new JSONModel(dialogData), "dialogModel");
+                dialog.open();
             });
         },
+        
         onCloseOrderDialog: function () {
-            this._pDialog.then((oDialog) => {
-                const aInputs = oDialog.findElements(true).filter(control => control.isA("sap.m.Input"));
-
-                let bHasError = false;
-
-                aInputs.forEach(input => {
-                    if (input.getValueState() === "Error") {
-                        bHasError = true;
-                    }
-                });
-
-                if (bHasError) {
-                    MessageBox.warning("Please correct all input errors before closing the dialog.");
+            this._pDialog.then(oDialog => {
+                const aInputs = oDialog.findElements(true).filter(c => c.isA("sap.m.Input"));
+                const hasError = aInputs.some(input => input.getValueState() === "Error");
+        
+                if (hasError) {
+                    MessageBox.warning("Please correct all input errors before closing.");
                     return;
                 }
-
-                const oDialogModel = oDialog.getModel("dialogModel");
-                const aInvoiceDetails = oDialogModel.getData();
-
-                const totalDistributed = aInvoiceDetails.reduce((sum, item) => {
-                    return sum + parseFloat(item.ApprovalAmt || 0);
-                }, 0);
+        
+                const aDetails = oDialog.getModel("dialogModel").getData();
+                const total = aDetails.reduce((sum, row) => sum + parseFloat(row.ApprovalAmt || 0), 0);
+                
+                const oVendor = this.sProduct;
+                const sProjectId = this.currentProjectId;
+                const sVendorId = oVendor.Lifnr;
+                const oData = this.projectModel.getProperty("/VendorDetails") || {};
+        
+                if (!oData[sProjectId]) oData[sProjectId] = {};
+                if (!oData[sProjectId][sVendorId]) oData[sProjectId][sVendorId] = {};
+        
+                aDetails.forEach(item => {
+                    const sDocId = item.Docnr;
+                    if (!oData[sProjectId][sVendorId][sDocId]) oData[sProjectId][sVendorId][sDocId] = {};
+                    oData[sProjectId][sVendorId][sDocId].ApprovalAmt = item.ApprovalAmt;
+                });
+        
+                oData[sProjectId][sVendorId].ApprovalAmt = total.toFixed(2);
+                this.projectModel.setProperty("/VendorDetails", oData);
+        
+                // Update vendor row UI
                 const oOrdersModel = this.getView().getModel("ordersModel");
                 const oVendorContext = this.oSource1.getBindingContext("ordersModel");
-                const sVendorPath = oVendorContext.getPath();
-                oOrdersModel.setProperty(sVendorPath + "/ApprovalAmt", totalDistributed.toFixed(2));
+                const sPath = oVendorContext.getPath();
+                oOrdersModel.setProperty(sPath + "/ApprovalAmt", total.toFixed(2));
+        
                 oDialog.close();
             });
         },
-
+        
         onVendorSelection: function (oEvent) {
             const oTable = oEvent.getSource();
             const aSelectedItems = oTable.getSelectedItems();
@@ -783,19 +728,20 @@ sap.ui.define([
             });
         },
 
-        
+
         onVendorFilterSearch: function (oEvent) {
             this._currentLevel = "city";
+            this.byId("masterPage").setTitle("City");
             this.byId("cityList").setVisible(true);
-            var that = this; 
+            var that = this;
             var oSmartFilterBar = this.byId("vendorFilterBar");
             var aFilters = oSmartFilterBar.getFilters();
-        
+
             this.getView().setBusy(true);
-        
+
             this.byId("cityList").bindItems({
                 path: "/CityLevelSet",
-                 filters: aFilters,
+                filters: aFilters,
                 template: new sap.m.ObjectListItem({
                     title: "{Zzcity}"
                 }),
@@ -806,62 +752,71 @@ sap.ui.define([
                 }
             });
         },
-        
-       
+
+
         onCitySelect: function (oEvent) {
             this._currentLevel = "busSeg";
             this.byId("masterPage").setShowNavButton(true);
+            this.byId("masterPage").setTitle("Business Segment");
 
             const city = oEvent.getSource().getSelectedItem().getBindingContext().getObject().Zzcity;
-          
+
             // Show next level, hide others
             this.byId("cityList").setVisible(false);
             this.byId("busSegList").setVisible(true);
             this.byId("busSegList").bindItems({
-              path: `/CityLevelSet('${city}')/CityBus`,
-              template: new sap.m.ObjectListItem({ title: "{BusSeg}" })
+                path: `/CityLevelSet('${city}')/CityBus`,
+                template: new sap.m.ObjectListItem({ title: "{BusSeg}" })
             });
-          },
-          
-          onBusSegSelect: function (oEvent) {
+        },
+
+        onBusSegSelect: function (oEvent) {
             this._currentLevel = "busComp";
+            this.byId("masterPage").setTitle("Company");
             const context = oEvent.getSource().getSelectedItem().getBindingContext().getObject();
             const city = context.Zzcity;
             const busSeg = context.BusSeg;
-          
+
             this.byId("busSegList").setVisible(false);
             this.byId("busCompList").setVisible(true);
             this.byId("busCompList").bindItems({
-              path: `/BusSegLevelSet(Zzcity='${city}',BusSeg='${busSeg}')/BusComp`,
-              template: new sap.m.ObjectListItem({ title: "{Bukrs}" })
+                path: `/BusSegLevelSet(Zzcity='${city}',BusSeg='${busSeg}')/BusComp`,
+                template: new sap.m.ObjectListItem({ title: "{Bukrs}" })
             });
-          },
-          
-          onBusCompSelect: function (oEvent) {
+        },
+
+        onBusCompSelect: function (oEvent) {
             this._currentLevel = "project";
+            this.byId("masterPage").setTitle("Project");
             const context = oEvent.getSource().getSelectedItem().getBindingContext().getObject();
             const city = context.Zzcity;
-            const busSeg = context.BusSeg; 
-            const bukrs=context.Bukrs;
+            const busSeg = context.BusSeg;
+            const bukrs = context.Bukrs;
             this.byId("busCompList").setVisible(false);
             this.byId("projectList").setVisible(true);
 
             this.byId("projectList").bindItems({
-              path: `/CompanyLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}')/CompProj`,
-              template: new sap.m.ObjectListItem({ title: "{Gsber}" })
+                path: `/CompanyLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}')/CompProj`,
+                template: new sap.m.ObjectListItem({ title: "{Gsber}" })
             });
-             
-          },
-          onNavBack: function () {
+
+        },
+        onNavBack: function () {
             if (this._currentLevel === "project") {
-              this._setListVisibility("busComp");
-              this._currentLevel = "busComp";
+                this._setListVisibility("busComp");
+                this.byId("busCompList").removeSelections();
+                this.byId("masterPage").setTitle("Company");
+                this._currentLevel = "busComp";
             } else if (this._currentLevel === "busComp") {
-              this._setListVisibility("busSeg");
-              this._currentLevel = "busSeg";
-            } else if(this._currentLevel === "busSeg"){
-              this._setListVisibility("city");
-              this._currentLevel = "city";
+                this._setListVisibility("busSeg");
+                this.byId("busSegList").removeSelections();
+                this.byId("masterPage").setTitle("Business Segment");
+                this._currentLevel = "busSeg";
+            } else if (this._currentLevel === "busSeg") {
+                this._setListVisibility("city");
+                this.byId("cityList").removeSelections();
+                this.byId("masterPage").setTitle("City");
+                this._currentLevel = "city";
             }
             // else if(this._currentLevel === "city"){
             //     this._setListVisibility("city");
@@ -869,23 +824,23 @@ sap.ui.define([
             // }
 
 
-          },
-          _setListVisibility: function(level) {
+        },
+        _setListVisibility: function (level) {
             this.byId("cityList").setVisible(level === "city");
             this.byId("busSegList").setVisible(level === "busSeg");
             this.byId("busCompList").setVisible(level === "busComp");
             this.byId("projectList").setVisible(level === "project");
 
             const oPage = this.byId("masterPage");
-  if (level === "city") {
-    oPage.setShowNavButton(false);
-  } else {
-    oPage.setShowNavButton(true);
-  }
-          }
-          
-          
-          
+            if (level === "city") {
+                oPage.setShowNavButton(false);
+            } else {
+                oPage.setShowNavButton(true);
+            }
+        }
+
+
+
 
     });
 });

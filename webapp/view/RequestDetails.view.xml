@@ -51,12 +51,12 @@
             search=".onVendorFilterSearch"
         >
             <smartFilterBar:controlConfiguration>
-            <smartFilterBar:ControlConfiguration
-                            key="Paval"
-                            visibleInAdvancedArea="true"
-                            index="0" 
-                            mandatory="mandatory"
-                        />
+                <smartFilterBar:ControlConfiguration
+                    key="Paval"
+                    visibleInAdvancedArea="true"
+                    index="0"
+                    mandatory="mandatory"
+                />
                 <smartFilterBar:ControlConfiguration
                     key="Bukrs"
                     visibleInAdvancedArea="true"
@@ -103,7 +103,7 @@
             <masterPages>
                 <Page
                     id="masterPage"
-                    title="Company Code"
+                    title=""
                     class="customPageHeader"
                     showNavButton="true"
                     navButtonPress="onNavBack"
@@ -111,7 +111,7 @@
                     <content>
                         <!--  City List (Top Level) -->
                         <List
-                            id="cityList" 
+                            id="cityList"
                             mode="SingleSelectMaster"
                             selectionChange="onCitySelect"
                             visible="false"
@@ -259,7 +259,7 @@
                                                 text="{path:'ordersModel>InvoiceAmt',formatter:'.formatAmount'}"
                                             />
                                             <Input
-                                                value="{path:'ordersModel>ApprovalAmt',formatter:'.formatAmount'}"
+                                                value="{path:'ordersModel>ApprovalAmt'}"
                                                 editable="true"
                                                 placeholder="Enter amount"
                                                 valueLiveUpdate="true"
