@@ -23,7 +23,8 @@ function (JSONModel, Device) {
                 SelectedKey: "Vendors",
                 "VendorDetails": oVendorData,
                 "CustomerDetails": oCustomerData,
-                "filteredVendors": []
+                "filteredVendors": [],
+                "Cities": {}
             });
             return oModel;
         },

@@ -27,6 +27,7 @@ sap.ui.define([
                 sap.ui.core.BusyIndicator.hide();
             });
             this.projectModel = this.getOwnerComponent().getModel('zRequestModel');
+            
         },
 
         onAfterRendering: function () {
@@ -90,10 +91,251 @@ sap.ui.define([
             }
         },
 
+        //FORMATTER
 
+        formatDate: function (sDate) {
+            if (!sDate) {
+                return "";
+            }
+            var oDate = new Date(sDate);
+            return DateFormat.getDateTimeInstance({ pattern: "dd/MM/yyyy" }).format(oDate);
+        },
+
+        formatVendor: function (sLifnr, oContext) {
+            const sName1 = oContext.getProperty("Name1");
+            return sLifnr + " - " + sName1;
+        },
+        formatCategory: function (sCategory) {
+            if (sCategory === "I") {
+                return "Invoice";
+            } else if (sCategory === "A") {
+                return "Advance Request";
+            } else if (sCategory === "R") {
+                return "Retention";
+            }
+            return "";
+        },
+        formatAmount: function (value) {
+            if (!value) return "";
+            return parseFloat(value).toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        },
+        // onCheckboxSelect1: function (oEvent) {
+        //     const bSelected = oEvent.getParameter("selected");
+        //     const oCheckBox = oEvent.getSource();
+        //     const oContext1 = oCheckBox.getBindingContext();
+        //     const record = oContext1.getObject();
+        //     const oRow = oCheckBox.getParent();
+        //     const oContext = oRow.getBindingContext();
+        //     const aCells = oRow.getCells();
+        //     const oInput = aCells.find(cell => cell.isA("sap.m.Input"));
+        //     const sTotalAmt = oContext.getProperty("TotalAmt");
+
+        //     if (bSelected) {
+        //         oInput.setValue(sTotalAmt);
+        //         oInput.setEditable(false);
+        //         record.PayMethod = "X";
+        //     } else {
+        //         oInput.setEditable(true);
+        //         oInput.setValue("0.00");
+        //         record.PayMethod = "";
+        //     }
+        // },
+
+        // formatAmount: function (value) {
+        //     if (value === undefined || value === null) {
+        //         return "0.00";
+        //     }
+        //     return parseFloat(value).toFixed(2);
+        // }, 
+
+
+        // CAN REMOVE 
+
+        onPayMethodChange: function (oEvent) {
+            const sKey = oEvent.getSource().getSelectedKey();
+            const sLifnr = this._oButton.getBindingContext().getProperty("Lifnr");
+            const oDialog = this._dialogMap[sLifnr];
+            const oFilteredModel = oDialog.getModel("dialogModel");
+            const aInvoices = oFilteredModel.getProperty("/results");
+
+            if (sKey === "OPTION_Full") {
+                aInvoices.forEach(function (oInvoice) {
+                    oInvoice.PayMethod = "X";
+                    oInvoice.ApprovalAmt = oInvoice.DocAmt;
+                });
+            } else if (sKey === "OPTION_Partial") {
+                aInvoices.forEach(function (oInvoice) {
+                    oInvoice.PayMethod = "";
+                    oInvoice.ApprovalAmt = "0.00";
+                });
+            }
+
+            oFilteredModel.setProperty("/results", aInvoices);
+            oFilteredModel.checkUpdate(true);
+        },
+        onApprovalAmtChange: function (oEvent) {
+            const oInput = oEvent.getSource();
+            const sNewApprovalAmt = oInput.getValue();
+            const approvalAmt = parseFloat(sNewApprovalAmt);
+
+            const oContext = oInput.getBindingContext("dialogModel");
+            const record = oContext.getObject();
+            const docAmt = parseFloat(record.DocAmt);
+
+            if (docAmt === approvalAmt) {
+                record.PayMethod = "X";
+            }
+            else {
+                record.PayMethod = "";
+            }
+        },
+
+
+        onVendorFilterSearch: function (oEvent) {
+            this.getView().setModel(this.projectModel, "projectModel");
+            var that=this;
+            this._currentLevel = "city";
+            this.byId("masterPage").setTitle("City");
+            this.byId("cityList").setVisible(true);
+            var oSmartFilterBar = this.byId("vendorFilterBar");
+            var aFilters = oSmartFilterBar.getFilters();
+            const oList = this.byId("cityList");
+            const oModel = this.getView().getModel();
+            this.getView().setBusy(true);
+
+            oModel.read("/CityLevelSet", {
+                filters: aFilters,
+                success: function (oData) {
+                    const aCities = oData.results;
+                    const oCitiesById = {};
+                    aCities.forEach(city => {
+                        oCitiesById[city.Zzcity] = city;
+                    });
+                    that.projectModel.setProperty("/CityProjectsById", oCitiesById);
+                    that.projectModel.setProperty("/CityProjectList", aCities);
+                    that.getView().setBusy(false);
+                }.bind(that),
+                error: function (oError) {
+                    that.getView().setBusy(false);
+                    sap.m.MessageToast.show("Error while fetching city data");
+                    console.error("OData read failed", oError);
+                }.bind(that)
+            });
+        },
+
+
+        onCitySelect: function (oEvent) {
+            var that=this;
+            this._currentLevel = "busSeg";
+            this.byId("masterPage").setShowNavButton(true);
+            this.byId("masterPage").setTitle("Business Segment");
+
+            const city = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject().Zzcity;
+
+            // Show next level, hide others
+            this.byId("cityList").setVisible(false);
+            this.byId("busSegList").setVisible(true);
+
+            const BisSegList = this.byId("busSegList");
+            const oModel = this.getView().getModel();
+            this.getView().setBusy(true);
+
+            oModel.read(`/CityLevelSet('${city}')/CityBus`, {
+                success: function (oData) {
+                    const aBisSeg = oData.results;
+                    const oBisSegById = {};
+                    aBisSeg.forEach(seg => {
+                        oBisSegById[seg.BusSeg] = seg;
+                    });
+                    that.projectModel.setProperty(`/CityProjectsById/${city}/BusinessSegmentById`, oBisSegById);
+                    that.projectModel.setProperty("/BusinessSegmentList", aBisSeg);
+                    that.getView().setBusy(false);
+                }.bind(that),
+                error: function (oError) {
+                    that.getView().setBusy(false);
+                    sap.m.MessageToast.show("Error while fetching business segments");
+                    console.error("OData read failed", oError);
+                }.bind(that)
+            });
+
+        },
+
+        onBusSegSelect: function (oEvent) {
+            var that=this;
+            this._currentLevel = "busComp";
+            this.byId("masterPage").setTitle("Company");
+            const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
+            const city = context.Zzcity;
+            const busSeg = context.BusSeg;
+
+            this.byId("busSegList").setVisible(false);
+            this.byId("busCompList").setVisible(true);
+
+            const companyList = this.byId("busCompList");
+            const oModel = this.getView().getModel();
+            this.getView().setBusy(true);
+
+            oModel.read(`/BusSegLevelSet(Zzcity='${city}',BusSeg='${busSeg}')/BusComp`, {
+                success: function (oData) {
+                    const aCompany = oData.results;
+                    const oCompanyById = {};
+                    aCompany.forEach(company => {
+                        oCompanyById[company.Bukrs] = company; 
+                    });
+                    that.projectModel.setProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById`, oCompanyById);
+                    that.projectModel.setProperty("/CompanyList", aCompany);
+                    that.getView().setBusy(false);
+                }.bind(that),
+                error: function (oError) {
+                    that.getView().setBusy(false);
+                    sap.m.MessageToast.show("Error while fetching Companies");
+                    console.error("OData read failed", oError);
+                }.bind(that)
+            });
+        },
+
+        onBusCompSelect: function (oEvent) {
+            var that=this;
+            this._currentLevel = "project";
+            this.byId("masterPage").setTitle("Project");
+            const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
+            const city = context.Zzcity;
+            const busSeg = context.BusSeg;
+            const bukrs = context.Bukrs;
+            this.byId("busCompList").setVisible(false);
+            this.byId("projectList").setVisible(true);
+
+            const projList = this.byId("projectList");
+            const oModel = this.getView().getModel();
+            this.getView().setBusy(true);
+
+            oModel.read(`/CompanyLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}')/CompProj`, {
+                success: function (oData) {
+                    const aProjects = oData.results;
+                    const oProjectsById = {};
+                    aProjects.forEach(project => {
+                        oProjectsById[project.Gsber] = project; 
+                    });
+                    that.projectModel.setProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`, oProjectsById);
+                    that.projectModel.setProperty("/ProjectList", aProjects);
+                    that.getView().setBusy(false);
+                }.bind(that),
+                error: function (oError) {
+                    that.getView().setBusy(false);
+                    sap.m.MessageToast.show("Error while fetching projects");
+                    console.error("OData read failed", oError);
+                }.bind(that)
+            });
+
+        },
         onProjectPress: function (oEvent) {
+            var that=this;
             // this._currentLevel = "busSeg"; 
-            const context = oEvent.getSource().getSelectedItem().getBindingContext().getObject();
+            const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
+            this.projectID=context;
             const city = context.Zzcity;
             const busSeg = context.BusSeg;
             const bukrs = context.Bukrs;
@@ -137,46 +379,9 @@ sap.ui.define([
                     console.error("Error fetching filtered data", oError);
                 }
 
-
             });
         },
 
-
-        formatDate: function (sDate) {
-            if (!sDate) {
-                return "";
-            }
-            var oDate = new Date(sDate);
-            return DateFormat.getDateTimeInstance({ pattern: "dd/MM/yyyy" }).format(oDate);
-        },
-        onCheckboxSelect1: function (oEvent) {
-            const bSelected = oEvent.getParameter("selected");
-            const oCheckBox = oEvent.getSource();
-            const oContext1 = oCheckBox.getBindingContext();
-            const record = oContext1.getObject();
-            const oRow = oCheckBox.getParent();
-            const oContext = oRow.getBindingContext();
-            const aCells = oRow.getCells();
-            const oInput = aCells.find(cell => cell.isA("sap.m.Input"));
-            const sTotalAmt = oContext.getProperty("TotalAmt");
-
-            if (bSelected) {
-                oInput.setValue(sTotalAmt);
-                oInput.setEditable(false);
-                record.PayMethod = "X";
-            } else {
-                oInput.setEditable(true);
-                oInput.setValue("0.00");
-                record.PayMethod = "";
-            }
-        },
-
-        // formatAmount: function (value) {
-        //     if (value === undefined || value === null) {
-        //         return "0.00";
-        //     }
-        //     return parseFloat(value).toFixed(2);
-        // },
         onFieldValueChange: function (oEvent) {
             const oSource = oEvent.getSource();
             const sField = oSource.getCustomData().find(d => d.getKey() === "field")?.getValue();
@@ -191,11 +396,9 @@ sap.ui.define([
 
             if (!sVendorId || !oRowData) return;
 
-            let vValue = oEvent.getParameter("value"); 
+            let vValue = oEvent.getParameter("value");
             const approvalAmt = parseFloat(vValue || 0);
-            if (oSource.isA("sap.m.Input")) {
-                vValue = oEvent.getParameter("value");
-            }
+
             const oData = this.projectModel.getProperty("/VendorDetails") || {};
 
             if (!oData[sProjectId])
@@ -256,22 +459,59 @@ sap.ui.define([
                 // Save data into dialog model for later use
                 this.dialogModelCache = this.dialogModelCache || {};
                 this.dialogModelCache[`${sProjectId}_${sVendorId}`] = aMerged;
+
+                // ------- PayType auto-detection -------
+                const oOrdersModel = this.getView().getModel("ordersModel");
+                const oVendorContext = oSource.getBindingContext("ordersModel");
+                const sPath = oVendorContext.getPath();
+                const oVendorRow = oOrdersModel.getProperty(sPath);
+
+                const totalAmt = parseFloat(oVendorRow.TotalAmt || 0);
+                const enteredAmt = parseFloat(vValue || 0);
+                let sPayType = "Partial";
+
+                if (Math.abs(enteredAmt - totalAmt) < 0.01) {
+                    sPayType = "Full";
+                }
+
+                oOrdersModel.setProperty(sPath + "/PayType", sPayType);
+
+                // Optional: update button text if already rendered
+                const aButtons = oSource.getParent().findAggregatedObjects(true, c => c.isA("sap.m.Button"));
+                const oPayBtn = aButtons?.find(b => b.hasStyleClass("fullButtonStyle"));
+                if (oPayBtn) {
+                    oPayBtn.setText(sPayType);
+                }
+
             }
 
             this.projectModel.setProperty("/VendorDetails", oData);
-        },
+            const vendorDetails = this.projectModel.getProperty("/VendorDetails") || {}; 
 
-        formatVendor: function (sLifnr, oContext) {
-            const sName1 = oContext.getProperty("Name1");
-            return sLifnr + " - " + sName1;
-        },
+            const projectData = vendorDetails[sProjectId];
+            let total = 0;
+        
+            Object.entries(projectData).forEach(([key, value]) => {
+                if (key === "CompanyName") return;
+                const vendorApprovalAmt = parseFloat(value.ApprovalAmt || 0);
+                total += isNaN(vendorApprovalAmt) ? 0 : vendorApprovalAmt;
+            });
+  
+    this.projectModel.setProperty(
+        `/CityProjectsById/${this.projectID.Zzcity}/BusinessSegmentById/${this.projectID.BusSeg}/oCompanyById/${this.projectID.Bukrs}/ProjectsById/${this.projectID.Gsber}/ApprovalAmt`,
+        total
+    ); 
 
+
+
+
+        },
         onPayMethodPress: function (oEvent) {
             this.oSource1 = oEvent.getSource();
             const pProduct = this.sProduct = oEvent.getSource().getBindingContext("ordersModel").getObject();
             const sProjectId = this.currentProjectId;
             const sVendorId = pProduct.Lifnr;
-        
+
             // Validate vendor input
             const aInputs = oEvent.getSource().getParent().findAggregatedObjects(true, control => {
                 return control.isA("sap.m.Input") &&
@@ -282,17 +522,18 @@ sap.ui.define([
                 MessageBox.warning("Please correct the Approval Amount before proceeding.");
                 return;
             }
-        
+
             const oView = this.getView();
             const oSavedData = this.projectModel.getProperty(`/VendorDetails/${sProjectId}/${sVendorId}`) || {};
             const aDetails = pProduct?.VenDet?.results || [];
-        
+            const sPayType = oSavedData.PayType || pProduct.PayType || "Full";
+
             const aMerged = aDetails.map(doc => {
                 const docId = doc.Docnr;
                 const saved = oSavedData[docId] || {};
                 return { ...doc, ApprovalAmt: saved.ApprovalAmt || "0.00" };
             });
-        
+
             this._pDialog = this._pDialog || Fragment.load({
                 name: "refunddetails.view.InvoiceDetail",
                 controller: this
@@ -300,54 +541,142 @@ sap.ui.define([
                 oView.addDependent(dialog);
                 return dialog;
             });
-        
+
             this._pDialog.then(dialog => {
-                const dialogData = this.dialogModelCache?.[`${sProjectId}_${sVendorId}`] || aMerged;
+                const dialogData = {
+                    PayType: sPayType,
+                    Invoices: this.dialogModelCache?.[`${sProjectId}_${sVendorId}`] || aMerged
+                };
                 dialog.setModel(new JSONModel(dialogData), "dialogModel");
                 dialog.open();
             });
         },
-        
+        onDialogPayTypeChange: function (oEvent) {
+            const sSelected = oEvent.getSource().getSelectedKey();
+            const oDialog = oEvent.getSource().getParent();
+            const oDialogModel = oDialog.getModel("dialogModel");
+            oDialogModel.setProperty("/PayType", sSelected);
+
+            const aInvoices = oDialogModel.getProperty("/Invoices") || [];
+
+            if (sSelected === "Full") {
+                aInvoices.forEach(row => {
+                    row.ApprovalAmt = parseFloat(row.DocAmt).toFixed(2);
+                });
+                oDialogModel.setProperty("/Invoices", aInvoices);
+            }
+            else {
+                aInvoices.forEach(row => {
+                    row.ApprovalAmt = 0.00;
+                });
+                oDialogModel.setProperty("/Invoices", aInvoices);
+            }
+
+        },
+        onFullPaymentSelected: function (oEvent) {
+            const bSelected = oEvent.getParameter("selected");
+            const oContext = oEvent.getSource().getBindingContext("dialogModel");
+            const record = oContext.getObject();
+            if (bSelected) {
+                record.ApprovalAmt = record.DocAmt;
+                record.PayMethod = "X";
+            } else {
+                record.ApprovalAmt = "0.00";
+                record.PayMethod = "";
+            }
+            const oModel = oContext.getModel();
+            oModel.checkUpdate(true);
+
+        },
         onCloseOrderDialog: function () {
             this._pDialog.then(oDialog => {
                 const aInputs = oDialog.findElements(true).filter(c => c.isA("sap.m.Input"));
                 const hasError = aInputs.some(input => input.getValueState() === "Error");
-        
+
                 if (hasError) {
                     MessageBox.warning("Please correct all input errors before closing.");
                     return;
                 }
-        
-                const aDetails = oDialog.getModel("dialogModel").getData();
+
+                const oDialogModel = oDialog.getModel("dialogModel");
+                const aDetails = oDialogModel.getProperty("/Invoices") || [];
+                const sPayType = oDialogModel.getProperty("/PayType") || "Full";
+
                 const total = aDetails.reduce((sum, row) => sum + parseFloat(row.ApprovalAmt || 0), 0);
-                
+
                 const oVendor = this.sProduct;
                 const sProjectId = this.currentProjectId;
                 const sVendorId = oVendor.Lifnr;
                 const oData = this.projectModel.getProperty("/VendorDetails") || {};
-        
+
                 if (!oData[sProjectId]) oData[sProjectId] = {};
                 if (!oData[sProjectId][sVendorId]) oData[sProjectId][sVendorId] = {};
-        
+
                 aDetails.forEach(item => {
                     const sDocId = item.Docnr;
                     if (!oData[sProjectId][sVendorId][sDocId]) oData[sProjectId][sVendorId][sDocId] = {};
                     oData[sProjectId][sVendorId][sDocId].ApprovalAmt = item.ApprovalAmt;
                 });
-        
+
                 oData[sProjectId][sVendorId].ApprovalAmt = total.toFixed(2);
+                oData[sProjectId][sVendorId].PayType = sPayType; // ✅ Save PayType to projectModel
+
                 this.projectModel.setProperty("/VendorDetails", oData);
-        
-                // Update vendor row UI
+
+                // Update ordersModel row PayType
                 const oOrdersModel = this.getView().getModel("ordersModel");
                 const oVendorContext = this.oSource1.getBindingContext("ordersModel");
                 const sPath = oVendorContext.getPath();
                 oOrdersModel.setProperty(sPath + "/ApprovalAmt", total.toFixed(2));
-        
+                oOrdersModel.setProperty(sPath + "/PayType", sPayType);
+
                 oDialog.close();
             });
         },
-        
+
+        onNavBack: function () {
+            if (this._currentLevel === "project") {
+                this._setListVisibility("busComp");
+                this.byId("busCompList").removeSelections();
+                this.byId("masterPage").setTitle("Company");
+                this._currentLevel = "busComp";
+            } else if (this._currentLevel === "busComp") {
+                this._setListVisibility("busSeg");
+                this.byId("busSegList").removeSelections();
+                this.byId("masterPage").setTitle("Business Segment");
+                this._currentLevel = "busSeg";
+            } else if (this._currentLevel === "busSeg") {
+                this._setListVisibility("city");
+                this.byId("cityList").removeSelections();
+                this.byId("masterPage").setTitle("City");
+                this._currentLevel = "city";
+            }
+            // else if(this._currentLevel === "city"){
+            //     this._setListVisibility("city");
+            //     this._currentLevel = "city";
+            // }
+
+
+        },
+        _setListVisibility: function (level) {
+            this.byId("cityList").setVisible(level === "city");
+            this.byId("busSegList").setVisible(level === "busSeg");
+            this.byId("busCompList").setVisible(level === "busComp");
+            this.byId("projectList").setVisible(level === "project");
+
+            const oPage = this.byId("masterPage");
+            if (level === "city") {
+                oPage.setShowNavButton(false);
+            } else {
+                oPage.setShowNavButton(true);
+            }
+        },
+
+
+
+        // PAYLOAD
+
+
         onVendorSelection: function (oEvent) {
             const oTable = oEvent.getSource();
             const aSelectedItems = oTable.getSelectedItems();
@@ -375,92 +704,6 @@ sap.ui.define([
             this.selectedOrdersModel.setProperty("/selectedProducts", aSelectedData);
             console.log("✅ Selected Rows Saved:", aSelectedData);
         },
-
-        onFullPaymentSelected: function (oEvent) {
-            const bSelected = oEvent.getParameter("selected");
-            const oContext = oEvent.getSource().getBindingContext("dialogModel");
-            const record = oContext.getObject();
-            if (bSelected) {
-                record.ApprovalAmt = record.DocAmt;
-                record.PayMethod = "X";
-            } else {
-                record.ApprovalAmt = "0.00";
-                record.PayMethod = "";
-            }
-            const oModel = oContext.getModel();
-            oModel.checkUpdate(true);
-
-        },
-        editableBasedOnPayMethod: function (sGlobalPayMethod, sRowPayMethod) {
-            return sGlobalPayMethod === "OPTION_Partial" && sRowPayMethod !== "X";
-        },
-
-        onPayMethodChange: function (oEvent) {
-            const sKey = oEvent.getSource().getSelectedKey();
-            const sLifnr = this._oButton.getBindingContext().getProperty("Lifnr");
-            const oDialog = this._dialogMap[sLifnr];
-            const oFilteredModel = oDialog.getModel("dialogModel");
-            const aInvoices = oFilteredModel.getProperty("/results");
-
-            if (sKey === "OPTION_Full") {
-                aInvoices.forEach(function (oInvoice) {
-                    oInvoice.PayMethod = "X";
-                    oInvoice.ApprovalAmt = oInvoice.DocAmt;
-                });
-            } else if (sKey === "OPTION_Partial") {
-                aInvoices.forEach(function (oInvoice) {
-                    oInvoice.PayMethod = "";
-                    oInvoice.ApprovalAmt = "0.00";
-                });
-            }
-
-            oFilteredModel.setProperty("/results", aInvoices);
-            oFilteredModel.checkUpdate(true);
-        },
-        formatCategory: function (sCategory) {
-            if (sCategory === "I") {
-                return "Invoice";
-            } else if (sCategory === "A") {
-                return "Advance Request";
-            } else if (sCategory === "R") {
-                return "Retention";
-            }
-            return "";
-        },
-
-
-        onApprovalAmtChange: function (oEvent) {
-            const oInput = oEvent.getSource();
-            const sNewApprovalAmt = oInput.getValue();
-            const approvalAmt = parseFloat(sNewApprovalAmt);
-
-            const oContext = oInput.getBindingContext("dialogModel");
-            const record = oContext.getObject();
-            const docAmt = parseFloat(record.DocAmt);
-
-            if (docAmt === approvalAmt) {
-                record.PayMethod = "X";
-            }
-            else {
-                record.PayMethod = "";
-            }
-
-            if (isNaN(sNewApprovalAmt) || approvalAmt < 0) {
-                oInput.setValueState("Error");
-                oInput.setValueStateText("Add valid value");
-            } else if (approvalAmt > docAmt) {
-                oInput.setValueState("Error");
-                oInput.setValueStateText("Payable amount exceeds Total Amount");
-            }
-            else {
-                oInput.setValueState("None");
-                oInput.setValueStateText("");
-            }
-
-        },
-
-
-
 
         //FOOTER
 
@@ -720,126 +963,6 @@ sap.ui.define([
         onCancelPress: function () {
             this.clearAllFields();
         },
-        formatAmount: function (value) {
-            if (!value) return "";
-            return parseFloat(value).toLocaleString("en-IN", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        },
-
-
-        onVendorFilterSearch: function (oEvent) {
-            this._currentLevel = "city";
-            this.byId("masterPage").setTitle("City");
-            this.byId("cityList").setVisible(true);
-            var that = this;
-            var oSmartFilterBar = this.byId("vendorFilterBar");
-            var aFilters = oSmartFilterBar.getFilters();
-
-            this.getView().setBusy(true);
-
-            this.byId("cityList").bindItems({
-                path: "/CityLevelSet",
-                filters: aFilters,
-                template: new sap.m.ObjectListItem({
-                    title: "{Zzcity}"
-                }),
-                events: {
-                    dataReceived: function () {
-                        that.getView().setBusy(false);
-                    }
-                }
-            });
-        },
-
-
-        onCitySelect: function (oEvent) {
-            this._currentLevel = "busSeg";
-            this.byId("masterPage").setShowNavButton(true);
-            this.byId("masterPage").setTitle("Business Segment");
-
-            const city = oEvent.getSource().getSelectedItem().getBindingContext().getObject().Zzcity;
-
-            // Show next level, hide others
-            this.byId("cityList").setVisible(false);
-            this.byId("busSegList").setVisible(true);
-            this.byId("busSegList").bindItems({
-                path: `/CityLevelSet('${city}')/CityBus`,
-                template: new sap.m.ObjectListItem({ title: "{BusSeg}" })
-            });
-        },
-
-        onBusSegSelect: function (oEvent) {
-            this._currentLevel = "busComp";
-            this.byId("masterPage").setTitle("Company");
-            const context = oEvent.getSource().getSelectedItem().getBindingContext().getObject();
-            const city = context.Zzcity;
-            const busSeg = context.BusSeg;
-
-            this.byId("busSegList").setVisible(false);
-            this.byId("busCompList").setVisible(true);
-            this.byId("busCompList").bindItems({
-                path: `/BusSegLevelSet(Zzcity='${city}',BusSeg='${busSeg}')/BusComp`,
-                template: new sap.m.ObjectListItem({ title: "{Bukrs}" })
-            });
-        },
-
-        onBusCompSelect: function (oEvent) {
-            this._currentLevel = "project";
-            this.byId("masterPage").setTitle("Project");
-            const context = oEvent.getSource().getSelectedItem().getBindingContext().getObject();
-            const city = context.Zzcity;
-            const busSeg = context.BusSeg;
-            const bukrs = context.Bukrs;
-            this.byId("busCompList").setVisible(false);
-            this.byId("projectList").setVisible(true);
-
-            this.byId("projectList").bindItems({
-                path: `/CompanyLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}')/CompProj`,
-                template: new sap.m.ObjectListItem({ title: "{Gsber}" })
-            });
-
-        },
-        onNavBack: function () {
-            if (this._currentLevel === "project") {
-                this._setListVisibility("busComp");
-                this.byId("busCompList").removeSelections();
-                this.byId("masterPage").setTitle("Company");
-                this._currentLevel = "busComp";
-            } else if (this._currentLevel === "busComp") {
-                this._setListVisibility("busSeg");
-                this.byId("busSegList").removeSelections();
-                this.byId("masterPage").setTitle("Business Segment");
-                this._currentLevel = "busSeg";
-            } else if (this._currentLevel === "busSeg") {
-                this._setListVisibility("city");
-                this.byId("cityList").removeSelections();
-                this.byId("masterPage").setTitle("City");
-                this._currentLevel = "city";
-            }
-            // else if(this._currentLevel === "city"){
-            //     this._setListVisibility("city");
-            //     this._currentLevel = "city";
-            // }
-
-
-        },
-        _setListVisibility: function (level) {
-            this.byId("cityList").setVisible(level === "city");
-            this.byId("busSegList").setVisible(level === "busSeg");
-            this.byId("busCompList").setVisible(level === "busComp");
-            this.byId("projectList").setVisible(level === "project");
-
-            const oPage = this.byId("masterPage");
-            if (level === "city") {
-                oPage.setShowNavButton(false);
-            } else {
-                oPage.setShowNavButton(true);
-            }
-        }
-
-
 
 
     });

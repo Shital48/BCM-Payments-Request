@@ -116,10 +116,37 @@
                             selectionChange="onCitySelect"
                             visible="false"
                             growing="true"
+                            items="{projectModel>/CityProjectList}"
                         >
-                            <items>
-                                <ObjectListItem title="{Zzcity}" />
-                            </items>
+                            <CustomListItem type="Active">
+                                <VBox
+                                    width="100%"
+                                    class="customListItem paddedItem"
+                                >
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{projectModel>Zzcity}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="{projectModel>TotalAmt}"
+                                            class="redText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{projectModel>AdvanceAmt}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="{projectModel>ApprovalAmt}"
+                                            class="greenText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                </VBox>
+                            </CustomListItem>
                         </List>
 
                         <!--  Business Segment List (CityBus) -->
@@ -128,10 +155,37 @@
                             visible="false"
                             mode="SingleSelectMaster"
                             selectionChange="onBusSegSelect"
+                            items="{projectModel>/BusinessSegmentList}"
                         >
-                            <items>
-                                <ObjectListItem title="{BusSeg}" />
-                            </items>
+                            <CustomListItem type="Active">
+                                <VBox
+                                    width="100%"
+                                    class="customListItem paddedItem"
+                                >
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{projectModel>BusSeg}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="{projectModel>TotalAmt}"
+                                            class="redText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{projectModel>AdvanceAmt}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="{projectModel>ApprovalAmt}"
+                                            class="greenText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                </VBox>
+                            </CustomListItem>
                         </List>
 
                         <!--  Business Component List (BusComp) -->
@@ -140,10 +194,37 @@
                             visible="false"
                             mode="SingleSelectMaster"
                             selectionChange="onBusCompSelect"
+                            items="{projectModel>/CompanyList}"
                         >
-                            <items>
-                                <ObjectListItem title="{Bukrs}" />
-                            </items>
+                            <CustomListItem type="Active">
+                                <VBox
+                                    width="100%"
+                                    class="customListItem paddedItem"
+                                >
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{projectModel>Bukrs}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="{projectModel>TotalAmt}"
+                                            class="redText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{projectModel>AdvanceAmt}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="{projectModel>ApprovalAmt}"
+                                            class="greenText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                </VBox>
+                            </CustomListItem>
                         </List>
 
                         <!--  Project/Vendor List (ProjVen with VenDet) -->
@@ -152,33 +233,37 @@
                             visible="false"
                             mode="SingleSelectMaster"
                             selectionChange="onProjectPress"
+                            items="{projectModel>/ProjectList}"
                         >
-                            <!-- <CustomListItem>
-            <VBox width="100%" class="customListItem paddedItem">
-              <HBox justifyContent="SpaceBetween">
-                <Text text="{zRequestModel>Gsber}" class="smallText" />
-                <Text
-                  text="{zRequestModel>TotalAmt}"
-                  class="redText smallText"
-                  textAlign="End"
-                />
-              </HBox>
-              <HBox justifyContent="SpaceBetween">
-                <Text
-                  text="{zRequestModel>AdvanceAmt}"
-                  class="smallText"
-                />
-                <Text
-                  text="{zRequestModel>ApprovalAmt}"
-                  class="greenText smallText"
-                  textAlign="End"
-                />
-              </HBox>
-            </VBox>
-          </CustomListItem> -->
-                            <items>
-                                <ObjectListItem title="{Gsber}" />
-                            </items>
+                            <CustomListItem type="Active">
+                                <VBox
+                                    width="100%"
+                                    class="customListItem paddedItem"
+                                >
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{projectModel>Gsber}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="{projectModel>TotalAmt}"
+                                            class="redText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{projectModel>AdvanceAmt}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="{projectModel>ApprovalAmt}"
+                                            class="greenText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                </VBox>
+                            </CustomListItem>
                         </List>
                     </content>
                 </Page>
@@ -255,9 +340,7 @@
                                                 text="{path:'ordersModel>TotalAmt',formatter: '.formatAmount'}"
                                             />
                                             <Text text="{ordersModel>Msme}" />
-                                            <Text
-                                                text="{path:'ordersModel>InvoiceAmt',formatter:'.formatAmount'}"
-                                            />
+                                            <Text text="{ordersModel>Invno}" />
                                             <Input
                                                 value="{path:'ordersModel>ApprovalAmt'}"
                                                 editable="true"
@@ -276,7 +359,7 @@
                                             </Input>
                                             <Button
                                                 icon="sap-icon://action"
-                                                text="Full"
+                                                text="{ordersModel>PayType}"
                                                 press=".onPayMethodPress"
                                                 class="fullButtonStyle"
                                             />
@@ -290,7 +373,7 @@
                                                 text="{path:'ordersModel>RetentionAmt',formatter:'.formatAmount'}"
                                             />
                                             <Text
-                                                text="{path:'ordersModel>RetentionAmt',formatter:'.formatAmount'}"
+                                                text="{path:'ordersModel>AdhocAmt',formatter:'.formatAmount'}"
                                             />
                                         </cells>
                                     </ColumnListItem>

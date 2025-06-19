@@ -4,6 +4,7 @@
     xmlns:table="sap.ui.table"
     xmlns:mvc="sap.ui.core.mvc"
 >
+
     <Dialog
         id="orderDetailDialog"
         title="{i18n>InvoiceDetails}"
@@ -14,29 +15,21 @@
         class="sapUiContentPadding"
     >
      <!-- selectedKey="{dialogModel>/PayMethodSelectedKey}" -->
+        <Label text="Payment Type" />
         <Select
             id="payMethodChange.id"           
-            selectedKey="OPTION_Full"
+            selectedKey="{dialogModel>/PayType}"
             width="30%"
-            change="onPayMethodChange"
+            change="onDialogPayTypeChange"
             class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin"
         >
-            
-            <core:Item
-                key="OPTION_Full"
-                text="Full"
-            />
-            <core:Item
-                key="OPTION_Partial"
-                text="Partial"
-            />
-        </Select>
+           <core:Item key="Full" text="Full" />
+                <core:Item key="Partial" text="Partial" />
+            </Select>
 
         <Table
             id="invoiceTable"
-            items="{
-          path: 'dialogModel>/'
-        }"
+            items= "{dialogModel>/Invoices}" 
             width="100%"
         >
             <!-- <headerToolbar>
@@ -94,16 +87,13 @@
                         />
                         <Text text="{dialogModel>DocAmt}" />
                         <CheckBox
-                            selected="{= ${dialogModel>/PayMethodSelectedKey} === 'OPTION_Full' || ${dialogModel>PayMethod} === 'X'}"
-                            enabled="{= ${dialogModel>/PayMethodSelectedKey} === 'OPTION_Partial' }"
+                            selected="{= ${dialogModel>ApprovalAmt} === ${dialogModel>DocAmt} }"
+                            enabled="{= ${dialogModel>/PayType} === 'Partial' }"
                             select=".onFullPaymentSelected"
                         />
                         <Input
                             value="{dialogModel>ApprovalAmt}"
-                            editable="{parts: [
-        {path: 'dialogState>/PayMethodSelectedKey'},
-        {path: 'dialogModel>PayMethod'}
-    ], formatter: '.editableBasedOnPayMethod'}"
+                            editable="{= ${dialogModel>/PayType} === 'Partial' }"
                             placeholder="Enter amount"
                             liveChange=".onFieldValueChange"
                             valueLiveUpdate="true"
