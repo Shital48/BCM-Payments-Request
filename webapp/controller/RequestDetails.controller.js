@@ -341,7 +341,7 @@ sap.ui.define([
             });
 
         },
-  
+
         onProjectPress: function (oEvent) {
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
             this.projectData = context;
@@ -394,7 +394,7 @@ sap.ui.define([
             const aOrders = Object.values(oVendors).map(vendor => {
                 const sVendorId = vendor.Lifnr;
                 const saved = this.projectModel.getProperty(`/VendorDetails/${projectId}/${sVendorId}`) || {};
-                return { ...vendor, ...saved,PayType: saved.PayType || vendor.PayType || "Full" };
+                return { ...vendor, ...saved, PayType: saved.PayType || vendor.PayType || "Full" };
             });
 
             this.getView().setModel(new sap.ui.model.json.JSONModel({ vendors: aOrders }), "ordersModel");
@@ -451,7 +451,9 @@ sap.ui.define([
                 // SCENARIO 2: Update vendor-level ApprovalAmt
                 const oDialogModel = oContext.getModel("dialogModel");
                 const aDetails = oDialogModel.getData();
-                const total = aDetails.reduce((sum, row) => sum + parseFloat(row.ApprovalAmt || 0), 0);
+                const total = (aDetails.Invoices || []).reduce((sum, row) => {
+                    return sum + parseFloat(row.ApprovalAmt || 0);
+                }, 0);
 
                 const oOrdersModel = this.getView().getModel("ordersModel");
                 const aOrders = oOrdersModel.getProperty("/vendors"); // Adjust path as needed
@@ -460,6 +462,10 @@ sap.ui.define([
                     oVendorOrder.ApprovalAmt = total.toFixed(2);
                     oSavedData.ApprovalAmt = total.toFixed(2);
                 }
+
+
+                this._checkIfAllInvoicesSelected(oDialogModel);
+
             } else {
                 // ----------- Vendor Table Input Change ------------
                 oSavedData[sField] = vValue;
@@ -508,7 +514,7 @@ sap.ui.define([
             }
 
             this.projectModel.setProperty("/VendorDetails", oData);
-           
+
 
         },
         onPayMethodPress: function (oEvent) {
@@ -552,19 +558,19 @@ sap.ui.define([
 
                 // Set default logic if PayType is Full
                 const sPayType = oSavedData.PayType || pProduct.PayType || "Full";
-            
+
                 if (sPayType === "Full") {
                     invoices.forEach(row => {
                         row.ApprovalAmt = parseFloat(row.DocAmt).toFixed(2);
                         row.PayMethod = "X";
                     });
                 }
-            
+
                 const dialogData = {
                     PayType: sPayType,
                     Invoices: invoices
                 };
-            
+
                 dialog.setModel(new JSONModel(dialogData), "dialogModel");
                 dialog.open();
             });
@@ -588,7 +594,7 @@ sap.ui.define([
                 aInvoices.forEach(row => {
                     row.ApprovalAmt = 0.00;
                 });
-                
+
             }
             oDialogModel.setProperty("/Invoices", aInvoices);
 
@@ -606,8 +612,23 @@ sap.ui.define([
             }
             const oModel = oContext.getModel();
             oModel.checkUpdate(true);
-
+ 
+            this._checkIfAllInvoicesSelected(oModel);
         },
+        _checkIfAllInvoicesSelected: function (oDialog) { 
+            const aInvoices = oDialog.getProperty("/Invoices") || [];
+
+            const bAllSelected = aInvoices.every(invoice => {
+                const docAmt = parseFloat(invoice.DocAmt || 0).toFixed(2);
+                const approvalAmt = parseFloat(invoice.ApprovalAmt || 0).toFixed(2);
+                return docAmt === approvalAmt;
+            });
+
+            if (bAllSelected) {
+                oDialog.setProperty("/PayType", "Full");
+            }
+        },
+
         onCloseOrderDialog: function () {
             this._pDialog.then(oDialog => {
                 const aInputs = oDialog.findElements(true).filter(c => c.isA("sap.m.Input"));
@@ -703,7 +724,7 @@ sap.ui.define([
 
             const oOrdersModel = this.getView().getModel("ordersModel");
             const allVendors = oOrdersModel.getProperty("/vendors") || [];
- 
+
             const projectRef = allVendors[0];
             if (!projectRef) return;
 
@@ -713,7 +734,7 @@ sap.ui.define([
 
             const vendorPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}/VendorsById`;
             const vendorsById = this.projectModel.getProperty(vendorPath) || {};
- 
+
             Object.keys(vendorsById).forEach(vendorId => {
                 vendorsById[vendorId].ApprovalAmt = "0.00";
                 vendorsById[vendorId].isSelected = false;
@@ -739,7 +760,7 @@ sap.ui.define([
                 const total = aMergedOrderDetails.reduce((sum, row) => {
                     return sum + parseFloat(row.ApprovalAmt || 0);
                 }, 0);
- 
+
                 if (vendorsById[vendorId]) {
                     vendorsById[vendorId].ApprovalAmt = total.toFixed(2);
                     vendorsById[vendorId].isSelected = true;
@@ -750,7 +771,7 @@ sap.ui.define([
                     Order_Details: aMergedOrderDetails
                 };
             });
- 
+
             const updatedVendors = allVendors.map(vendor => {
                 return {
                     ...vendor,
@@ -759,11 +780,11 @@ sap.ui.define([
             });
             oOrdersModel.setProperty("/vendors", updatedVendors);
 
-            
+
             this.projectModel.setProperty(vendorPath, vendorsById);
- 
+
             this.selectedOrdersModel.setProperty("/selectedProducts", aSelectedData);
- 
+
             this._updateApprovalHierarchy({
                 Zzcity,
                 BusSeg,
