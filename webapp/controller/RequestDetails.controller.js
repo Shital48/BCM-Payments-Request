@@ -468,6 +468,18 @@ sap.ui.define([
 
             } else {
                 // ----------- Vendor Table Input Change ------------
+
+                const sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
+                if (isNaN(approvalAmt) || approvalAmt < 0) {
+                    oSource.setValueState("Error");
+                    oSource.setValueStateText("Enter valid amount");
+                } else if (approvalAmt > sTotalAmt) {
+                    oSource.setValueState("Error");
+                    oSource.setValueStateText("Exceeds Total Amount");
+                } else {
+                    oSource.setValueState("None");
+                }
+
                 oSavedData[sField] = vValue;
 
                 const oVenDet = oRowData?.VenDet;
@@ -516,9 +528,26 @@ sap.ui.define([
             this.projectModel.setProperty("/VendorDetails", oData);
 
 
-        },
+        }, 
         onPayMethodPress: function (oEvent) {
-            this.oSource1 = oEvent.getSource();
+            this.oSource1 = oEvent.getSource(); 
+
+            const oSource = oEvent.getSource(); 
+            const oContext = oSource.getBindingContext("ordersModel");
+            const oRowData = oContext?.getObject(); 
+
+            // NEED UNIQUE KEY INSTEAD OF DOCNR 
+ 
+            const approvalAmt = parseFloat(oRowData?.ApprovalAmt || 0); 
+            const sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
+            if (isNaN(approvalAmt) || approvalAmt < 0) {
+                MessageBox.warning("Enter valid amount");
+                return; 
+            } else if (approvalAmt > sTotalAmt) {
+                MessageBox.warning("Exceeds Total Amount");
+                return;  
+            }  
+
             const pProduct = this.sProduct = oEvent.getSource().getBindingContext("ordersModel").getObject();
             const sProjectId = this.currentProjectId;
             const sVendorId = pProduct.Lifnr;
