@@ -297,7 +297,7 @@
                                 mode="MultiSelect"
                                 items="{ordersModel>/vendors}"
                                 width="1500px"
-                                sticky="ColumnHeaders"
+                                sticky="ColumnHeaders" 
                             >
                                 <columns>
                                     <Column>
@@ -343,7 +343,7 @@
                                             <Text text="{ordersModel>Invno}" />
                                             <Input
                                                 value="{path:'ordersModel>ApprovalAmt'}"
-                                                editable="true"
+                                                editable="{= !${ordersModel>isSelected} }"
                                                 placeholder="Enter amount"
                                                 valueLiveUpdate="true"
                                                 type="Number"
@@ -362,6 +362,7 @@
                                                 text="{ordersModel>PayType}"
                                                 press=".onPayMethodPress"
                                                 class="fullButtonStyle"
+                                                enabled="{= !${ordersModel>isSelected} }"
                                             />
                                             <Text
                                                 text="{path:'ordersModel>InvoiceAmt',formatter:'.formatAmount'}"

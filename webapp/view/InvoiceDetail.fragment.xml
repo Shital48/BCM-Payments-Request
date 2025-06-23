@@ -17,7 +17,7 @@
      <!-- selectedKey="{dialogModel>/PayMethodSelectedKey}" -->
         <Label text="Payment Type" />
         <Select
-            id="payMethodChange.id"           
+            id="payMethodChangeid"           
             selectedKey="{dialogModel>/PayType}"
             width="30%"
             change="onDialogPayTypeChange"
@@ -84,10 +84,11 @@
                         <Text text="{dialogModel>Docnr}" />
                         <Text
                             text="{path:'dialogModel>Budat',formatter:'.formatDate'}"
-                        />
-                        <Text text="{dialogModel>DocAmt}" />
+                        /> 
+                        <Text text="{path:'dialogModel>DocAmt',formatter:'.formatAmount'}" />
+                        
                         <CheckBox
-                            selected="{= ${dialogModel>ApprovalAmt} === ${dialogModel>DocAmt} }"
+                            selected="{= parseFloat(${dialogModel>ApprovalAmt}).toFixed(2) === parseFloat(${dialogModel>DocAmt}).toFixed(2) }"
                             enabled="{= ${dialogModel>/PayType} === 'Partial' }"
                             select=".onFullPaymentSelected"
                         />

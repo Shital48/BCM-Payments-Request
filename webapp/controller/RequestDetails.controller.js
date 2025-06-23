@@ -27,7 +27,7 @@ sap.ui.define([
                 sap.ui.core.BusyIndicator.hide();
             });
             this.projectModel = this.getOwnerComponent().getModel('zRequestModel');
-            
+
         },
 
         onAfterRendering: function () {
@@ -115,9 +115,9 @@ sap.ui.define([
             }
             return "";
         },
-        formatAmount: function (value) {
-            if (!value) return "";
-            return parseFloat(value).toLocaleString("en-IN", {
+        formatAmount: function (Amt) {
+            if (!Amt) return "";
+            return parseFloat(Amt).toLocaleString("en-IN", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
@@ -196,7 +196,7 @@ sap.ui.define([
 
         onVendorFilterSearch: function (oEvent) {
             this.getView().setModel(this.projectModel, "projectModel");
-            var that=this;
+            var that = this;
             this._currentLevel = "city";
             this.byId("masterPage").setTitle("City");
             this.byId("cityList").setVisible(true);
@@ -228,7 +228,7 @@ sap.ui.define([
 
 
         onCitySelect: function (oEvent) {
-            var that=this;
+            var that = this;
             this._currentLevel = "busSeg";
             this.byId("masterPage").setShowNavButton(true);
             this.byId("masterPage").setTitle("Business Segment");
@@ -238,8 +238,11 @@ sap.ui.define([
             // Show next level, hide others
             this.byId("cityList").setVisible(false);
             this.byId("busSegList").setVisible(true);
+            const cachedSegments = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById`);
+            if (cachedSegments && Object.keys(cachedSegments).length) {
+                return;
+            }
 
-            const BisSegList = this.byId("busSegList");
             const oModel = this.getView().getModel();
             this.getView().setBusy(true);
 
@@ -264,7 +267,7 @@ sap.ui.define([
         },
 
         onBusSegSelect: function (oEvent) {
-            var that=this;
+            var that = this;
             this._currentLevel = "busComp";
             this.byId("masterPage").setTitle("Company");
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
@@ -276,6 +279,11 @@ sap.ui.define([
 
             const companyList = this.byId("busCompList");
             const oModel = this.getView().getModel();
+
+            const cachedCompanies = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById`);
+            if (cachedCompanies && Object.keys(cachedCompanies).length) return;
+
+
             this.getView().setBusy(true);
 
             oModel.read(`/BusSegLevelSet(Zzcity='${city}',BusSeg='${busSeg}')/BusComp`, {
@@ -283,7 +291,7 @@ sap.ui.define([
                     const aCompany = oData.results;
                     const oCompanyById = {};
                     aCompany.forEach(company => {
-                        oCompanyById[company.Bukrs] = company; 
+                        oCompanyById[company.Bukrs] = company;
                     });
                     that.projectModel.setProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById`, oCompanyById);
                     that.projectModel.setProperty("/CompanyList", aCompany);
@@ -298,7 +306,7 @@ sap.ui.define([
         },
 
         onBusCompSelect: function (oEvent) {
-            var that=this;
+            var that = this;
             this._currentLevel = "project";
             this.byId("masterPage").setTitle("Project");
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
@@ -308,7 +316,9 @@ sap.ui.define([
             this.byId("busCompList").setVisible(false);
             this.byId("projectList").setVisible(true);
 
-            const projList = this.byId("projectList");
+            const cachedProjects = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`);
+            if (cachedProjects && Object.keys(cachedProjects).length) return;
+
             const oModel = this.getView().getModel();
             this.getView().setBusy(true);
 
@@ -317,7 +327,7 @@ sap.ui.define([
                     const aProjects = oData.results;
                     const oProjectsById = {};
                     aProjects.forEach(project => {
-                        oProjectsById[project.Gsber] = project; 
+                        oProjectsById[project.Gsber] = project;
                     });
                     that.projectModel.setProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`, oProjectsById);
                     that.projectModel.setProperty("/ProjectList", aProjects);
@@ -331,56 +341,65 @@ sap.ui.define([
             });
 
         },
+  
         onProjectPress: function (oEvent) {
-            var that=this;
-            // this._currentLevel = "busSeg"; 
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
-            this.projectID=context;
-            const city = context.Zzcity;
-            const busSeg = context.BusSeg;
-            const bukrs = context.Bukrs;
-            const gsber = context.Gsber;
-            var sPath = `/ProjLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
+            this.projectData = context;
 
-            var ProjectId = gsber;
-            // const oProjData = this.projectModel.getData().ProjectDetails || {};
-            const oProjData = this.projectModel.getProperty("/VendorDetails") || {};
-            if (!oProjData[ProjectId]) {
-                oProjData[ProjectId] = { CompanyName: context.Bukrs };
+            const { Zzcity: city, BusSeg: busSeg, Bukrs: bukrs, Gsber: gsber } = context;
+            const sPath = `/ProjLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
+            const vendorPath = `/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById/${gsber}/VendorsById`;
+
+            this.currentProjectId = gsber;
+
+            // Ensure VendorDetails structure exists
+            const vendorDetails = this.projectModel.getProperty("/VendorDetails") || {};
+            if (!vendorDetails[gsber]) {
+                vendorDetails[gsber] = { CompanyName: bukrs };
+                this.projectModel.setProperty("/VendorDetails", vendorDetails);
             }
-            this.projectModel.setProperty("/VendorDetails", oProjData);
-            this.currentProjectId = ProjectId;
-            this._loadVendorDetails(ProjectId, sPath);
+
+            // ✅ If vendors already cached, just load into ordersModel (no OData call)
+            const cachedVendors = this.projectModel.getProperty(vendorPath);
+            if (cachedVendors && Object.keys(cachedVendors).length) {
+                this._loadVendorDetails(gsber, vendorPath);
+            } else {
+                // Else: Fetch vendors first, then load
+                this.getView().setBusy(true);
+                this.getView().getModel().read(sPath, {
+                    urlParameters: {
+                        "$expand": "VenDet"
+                    },
+                    success: function (oData) {
+                        this.getView().setBusy(false);
+
+                        const aVendors = oData.results;
+                        const oVendorsById = {};
+                        aVendors.forEach(vendor => {
+                            oVendorsById[vendor.Lifnr] = vendor;
+                        });
+                        this.projectModel.setProperty(vendorPath, oVendorsById);
+
+                        this._loadVendorDetails(gsber, vendorPath);
+                    }.bind(this),
+                    error: function (oError) {
+                        this.getView().setBusy(false);
+                        console.error("Error fetching vendors", oError);
+                    }.bind(this)
+                });
+            }
         },
-
-        _loadVendorDetails: function (oProjectId, oSPath) {
-            // var that = this;
-            const oModel = this.getView().getModel();
-            const sProjectId = oProjectId;
-            const sOSPath = oSPath;
-            // APPLY FILTER ON PROJECT TO GET PROJECT VENDORS
-            this.getView().setBusy(true);
-            oModel.read(sOSPath, {
-                urlParameters: {
-                    "$expand": "VenDet"
-                },
-                success: function (oData) {
-                    this.getView().setBusy(false);
-                    const aOrders = oData.results.map(vendors => {
-                        const sVendorId = vendors.Lifnr;
-                        const oSavedData = this.projectModel.getProperty(`/VendorDetails/${sProjectId}/${sVendorId}`) || {};
-                        return { ...vendors, ...oSavedData };
-                    });
-                    this.getView().setModel(new JSONModel({ vendors: aOrders }), "ordersModel");
-                }.bind(this),
-                error: function (oError) {
-                    // oDialog.setBusy(false);
-                    this.getView().setBusy(false);
-                    console.error("Error fetching filtered data", oError);
-                }
-
+        _loadVendorDetails: function (projectId, vendorPath) {
+            const oVendors = this.projectModel.getProperty(vendorPath) || {};
+            const aOrders = Object.values(oVendors).map(vendor => {
+                const sVendorId = vendor.Lifnr;
+                const saved = this.projectModel.getProperty(`/VendorDetails/${projectId}/${sVendorId}`) || {};
+                return { ...vendor, ...saved,PayType: saved.PayType || vendor.PayType || "Full" };
             });
+
+            this.getView().setModel(new sap.ui.model.json.JSONModel({ vendors: aOrders }), "ordersModel");
         },
+
 
         onFieldValueChange: function (oEvent) {
             const oSource = oEvent.getSource();
@@ -392,6 +411,9 @@ sap.ui.define([
             const oContext = oSource.getBindingContext("dialogModel") || oSource.getBindingContext("ordersModel");
             const oRowData = oContext?.getObject();
             const sVendorId = oRowData?.Lifnr;
+
+            // NEED UNIQUE KEY INSTEAD OF DOCNR
+
             const sOrderId = oRowData?.Docnr;
 
             if (!sVendorId || !oRowData) return;
@@ -486,24 +508,7 @@ sap.ui.define([
             }
 
             this.projectModel.setProperty("/VendorDetails", oData);
-            const vendorDetails = this.projectModel.getProperty("/VendorDetails") || {}; 
-
-            const projectData = vendorDetails[sProjectId];
-            let total = 0;
-        
-            Object.entries(projectData).forEach(([key, value]) => {
-                if (key === "CompanyName") return;
-                const vendorApprovalAmt = parseFloat(value.ApprovalAmt || 0);
-                total += isNaN(vendorApprovalAmt) ? 0 : vendorApprovalAmt;
-            });
-  
-    this.projectModel.setProperty(
-        `/CityProjectsById/${this.projectID.Zzcity}/BusinessSegmentById/${this.projectID.BusSeg}/oCompanyById/${this.projectID.Bukrs}/ProjectsById/${this.projectID.Gsber}/ApprovalAmt`,
-        total
-    ); 
-
-
-
+           
 
         },
         onPayMethodPress: function (oEvent) {
@@ -526,7 +531,7 @@ sap.ui.define([
             const oView = this.getView();
             const oSavedData = this.projectModel.getProperty(`/VendorDetails/${sProjectId}/${sVendorId}`) || {};
             const aDetails = pProduct?.VenDet?.results || [];
-            const sPayType = oSavedData.PayType || pProduct.PayType || "Full";
+            // const sPayType = oSavedData.PayType || pProduct.PayType || "Full";
 
             const aMerged = aDetails.map(doc => {
                 const docId = doc.Docnr;
@@ -543,10 +548,23 @@ sap.ui.define([
             });
 
             this._pDialog.then(dialog => {
+                const invoices = this.dialogModelCache?.[`${sProjectId}_${sVendorId}`] || aMerged;
+
+                // Set default logic if PayType is Full
+                const sPayType = oSavedData.PayType || pProduct.PayType || "Full";
+            
+                if (sPayType === "Full") {
+                    invoices.forEach(row => {
+                        row.ApprovalAmt = parseFloat(row.DocAmt).toFixed(2);
+                        row.PayMethod = "X";
+                    });
+                }
+            
                 const dialogData = {
                     PayType: sPayType,
-                    Invoices: this.dialogModelCache?.[`${sProjectId}_${sVendorId}`] || aMerged
+                    Invoices: invoices
                 };
+            
                 dialog.setModel(new JSONModel(dialogData), "dialogModel");
                 dialog.open();
             });
@@ -562,6 +580,7 @@ sap.ui.define([
             if (sSelected === "Full") {
                 aInvoices.forEach(row => {
                     row.ApprovalAmt = parseFloat(row.DocAmt).toFixed(2);
+                    row.FullSelected = true;
                 });
                 oDialogModel.setProperty("/Invoices", aInvoices);
             }
@@ -569,8 +588,9 @@ sap.ui.define([
                 aInvoices.forEach(row => {
                     row.ApprovalAmt = 0.00;
                 });
-                oDialogModel.setProperty("/Invoices", aInvoices);
+                
             }
+            oDialogModel.setProperty("/Invoices", aInvoices);
 
         },
         onFullPaymentSelected: function (oEvent) {
@@ -676,34 +696,181 @@ sap.ui.define([
 
         // PAYLOAD
 
-
         onVendorSelection: function (oEvent) {
+            const projectId = this.currentProjectId;
             const oTable = oEvent.getSource();
             const aSelectedItems = oTable.getSelectedItems();
-            const projectId = this.currentProjectId;
 
+            const oOrdersModel = this.getView().getModel("ordersModel");
+            const allVendors = oOrdersModel.getProperty("/vendors") || [];
+ 
+            const projectRef = allVendors[0];
+            if (!projectRef) return;
+
+            const {
+                Zzcity, BusSeg, Bukrs, Gsber
+            } = projectRef;
+
+            const vendorPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}/VendorsById`;
+            const vendorsById = this.projectModel.getProperty(vendorPath) || {};
+ 
+            Object.keys(vendorsById).forEach(vendorId => {
+                vendorsById[vendorId].ApprovalAmt = "0.00";
+                vendorsById[vendorId].isSelected = false;
+            });
+
+            const aSelectedVendorIds = [];
             const aSelectedData = aSelectedItems.map(oItem => {
                 const oProduct = oItem.getBindingContext("ordersModel").getObject();
-                const productId = oProduct.ProductID;
-                const oSavedOrderDetails = this.projectModel.getProperty(`/VendorDetails/${projectId}/${productId}`) || {};
-                let aOriginalOrderDetails = oProduct.VenDet?.results;
+                const vendorId = oProduct.Lifnr;
+                aSelectedVendorIds.push(vendorId);
 
-                let aMergedOrderDetails = [];
-                aMergedOrderDetails = aOriginalOrderDetails.map(oOrder => {
-                    const savedOrder = oSavedOrderDetails[oOrder.OrderID];
+                const oSavedOrderDetails = this.projectModel.getProperty(`/VendorDetails/${projectId}/${vendorId}`) || {};
+                const aOriginalOrderDetails = oProduct.VenDet?.results || [];
+
+                const aMergedOrderDetails = aOriginalOrderDetails.map(oOrder => {
+                    const savedOrder = oSavedOrderDetails[oOrder.Docnr]; // match using Docnr
                     return {
                         ...oOrder,
                         ...(savedOrder || {})
                     };
                 });
+
+                const total = aMergedOrderDetails.reduce((sum, row) => {
+                    return sum + parseFloat(row.ApprovalAmt || 0);
+                }, 0);
+ 
+                if (vendorsById[vendorId]) {
+                    vendorsById[vendorId].ApprovalAmt = total.toFixed(2);
+                    vendorsById[vendorId].isSelected = true;
+                }
+
                 return {
                     ...oProduct,
                     Order_Details: aMergedOrderDetails
                 };
             });
+ 
+            const updatedVendors = allVendors.map(vendor => {
+                return {
+                    ...vendor,
+                    isSelected: aSelectedVendorIds.includes(vendor.Lifnr)
+                };
+            });
+            oOrdersModel.setProperty("/vendors", updatedVendors);
+
+            
+            this.projectModel.setProperty(vendorPath, vendorsById);
+ 
             this.selectedOrdersModel.setProperty("/selectedProducts", aSelectedData);
-            console.log("✅ Selected Rows Saved:", aSelectedData);
+ 
+            this._updateApprovalHierarchy({
+                Zzcity,
+                BusSeg,
+                Bukrs,
+                Gsber
+            }, aSelectedVendorIds);
         },
+        _updateApprovalHierarchy: function (projectDetails, selectedVendorIds = []) {
+            const oModel = this.projectModel;
+
+            if (!projectDetails || !projectDetails.Zzcity || !projectDetails.BusSeg || !projectDetails.Bukrs || !projectDetails.Gsber) {
+                console.warn("Invalid project details for hierarchy update", projectDetails);
+                return;
+            }
+
+            const { Zzcity, BusSeg, Bukrs, Gsber } = projectDetails;
+
+            // ---------------- PROJECT LEVEL ----------------
+            const vendorPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}/VendorsById`;
+            const allVendors = oModel.getProperty(vendorPath) || {};
+
+            let totalVendor = 0;
+            selectedVendorIds.forEach(vendorId => {
+                const vendor = allVendors[vendorId];
+                const amt = parseFloat(vendor?.ApprovalAmt || 0);
+                totalVendor += isNaN(amt) ? 0 : amt;
+            });
+
+            const projectPath = vendorPath.replace("/VendorsById", "");
+            oModel.setProperty(`${projectPath}/ApprovalAmt`, totalVendor.toFixed(2));
+
+            // ---------------- COMPANY LEVEL ----------------
+            const companyProjectsPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById`;
+            const allProjects = oModel.getProperty(companyProjectsPath) || {};
+
+            let totalCompany = 0;
+            Object.values(allProjects).forEach(proj => {
+                const amt = parseFloat(proj.ApprovalAmt || 0);
+                totalCompany += isNaN(amt) ? 0 : amt;
+            });
+
+            const companyPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}`;
+            oModel.setProperty(`${companyPath}/ApprovalAmt`, totalCompany.toFixed(2));
+
+            // ---------------- BUSINESS SEGMENT LEVEL ----------------
+            const allCompanies = oModel.getProperty(`/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById`) || {};
+
+            let totalBusSeg = 0;
+            Object.values(allCompanies).forEach(company => {
+                const amt = parseFloat(company.ApprovalAmt || 0);
+                totalBusSeg += isNaN(amt) ? 0 : amt;
+            });
+
+            const segmentPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}`;
+            oModel.setProperty(`${segmentPath}/ApprovalAmt`, totalBusSeg.toFixed(2));
+
+            // ---------------- CITY LEVEL ----------------
+            const allSegments = oModel.getProperty(`/CityProjectsById/${Zzcity}/BusinessSegmentById`) || {};
+
+            let totalCity = 0;
+            Object.values(allSegments).forEach(segment => {
+                const amt = parseFloat(segment.ApprovalAmt || 0);
+                totalCity += isNaN(amt) ? 0 : amt;
+            });
+
+            const cityPath = `/CityProjectsById/${Zzcity}`;
+            oModel.setProperty(`${cityPath}/ApprovalAmt`, totalCity.toFixed(2));
+
+            // ---------------- FLAT LISTS FOR UI ----------------
+
+            // 1. CityProjectList
+            const cityList = oModel.getProperty("/CityProjectList") || [];
+            cityList.forEach(city => {
+                if (city.Zzcity === Zzcity) {
+                    city.ApprovalAmt = totalCity.toFixed(2);
+                }
+            });
+            oModel.setProperty("/CityProjectList", cityList);
+
+            // 2. CompanyList
+            const companyList = oModel.getProperty("/CompanyList") || [];
+            companyList.forEach(company => {
+                if (company.Bukrs === Bukrs) {
+                    company.ApprovalAmt = totalCompany.toFixed(2);
+                }
+            });
+            oModel.setProperty("/CompanyList", companyList);
+
+            // 3. BusinessSegmentList
+            const busSegList = oModel.getProperty("/BusinessSegmentList") || [];
+            busSegList.forEach(seg => {
+                if (seg.BusSeg === BusSeg) {
+                    seg.ApprovalAmt = totalBusSeg.toFixed(2);
+                }
+            });
+            oModel.setProperty("/BusinessSegmentList", busSegList);
+
+            // 4. ProjectList
+            const projectList = oModel.getProperty("/ProjectList") || [];
+            projectList.forEach(proj => {
+                if (proj.Gsber === Gsber) {
+                    proj.ApprovalAmt = totalVendor.toFixed(2);
+                }
+            });
+            oModel.setProperty("/ProjectList", projectList);
+        },
+
 
         //FOOTER
 
