@@ -70,13 +70,13 @@
 
                 <smartFilterBar:ControlConfiguration
                     key="Gsber"
-                    visibleInAdvancedArea="false"
+                    visibleInAdvancedArea="true"
                     mandatory="mandatory"
                     index="3"
                 />
                 <smartFilterBar:ControlConfiguration
                     key="Ktokk"
-                    visibleInAdvancedArea="false"
+                    visibleInAdvancedArea="true"
                     index="4"
                 />
 
@@ -334,8 +334,9 @@
 
                                 <items>
                                     <ColumnListItem>
-                                        <cells>
-                                            <Text text="{ordersModel>Lifnr}" />
+                                        <cells> 
+                                            <Text text="{= ${ordersModel>Lifnr} + ' - ' + ${ordersModel>Name1} }" />
+
                                             <Text
                                                 text="{path:'ordersModel>TotalAmt',formatter: '.formatAmount'}"
                                             />

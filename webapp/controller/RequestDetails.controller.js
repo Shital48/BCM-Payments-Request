@@ -391,13 +391,29 @@ sap.ui.define([
         },
         _loadVendorDetails: function (projectId, vendorPath) {
             const oVendors = this.projectModel.getProperty(vendorPath) || {};
+            const vendorDetails = this.projectModel.getProperty("/VendorDetails") || {};
+
             const aOrders = Object.values(oVendors).map(vendor => {
                 const sVendorId = vendor.Lifnr;
-                const saved = this.projectModel.getProperty(`/VendorDetails/${projectId}/${sVendorId}`) || {};
-                return { ...vendor, ...saved, PayType: saved.PayType || vendor.PayType || "Full" };
+                const saved = vendorDetails[projectId]?.[sVendorId] || {};
+                const merged = { ...vendor, ...saved };
+                merged.ApprovalAmt = parseFloat(merged.ApprovalAmt || 0).toFixed(2);
+                merged.PayType = saved.PayType || vendor.PayType || "Full";
+                merged.isSelected = saved.isSelected|| false;
+                return merged;
             });
 
             this.getView().setModel(new sap.ui.model.json.JSONModel({ vendors: aOrders }), "ordersModel");
+            setTimeout(() => {
+                const oTable = this.byId("vendorsTable");
+                if (!oTable) return;
+                oTable.getItems().forEach(item => {
+                    const ctx = item.getBindingContext("ordersModel");
+                    if (ctx?.getObject()?.isSelected) {
+                        oTable.setSelectedItem(item, true);
+                    }
+                });
+            }, 0);
         },
 
 
@@ -414,7 +430,7 @@ sap.ui.define([
 
             // NEED UNIQUE KEY INSTEAD OF DOCNR
 
-            const sOrderId = oRowData?.Docnr;
+            const sOrderId = oRowData?.Ukey;
 
             if (!sVendorId || !oRowData) return;
 
@@ -491,8 +507,8 @@ sap.ui.define([
                 const aMerged = sortedDetails.map(doc => {
                     const distAmt = Math.min(remaining, parseFloat(doc.DocAmt));
                     remaining -= distAmt;
-                    if (!oSavedData[doc.Docnr]) oSavedData[doc.Docnr] = {};
-                    oSavedData[doc.Docnr].ApprovalAmt = distAmt.toFixed(2);
+                    if (!oSavedData[doc.Ukey]) oSavedData[doc.Ukey] = {};
+                    oSavedData[doc.Ukey].ApprovalAmt = distAmt.toFixed(2);
                     return { ...doc, ApprovalAmt: distAmt.toFixed(2) };
                 });
 
@@ -528,25 +544,25 @@ sap.ui.define([
             this.projectModel.setProperty("/VendorDetails", oData);
 
 
-        }, 
+        },
         onPayMethodPress: function (oEvent) {
-            this.oSource1 = oEvent.getSource(); 
+            this.oSource1 = oEvent.getSource();
 
-            const oSource = oEvent.getSource(); 
+            const oSource = oEvent.getSource();
             const oContext = oSource.getBindingContext("ordersModel");
-            const oRowData = oContext?.getObject(); 
+            const oRowData = oContext?.getObject();
 
             // NEED UNIQUE KEY INSTEAD OF DOCNR 
- 
-            const approvalAmt = parseFloat(oRowData?.ApprovalAmt || 0); 
+
+            const approvalAmt = parseFloat(oRowData?.ApprovalAmt || 0);
             const sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
             if (isNaN(approvalAmt) || approvalAmt < 0) {
                 MessageBox.warning("Enter valid amount");
-                return; 
+                return;
             } else if (approvalAmt > sTotalAmt) {
                 MessageBox.warning("Exceeds Total Amount");
-                return;  
-            }  
+                return;
+            }
 
             const pProduct = this.sProduct = oEvent.getSource().getBindingContext("ordersModel").getObject();
             const sProjectId = this.currentProjectId;
@@ -569,7 +585,7 @@ sap.ui.define([
             // const sPayType = oSavedData.PayType || pProduct.PayType || "Full";
 
             const aMerged = aDetails.map(doc => {
-                const docId = doc.Docnr;
+                const docId = doc.Ukey;
                 const saved = oSavedData[docId] || {};
                 return { ...doc, ApprovalAmt: saved.ApprovalAmt || "0.00" };
             });
@@ -641,10 +657,10 @@ sap.ui.define([
             }
             const oModel = oContext.getModel();
             oModel.checkUpdate(true);
- 
+
             this._checkIfAllInvoicesSelected(oModel);
         },
-        _checkIfAllInvoicesSelected: function (oDialog) { 
+        _checkIfAllInvoicesSelected: function (oDialog) {
             const aInvoices = oDialog.getProperty("/Invoices") || [];
 
             const bAllSelected = aInvoices.every(invoice => {
@@ -683,7 +699,7 @@ sap.ui.define([
                 if (!oData[sProjectId][sVendorId]) oData[sProjectId][sVendorId] = {};
 
                 aDetails.forEach(item => {
-                    const sDocId = item.Docnr;
+                    const sDocId = item.Ukey;
                     if (!oData[sProjectId][sVendorId][sDocId]) oData[sProjectId][sVendorId][sDocId] = {};
                     oData[sProjectId][sVendorId][sDocId].ApprovalAmt = item.ApprovalAmt;
                 });
@@ -750,13 +766,11 @@ sap.ui.define([
             const projectId = this.currentProjectId;
             const oTable = oEvent.getSource();
             const aSelectedItems = oTable.getSelectedItems();
-
             const oOrdersModel = this.getView().getModel("ordersModel");
             const allVendors = oOrdersModel.getProperty("/vendors") || [];
 
             const projectRef = allVendors[0];
             if (!projectRef) return;
-
             const {
                 Zzcity, BusSeg, Bukrs, Gsber
             } = projectRef;
@@ -764,10 +778,23 @@ sap.ui.define([
             const vendorPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}/VendorsById`;
             const vendorsById = this.projectModel.getProperty(vendorPath) || {};
 
+
+
+            // Persist isSelected in VendorDetails
+            const vendorDetails = this.projectModel.getProperty("/VendorDetails") || {};
+            if (!vendorDetails[projectId]) {
+                vendorDetails[projectId] = {};
+            } 
+            
             Object.keys(vendorsById).forEach(vendorId => {
                 vendorsById[vendorId].ApprovalAmt = "0.00";
                 vendorsById[vendorId].isSelected = false;
+        
+                if (!vendorDetails[projectId][vendorId]) vendorDetails[projectId][vendorId] = {};
+                vendorDetails[projectId][vendorId].isSelected = false;
             });
+        
+
 
             const aSelectedVendorIds = [];
             const aSelectedData = aSelectedItems.map(oItem => {
@@ -779,7 +806,7 @@ sap.ui.define([
                 const aOriginalOrderDetails = oProduct.VenDet?.results || [];
 
                 const aMergedOrderDetails = aOriginalOrderDetails.map(oOrder => {
-                    const savedOrder = oSavedOrderDetails[oOrder.Docnr]; // match using Docnr
+                    const savedOrder = oSavedOrderDetails[oOrder.Ukey]; // match using Docnr
                     return {
                         ...oOrder,
                         ...(savedOrder || {})
@@ -794,6 +821,8 @@ sap.ui.define([
                     vendorsById[vendorId].ApprovalAmt = total.toFixed(2);
                     vendorsById[vendorId].isSelected = true;
                 }
+                vendorDetails[projectId][vendorId].isSelected = true;
+
 
                 return {
                     ...oProduct,
@@ -811,6 +840,8 @@ sap.ui.define([
 
 
             this.projectModel.setProperty(vendorPath, vendorsById);
+            this.projectModel.setProperty("/VendorDetails", vendorDetails);
+
 
             this.selectedOrdersModel.setProperty("/selectedProducts", aSelectedData);
 
