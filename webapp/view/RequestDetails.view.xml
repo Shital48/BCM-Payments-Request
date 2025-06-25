@@ -40,14 +40,14 @@
                 visible="true"            > -->
 
         <!-- ADD BASIC SEARCH FIELD PROJECT -->
-
+  
         <smartFilterBar:SmartFilterBar
             id="vendorFilterBar"
             entitySet="VendorInvSet"
             class="customSmartFilterButtons "
             persistencyKey="VendorSmartFilter"
             basicSearchFieldName="Lifnr"
-            enableBasicSearch="true"
+            enableBasicSearch="false"
             search=".onVendorFilterSearch"
         >
             <smartFilterBar:controlConfiguration>
@@ -99,14 +99,18 @@
             </smartFilterBar:layoutData>
         </smartFilterBar:SmartFilterBar>
 
+
+
+
         <SplitContainer id="splitContainer">
             <masterPages>
                 <Page
-                    id="masterPage"
+                    id="masterPage" 
                     title=""
                     class="customPageHeader"
                     showNavButton="true"
                     navButtonPress="onNavBack"
+                    visible="false"
                 >
                     <content>
                         <!--  City List (Top Level) -->
@@ -125,22 +129,22 @@
                                 >
                                     <HBox justifyContent="SpaceBetween">
                                         <Text
-                                            text="{projectModel>Zzcity}"
+                                            text="{projectModel>Zzcity}"    
                                             class="smallText"
                                         />
                                         <Text
-                                            text="{projectModel>TotalAmt}"
+                                            text="Total: {path:'projectModel>TotalAmt',formatter:'.formatAmount'}"
                                             class="redText smallText"
                                             textAlign="End"
                                         />
                                     </HBox>
-                                    <HBox justifyContent="SpaceBetween">
-                                        <Text
-                                            text="{projectModel>AdvanceAmt}"
+                                    <HBox justifyContent="End">
+                                        <!-- <Text
+                                            text="A.A: {projectModel>AdvanceAmt}"
                                             class="smallText"
-                                        />
+                                        /> -->
                                         <Text
-                                            text="{projectModel>ApprovalAmt}"
+                                            text="Approval: {path:'projectModel>ApprovalAmt',formatter:'.formatAmount'}"
                                             class="greenText smallText"
                                             textAlign="End"
                                         />
@@ -168,18 +172,18 @@
                                             class="smallText"
                                         />
                                         <Text
-                                            text="{projectModel>TotalAmt}"
+                                            text="Total: {path:'projectModel>TotalAmt',formatter: '.formatAmount'}"
                                             class="redText smallText"
                                             textAlign="End"
                                         />
                                     </HBox>
-                                    <HBox justifyContent="SpaceBetween">
-                                        <Text
+                                    <HBox justifyContent="End">
+                                        <!-- <Text
                                             text="{projectModel>AdvanceAmt}"
                                             class="smallText"
-                                        />
+                                        /> -->
                                         <Text
-                                            text="{projectModel>ApprovalAmt}"
+                                            text="Approval: {path:'projectModel>ApprovalAmt',formatter: '.formatAmount'}"
                                             class="greenText smallText"
                                             textAlign="End"
                                         />
@@ -203,22 +207,23 @@
                                 >
                                     <HBox justifyContent="SpaceBetween">
                                         <Text
-                                            text="{projectModel>Bukrs}"
+                                            text="{projectModel>Butxt}"
                                             class="smallText"
                                         />
+                                        
                                         <Text
-                                            text="{projectModel>TotalAmt}"
+                                            text="Total: {path:'projectModel>TotalAmt',formatter: '.formatAmount'}"
                                             class="redText smallText"
                                             textAlign="End"
                                         />
                                     </HBox>
                                     <HBox justifyContent="SpaceBetween">
                                         <Text
-                                            text="{projectModel>AdvanceAmt}"
+                                            text="Code: {projectModel>Bukrs}"
                                             class="smallText"
                                         />
                                         <Text
-                                            text="{projectModel>ApprovalAmt}"
+                                            text="Approval: {path:'projectModel>ApprovalAmt',formatter: '.formatAmount'}"
                                             class="greenText smallText"
                                             textAlign="End"
                                         />
@@ -241,23 +246,24 @@
                                     class="customListItem paddedItem"
                                 >
                                     <HBox justifyContent="SpaceBetween">
-                                        <Text
-                                            text="{projectModel>Gsber}"
+                                         <Text
+                                            text="{projectModel>Gtext}"
                                             class="smallText"
                                         />
+                                        
                                         <Text
-                                            text="{projectModel>TotalAmt}"
+                                            text="Total: {path:'projectModel>TotalAmt',formatter: '.formatAmount'}"
                                             class="redText smallText"
                                             textAlign="End"
                                         />
                                     </HBox>
                                     <HBox justifyContent="SpaceBetween">
-                                        <Text
-                                            text="{projectModel>AdvanceAmt}"
+                                       <Text
+                                            text="Code: {projectModel>Gsber}"
                                             class="smallText"
                                         />
                                         <Text
-                                            text="{projectModel>ApprovalAmt}"
+                                            text="Approval: {path:'projectModel>ApprovalAmt',formatter: '.formatAmount'}"
                                             class="greenText smallText"
                                             textAlign="End"
                                         />
@@ -273,8 +279,10 @@
                 <Page
                     id="detailPage"
                     title="Vendor Details"
+                    visible="false"
                     enableScrolling="false"
                     class="customPageHeader"
+                    
                 >
                     <VBox
                         id="detailContent"
@@ -298,6 +306,8 @@
                                 items="{ordersModel>/vendors}"
                                 width="1500px"
                                 sticky="ColumnHeaders" 
+                                updateFinished=".onVendorsTableUpdateFinished"
+                                fixedLayout="Strict"
                             >
                                 <columns>
                                     <Column>

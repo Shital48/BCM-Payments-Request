@@ -26,7 +26,7 @@
     padding: 0.75rem; /* Adds padding from all sides */
 }
 .fullButtonStyle .sapMBtnInner {
-    background-color:#b17a21; 
+    background-color: #27AE60; 
     color: white !important;              /* Icon and text color */
     border-radius: 6px !important;
 }
@@ -38,14 +38,14 @@
     color: white !important; /* Ensures the icon is also white */
 }
 .fullButtonStyle .sapMBtnInner:hover {
-    background-color: #a0671d !important;  /* Slightly darker on hover */
+    background-color:  #27AE60 !important;  /* Slightly darker on hover */
     color: white !important;
 }
 
 /* 🔥 Fix active (pressed) and focus state */
 .fullButtonStyle .sapMBtnInner:active,
 .fullButtonStyle .sapMBtnInner:focus {
-    background-color: #8a5d1d !important;  /* Even darker shade */
+    background-color: #90EE90!important;  /* Even darker shade */
     color: white !important;
 }
 

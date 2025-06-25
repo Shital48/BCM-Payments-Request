@@ -24,7 +24,7 @@ function (JSONModel, Device) {
                 "VendorDetails": oVendorData,
                 "CustomerDetails": oCustomerData,
                 "filteredVendors": [],
-                "Cities": {}
+                "Cities": {} 
             });
             return oModel;
         },
