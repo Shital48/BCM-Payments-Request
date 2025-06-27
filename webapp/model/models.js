@@ -15,30 +15,20 @@ function (JSONModel, Device) {
             oModel.setDefaultBindingMode("OneWay");
             return oModel;
         },
+        
         createLocalJson: function () {
-            
-            var oVendorData = this.getVendorBlank(); 
-            var oCustomerData = this.getCustomerBlank(); 
             var oModel = new JSONModel({
                 SelectedKey: "Vendors",
-                "VendorDetails": oVendorData,
-                "CustomerDetails": oCustomerData,
-                "filteredVendors": [],
-                "Cities": {} 
+                VendorDetails: {},
+                CustomerDetails: {},
+                BusinessSegmentList:[],
+                CityProjectList:[],
+                CompanyList:[],
+                ProjectList:[]
             });
             return oModel;
-        },
-
-        getVendorBlank: function () {
-            return {                
-            }
-        },
-
-        getCustomerBlank: function()
-        {
-            return {                
-            }
         }
+        
     };
 
 });

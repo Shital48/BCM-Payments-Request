@@ -40,7 +40,7 @@
                 visible="true"            > -->
 
         <!-- ADD BASIC SEARCH FIELD PROJECT -->
-  
+
         <smartFilterBar:SmartFilterBar
             id="vendorFilterBar"
             entitySet="VendorInvSet"
@@ -49,6 +49,7 @@
             basicSearchFieldName="Lifnr"
             enableBasicSearch="false"
             search=".onVendorFilterSearch"
+            initialized="onSmartFilterBarInitialized"
         >
             <smartFilterBar:controlConfiguration>
                 <smartFilterBar:ControlConfiguration
@@ -99,13 +100,17 @@
             </smartFilterBar:layoutData>
         </smartFilterBar:SmartFilterBar>
 
+        
+
+        <VBox id="fallbackPage" visible="true" class="sapUiSmallMargin">
+    <Text text="Please select filters to show data." />
+</VBox>
 
 
-
-        <SplitContainer id="splitContainer">
+        <SplitContainer id="splitContainer" visible="false">
             <masterPages>
                 <Page
-                    id="masterPage" 
+                    id="masterPage"
                     title=""
                     class="customPageHeader"
                     showNavButton="true"
@@ -129,7 +134,7 @@
                                 >
                                     <HBox justifyContent="SpaceBetween">
                                         <Text
-                                            text="{projectModel>Zzcity}"    
+                                            text="{projectModel>Zzcity}"
                                             class="smallText"
                                         />
                                         <Text
@@ -210,7 +215,7 @@
                                             text="{projectModel>Butxt}"
                                             class="smallText"
                                         />
-                                        
+
                                         <Text
                                             text="Total: {path:'projectModel>TotalAmt',formatter: '.formatAmount'}"
                                             class="redText smallText"
@@ -246,11 +251,11 @@
                                     class="customListItem paddedItem"
                                 >
                                     <HBox justifyContent="SpaceBetween">
-                                         <Text
+                                        <Text
                                             text="{projectModel>Gtext}"
                                             class="smallText"
                                         />
-                                        
+
                                         <Text
                                             text="Total: {path:'projectModel>TotalAmt',formatter: '.formatAmount'}"
                                             class="redText smallText"
@@ -258,7 +263,7 @@
                                         />
                                     </HBox>
                                     <HBox justifyContent="SpaceBetween">
-                                       <Text
+                                        <Text
                                             text="Code: {projectModel>Gsber}"
                                             class="smallText"
                                         />
@@ -282,7 +287,6 @@
                     visible="false"
                     enableScrolling="false"
                     class="customPageHeader"
-                    
                 >
                     <VBox
                         id="detailContent"
@@ -305,7 +309,7 @@
                                 mode="MultiSelect"
                                 items="{ordersModel>/vendors}"
                                 width="1500px"
-                                sticky="ColumnHeaders" 
+                                sticky="ColumnHeaders"
                                 updateFinished=".onVendorsTableUpdateFinished"
                                 fixedLayout="Strict"
                             >
@@ -344,8 +348,10 @@
 
                                 <items>
                                     <ColumnListItem>
-                                        <cells> 
-                                            <Text text="{= ${ordersModel>Lifnr} + ' - ' + ${ordersModel>Name1} }" />
+                                        <cells>
+                                            <Text
+                                                text="{= ${ordersModel>Lifnr} + ' - ' + ${ordersModel>Name1} }"
+                                            />
 
                                             <Text
                                                 text="{path:'ordersModel>TotalAmt',formatter: '.formatAmount'}"

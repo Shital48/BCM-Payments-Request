@@ -2,8 +2,8 @@ sap.ui.define([
     "refunddetails/model/models",
     "sap/ui/core/mvc/Controller",
     "sap/ui/model/json/JSONModel",
-    "sap/ui/core/format/DateFormat", 
-    "sap/ui/core/Fragment", 
+    "sap/ui/core/format/DateFormat",
+    "sap/ui/core/Fragment",
     "sap/m/MessageToast",
     "sap/m/MessageBox"
 
@@ -34,47 +34,21 @@ sap.ui.define([
             this.getView().setModel(this.projectModel, "projectModel");
         },
 
-        onAfterRendering: function () {
-            var oSmartFilterBar1 = this.byId("vendorFilterBar");
-            if (oSmartFilterBar1) {
-                oSmartFilterBar1.attachInitialized(function () {
-                    oSmartFilterBar1.setFilterData({
-                        DateAson: {
-                            items: [],
-                            ranges: [{
-                                exclude: false,
-                                operation: "LE",
-                                keyField: "DateAson",
-                                value1: new Date(),
-                                value2: null
-                            }]
-                        }
-                    });
-                });
-            }
-
-            // var oSmartFilterBar2 = this.byId("customerFilterBar");
-            // if (oSmartFilterBar2) {
-            //     oSmartFilterBar2.attachInitialized(function () {
-            //         oSmartFilterBar2.setFilterData({
-            //             DateAson: {
-            //                 items: [],
-            //                 ranges: [{
-            //                     exclude: false,
-            //                     operation: "LE",
-            //                     keyField: "DateAson",
-            //                     value1: new Date(),
-            //                     value2: null
-            //                 }]
-            //             }
-            //         });
-            //     });
-
-            // }
+         onSmartFilterBarInitialized: function (oEvent) {
+            const oSmartFilterBar = oEvent.getSource();
+            oSmartFilterBar.setFilterData({
+                DateAson: {
+                    items: [],
+                    ranges: [{
+                        exclude: false,
+                        operation: "LE",
+                        keyField: "DateAson",
+                        value1: new Date(),
+                        value2: null
+                    }]
+                }
+            });
         },
-
-
-        //Header 
 
         onSelectionChange: function (oEvent) {
             var selectedKey = oEvent.getSource().getSelectedKey();
@@ -198,14 +172,16 @@ sap.ui.define([
         },
 
 
-        onVendorFilterSearch: function (oEvent) { 
+        onVendorFilterSearch: function (oEvent) {
+            this.clearModel();
             var that = this;
             this._currentLevel = "city";
+            this.onNavBack();
             this.byId("masterPage").setTitle("City");
             this.byId("masterPage").setVisible(true);
             this.byId("cityList").setVisible(true);
             var oSmartFilterBar = this.byId("vendorFilterBar");
-            var aFilters = oSmartFilterBar.getFilters(); 
+            var aFilters = oSmartFilterBar.getFilters();
             const oModel = this.getView().getModel();
             this.getView().setBusy(true);
 
@@ -219,11 +195,18 @@ sap.ui.define([
                     });
                     that.projectModel.setProperty("/CityProjectsById", oCitiesById);
                     that.projectModel.setProperty("/CityProjectList", aCities);
+                    this.byId("fallbackPage").setVisible(false);
+                    this.byId("splitContainer").setVisible(true);
+                    const oDetailPage = this.byId("detailPage");
+                    oDetailPage.setVisible(false);
+
+
                     that.getView().setBusy(false);
+
                 }.bind(that),
                 error: function (oError) {
                     that.getView().setBusy(false);
-                    sap.m.MessageToast.show("Error while fetching city data");
+                    MessageToast.show("Error while fetching city data");
                     console.error("OData read failed", oError);
                 }.bind(that)
             });
@@ -234,11 +217,13 @@ sap.ui.define([
             this._currentLevel = "busSeg";
             this.byId("masterPage").setShowNavButton(true);
             this.byId("masterPage").setTitle("Business Segment");
-            const city = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject().Zzcity; 
+            const city = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject().Zzcity;
             this.byId("cityList").setVisible(false);
             this.byId("busSegList").setVisible(true);
             const cachedSegments = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById`);
             if (cachedSegments && Object.keys(cachedSegments).length) {
+                this.byId("cityList").removeSelections();
+
                 return;
             }
             const oModel = this.getView().getModel();
@@ -253,13 +238,16 @@ sap.ui.define([
                     that.projectModel.setProperty(`/CityProjectsById/${city}/BusinessSegmentById`, oBisSegById);
                     that.projectModel.setProperty("/BusinessSegmentList", aBisSeg);
                     that.getView().setBusy(false);
+
                 }.bind(that),
                 error: function (oError) {
                     that.getView().setBusy(false);
-                    sap.m.MessageToast.show("Error while fetching business segments");
+                    MessageToast.show("Error while fetching business segments");
                     console.error("OData read failed", oError);
                 }.bind(that)
             });
+            this.byId("cityList").removeSelections();
+
         },
         onBusSegSelect: function (oEvent) {
             var that = this;
@@ -269,10 +257,13 @@ sap.ui.define([
             const city = context.Zzcity;
             const busSeg = context.BusSeg;
             this.byId("busSegList").setVisible(false);
-            this.byId("busCompList").setVisible(true); 
+            this.byId("busCompList").setVisible(true);
             const oModel = this.getView().getModel();
             const cachedCompanies = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById`);
-            if (cachedCompanies && Object.keys(cachedCompanies).length) return;
+            if (cachedCompanies && Object.keys(cachedCompanies).length) {
+                this.byId("busSegList").removeSelections();
+                return;
+            }
             this.getView().setBusy(true);
             oModel.read(`/BusSegLevelSet(Zzcity='${city}',BusSeg='${busSeg}')/BusComp`, {
                 success: function (oData) {
@@ -284,26 +275,33 @@ sap.ui.define([
                     that.projectModel.setProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById`, oCompanyById);
                     that.projectModel.setProperty("/CompanyList", aCompany);
                     that.getView().setBusy(false);
+
                 }.bind(that),
                 error: function (oError) {
                     that.getView().setBusy(false);
-                    sap.m.MessageToast.show("Error while fetching Companies");
+                    MessageToast.show("Error while fetching Companies");
                     console.error("OData read failed", oError);
                 }.bind(that)
             });
+            this.byId("busSegList").removeSelections();
+
         },
         onBusCompSelect: function (oEvent) {
             var that = this;
             this._currentLevel = "project";
+            this.byId("busCompList").setVisible(false);
+            this.byId("projectList").setVisible(true);
             this.byId("masterPage").setTitle("Project");
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
             const city = context.Zzcity;
             const busSeg = context.BusSeg;
             const bukrs = context.Bukrs;
-            this.byId("busCompList").setVisible(false);
-            this.byId("projectList").setVisible(true);
             const cachedProjects = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`);
-            if (cachedProjects && Object.keys(cachedProjects).length) return;
+            if (cachedProjects && Object.keys(cachedProjects).length) {
+
+                this.byId("busCompList").removeSelections();
+                return;
+            }
             const oModel = this.getView().getModel();
             this.getView().setBusy(true);
             oModel.read(`/CompanyLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}')/CompProj`, {
@@ -316,35 +314,41 @@ sap.ui.define([
                     that.projectModel.setProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`, oProjectsById);
                     that.projectModel.setProperty("/ProjectList", aProjects);
                     that.getView().setBusy(false);
+
                 }.bind(that),
                 error: function (oError) {
                     that.getView().setBusy(false);
-                    sap.m.MessageToast.show("Error while fetching projects");
+                    MessageToast.show("Error while fetching projects");
                     console.error("OData read failed", oError);
                 }.bind(that)
             });
+            this.byId("busCompList").removeSelections();
+
         },
         onProjectPress: function (oEvent) {
-            var that=this;
+            var that = this;
+
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
             this.projectData = context;
             const { Zzcity: city, BusSeg: busSeg, Bukrs: bukrs, Gsber: gsber } = context;
             const sPath = `/ProjLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
             const vendorPath = `/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById/${gsber}/VendorsById`;
-            this.currentProjectId = gsber; 
-            const oDetailPage = this.byId("detailPage"); 
+            this.currentProjectId = gsber;
+            const oDetailPage = this.byId("detailPage");
             if (!oDetailPage.getVisible()) {
                 oDetailPage.setVisible(true);
-            } 
+            }
             const vendorDetails = this.projectModel.getProperty("/VendorDetails") || {};
             if (!vendorDetails[gsber]) {
                 vendorDetails[gsber] = { CompanyName: bukrs };
                 this.projectModel.setProperty("/VendorDetails", vendorDetails);
-            } 
+            }
             const cachedVendors = this.projectModel.getProperty(vendorPath);
             if (cachedVendors && Object.keys(cachedVendors).length) {
                 this._loadVendorDetails(gsber, vendorPath);
-            } else { 
+                this.byId("projectList").removeSelections();
+
+            } else {
                 this.getView().setBusy(true);
                 this.getView().getModel().read(sPath, {
                     urlParameters: {
@@ -352,6 +356,7 @@ sap.ui.define([
                     },
                     success: function (oData) {
                         that.getView().setBusy(false);
+
                         const aVendors = oData.results;
                         const oVendorsById = {};
                         aVendors.forEach(vendor => {
@@ -359,13 +364,16 @@ sap.ui.define([
                         });
                         that.projectModel.setProperty(vendorPath, oVendorsById);
                         that._loadVendorDetails(gsber, vendorPath);
+
                     },
                     error: function (oError) {
                         that.getView().setBusy(false);
                         console.error("Error fetching vendors", oError);
-                    } 
+                    }
                 });
             }
+            this.byId("projectList").removeSelections();
+
         },
         _loadVendorDetails: function (projectId, vendorPath) {
             const oVendors = this.projectModel.getProperty(vendorPath) || {};
@@ -377,23 +385,24 @@ sap.ui.define([
                 const merged = { ...vendor, ...saved };
                 merged.ApprovalAmt = parseFloat(merged.ApprovalAmt || vendor.ApprovalAmt).toFixed(2);
                 merged.PayType = saved.PayType || vendor.PayType || "Full";
-                merged.isSelected = saved.isSelected|| false;
+                merged.isSelected = saved.isSelected || false;
                 return merged;
             });
 
             this.getView().setModel(new sap.ui.model.json.JSONModel({ vendors: aOrders }), "ordersModel");
+
         },
         onVendorsTableUpdateFinished: function () {
-    const oTable = this.byId("vendorsTable");
-    if (!oTable) return;
+            const oTable = this.byId("vendorsTable");
+            if (!oTable) return;
 
-    oTable.getItems().forEach(item => {
-        const ctx = item.getBindingContext("ordersModel");
-        if (ctx?.getObject()?.isSelected) {
-            oTable.setSelectedItem(item, true);
-        }
-    });
-},
+            oTable.getItems().forEach(item => {
+                const ctx = item.getBindingContext("ordersModel");
+                if (ctx?.getObject()?.isSelected) {
+                    oTable.setSelectedItem(item, true);
+                }
+            });
+        },
 
         onFieldValueChange: function (oEvent) {
             const oSource = oEvent.getSource();
@@ -402,7 +411,7 @@ sap.ui.define([
             if (!sField || !sProjectId) return;
             const oContext = oSource.getBindingContext("dialogModel") || oSource.getBindingContext("ordersModel");
             const oRowData = oContext?.getObject();
-            const sVendorId = oRowData?.Lifnr; 
+            const sVendorId = oRowData?.Lifnr;
             const sOrderId = oRowData?.Ukey;
             if (!sVendorId || !oRowData) return;
             let vValue = oEvent.getParameter("value");
@@ -418,7 +427,7 @@ sap.ui.define([
             // Invoice Dialog Input Change
             if (sOrderId) {
                 if (!oSavedData[sOrderId]) oSavedData[sOrderId] = {};
-                oSavedData[sOrderId][sField] = vValue; 
+                oSavedData[sOrderId][sField] = vValue;
                 const sDocAmt = parseFloat(oRowData?.DocAmt || 0);
                 if (isNaN(approvalAmt) || approvalAmt < 0) {
                     oSource.setValueState("Error");
@@ -506,7 +515,7 @@ sap.ui.define([
 
             const oSource = oEvent.getSource();
             const oContext = oSource.getBindingContext("ordersModel");
-            const oRowData = oContext?.getObject(); 
+            const oRowData = oContext?.getObject();
             const approvalAmt = parseFloat(oRowData?.ApprovalAmt || 0);
             const sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
             if (isNaN(approvalAmt) || approvalAmt < 0) {
@@ -518,7 +527,7 @@ sap.ui.define([
             }
             const pProduct = this.sProduct = oEvent.getSource().getBindingContext("ordersModel").getObject();
             const sProjectId = this.currentProjectId;
-            const sVendorId = pProduct.Lifnr; 
+            const sVendorId = pProduct.Lifnr;
             const aInputs = oEvent.getSource().getParent().findAggregatedObjects(true, control => {
                 return control.isA("sap.m.Input") &&
                     control.getCustomData().some(data => data.getKey() === "field" && data.getValue() === "ApprovalAmt");
@@ -652,7 +661,7 @@ sap.ui.define([
                 });
 
                 oData[sProjectId][sVendorId].ApprovalAmt = total.toFixed(2);
-                oData[sProjectId][sVendorId].PayType = sPayType;  
+                oData[sProjectId][sVendorId].PayType = sPayType;
 
                 this.projectModel.setProperty("/VendorDetails", oData);
 
@@ -670,11 +679,9 @@ sap.ui.define([
         onNavBack: function () {
             if (this._currentLevel === "project") {
                 this._setListVisibility("busComp");
-                this.byId("projectList").removeSelections();
-                this.byId("busCompList").removeSelections();
                 this.byId("masterPage").setTitle("Company");
                 this._currentLevel = "busComp";
-                const oDetailPage = this.byId("detailPage"); 
+                const oDetailPage = this.byId("detailPage");
                 if (oDetailPage.getVisible()) {
                     oDetailPage.setVisible(false);
                 }
@@ -683,19 +690,17 @@ sap.ui.define([
 
             } else if (this._currentLevel === "busComp") {
                 this._setListVisibility("busSeg");
-                this.byId("busSegList").removeSelections();
                 this.byId("masterPage").setTitle("Business Segment");
                 this._currentLevel = "busSeg";
             } else if (this._currentLevel === "busSeg") {
                 this._setListVisibility("city");
-                this.byId("cityList").removeSelections();
                 this.byId("masterPage").setTitle("City");
                 this._currentLevel = "city";
             }
-            // else if(this._currentLevel === "city"){
-            //     this._setListVisibility("city");
-            //     this._currentLevel = "city";
-            // }
+            else if (this._currentLevel === "city") {
+                this._setListVisibility("city");
+                this.byId("masterPage").setTitle("City");
+            }
 
 
         },
@@ -739,17 +744,17 @@ sap.ui.define([
                 vendorDetails[projectId] = {};
             }
 
-            Object.keys(vendorsById).forEach(vendorId => { 
+            Object.keys(vendorsById).forEach(vendorId => {
                 vendorsById[vendorId].isSelected = false;
 
                 if (!vendorDetails[projectId][vendorId]) vendorDetails[projectId][vendorId] = {};
                 vendorDetails[projectId][vendorId].isSelected = false;
             });
 
-
-
             const aSelectedVendorIds = [];
-            const aSelectedData = aSelectedItems.map(oItem => {
+            const mSelectedData = {};
+
+            aSelectedItems.forEach(oItem => {
                 const oProduct = oItem.getBindingContext("ordersModel").getObject();
                 const vendorId = oProduct.Lifnr;
                 aSelectedVendorIds.push(vendorId);
@@ -758,7 +763,7 @@ sap.ui.define([
                 const aOriginalOrderDetails = oProduct.VenDet?.results || [];
 
                 const aMergedOrderDetails = aOriginalOrderDetails.map(oOrder => {
-                    const savedOrder = oSavedOrderDetails[oOrder.Ukey]; // match using Docnr
+                    const savedOrder = oSavedOrderDetails[oOrder.Ukey]; // or Docnr
                     return {
                         ...oOrder,
                         ...(savedOrder || {})
@@ -775,8 +780,7 @@ sap.ui.define([
                 }
                 vendorDetails[projectId][vendorId].isSelected = true;
 
-
-                return {
+                mSelectedData[vendorId] = {
                     ...oProduct,
                     Order_Details: aMergedOrderDetails
                 };
@@ -795,7 +799,22 @@ sap.ui.define([
             this.projectModel.setProperty("/VendorDetails", vendorDetails);
 
 
-            this.selectedOrdersModel.setProperty("/selectedProducts", aSelectedData);
+            // this.selectedOrdersModel.setProperty("/selectedProducts", mSelectedData);
+            const existingSelectedData = this.selectedOrdersModel.getProperty("/selectedProducts") || {};
+            // Remove deselected vendors from current project
+            Object.keys(existingSelectedData).forEach(lifnr => {
+                if (!aSelectedVendorIds.includes(lifnr) && existingSelectedData[lifnr].Gsber === Gsber) {
+                    delete existingSelectedData[lifnr];
+                }
+            });
+
+            // Merge: keep previous selections + update current
+            const mergedSelectedData = {
+                ...existingSelectedData,
+                ...mSelectedData
+            };
+
+            this.selectedOrdersModel.setProperty("/selectedProducts", mergedSelectedData);
 
             this._updateApprovalHierarchy({
                 Zzcity,
@@ -812,7 +831,7 @@ sap.ui.define([
                 return;
             }
 
-            const { Zzcity, BusSeg, Bukrs, Gsber } = projectDetails; 
+            const { Zzcity, BusSeg, Bukrs, Gsber } = projectDetails;
             const vendorPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}/VendorsById`;
             const allVendors = oModel.getProperty(vendorPath) || {};
 
@@ -824,7 +843,7 @@ sap.ui.define([
             });
 
             const projectPath = vendorPath.replace("/VendorsById", "");
-            oModel.setProperty(`${projectPath}/ApprovalAmt`, totalVendor.toFixed(2)); 
+            oModel.setProperty(`${projectPath}/ApprovalAmt`, totalVendor.toFixed(2));
             const companyProjectsPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById`;
             const allProjects = oModel.getProperty(companyProjectsPath) || {};
 
@@ -847,7 +866,7 @@ sap.ui.define([
             });
 
             const segmentPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}`;
-            oModel.setProperty(`${segmentPath}/ApprovalAmt`, totalBusSeg.toFixed(2)); 
+            oModel.setProperty(`${segmentPath}/ApprovalAmt`, totalBusSeg.toFixed(2));
             const allSegments = oModel.getProperty(`/CityProjectsById/${Zzcity}/BusinessSegmentById`) || {};
 
             let totalCity = 0;
@@ -857,21 +876,21 @@ sap.ui.define([
             });
 
             const cityPath = `/CityProjectsById/${Zzcity}`;
-            oModel.setProperty(`${cityPath}/ApprovalAmt`, totalCity.toFixed(2)); 
+            oModel.setProperty(`${cityPath}/ApprovalAmt`, totalCity.toFixed(2));
             const cityList = oModel.getProperty("/CityProjectList") || [];
             cityList.forEach(city => {
                 if (city.Zzcity === Zzcity) {
                     city.ApprovalAmt = totalCity.toFixed(2);
                 }
             });
-            oModel.setProperty("/CityProjectList", cityList); 
+            oModel.setProperty("/CityProjectList", cityList);
             const companyList = oModel.getProperty("/CompanyList") || [];
             companyList.forEach(company => {
                 if (company.Bukrs === Bukrs) {
                     company.ApprovalAmt = totalCompany.toFixed(2);
                 }
             });
-            oModel.setProperty("/CompanyList", companyList); 
+            oModel.setProperty("/CompanyList", companyList);
             const busSegList = oModel.getProperty("/BusinessSegmentList") || [];
             busSegList.forEach(seg => {
                 if (seg.BusSeg === BusSeg) {
@@ -898,8 +917,8 @@ sap.ui.define([
             const oModel = this.getView().getModel();
             const oView = this.getView();
 
-            const sSelectedKey = this.projectModel.getProperty("/VendorDetails/SelectedKey");
-            oView.setBusy(true);
+            const sSelectedKey = this.projectModel.getProperty("/SelectedKey");
+            // oView.setBusy(true);
 
             const formatToODataDate = function (dateString) {
                 const oDate = new Date(dateString);
@@ -908,129 +927,107 @@ sap.ui.define([
 
             if (sSelectedKey === "Customers") {
 
-                const oTable = oView.byId("customerTable");
-                const aSelectedItems = oTable.getSelectedItems();
-                const aCustReq = [];
+                // const oTable = oView.byId("customerTable");
+                // const aSelectedItems = oTable.getSelectedItems();
+                // const aCustReq = [];
 
 
-                let bHasMissingPayMethod = false;
-                if (!aSelectedItems.length) {
-                    MessageToast.show("Please select at least one customer record.");
-                    oView.setBusy(false);
-                    return;
-                }
+                // let bHasMissingPayMethod = false;
+                // if (!aSelectedItems.length) {
+                //     MessageToast.show("Please select at least one customer record.");
+                //     oView.setBusy(false);
+                //     return;
+                // }
 
-                aSelectedItems.forEach(function (oItem1) {
-                    const aCells = oItem1.getCells();
-                    const sTextValue = aCells[8].getValue();
-                    if (sTextValue.trim() === "0.00") {
-                        bHasMissingPayMethod = true;
-                    }
-                });
+                // aSelectedItems.forEach(function (oItem1) {
+                //     const aCells = oItem1.getCells();
+                //     const sTextValue = aCells[8].getValue();
+                //     if (sTextValue.trim() === "0.00") {
+                //         bHasMissingPayMethod = true;
+                //     }
+                // });
 
-                if (bHasMissingPayMethod) {
-                    oView.setBusy(false);
-                    MessageToast.show("Please add Payment Method in all selected records.");
-                    return;
-                }
+                // if (bHasMissingPayMethod) {
+                //     oView.setBusy(false);
+                //     MessageToast.show("Please add Payment Method in all selected records.");
+                //     return;
+                // }
 
 
-                for (let oItem of aSelectedItems) {
-                    const oData = oItem.getBindingContext().getObject();
+                // for (let oItem of aSelectedItems) {
+                //     const oData = oItem.getBindingContext().getObject();
 
-                    const aCells = oItem.getCells();
-                    const sApprovalAmt = aCells[8].getValue();
+                //     const aCells = oItem.getCells();
+                //     const sApprovalAmt = aCells[8].getValue();
 
-                    if (parseFloat(sApprovalAmt) > parseFloat(oData.TotalAmt)) {
-                        oView.setBusy(false);
-                        MessageBox.warning("Approval amount cannot be greater than Total Amount. Please enter a valid value.");
-                        return;
-                    }
-                    const isFullPayment = parseFloat(sApprovalAmt) === parseFloat(oData.TotalAmt);
+                //     if (parseFloat(sApprovalAmt) > parseFloat(oData.TotalAmt)) {
+                //         oView.setBusy(false);
+                //         MessageBox.warning("Approval amount cannot be greater than Total Amount. Please enter a valid value.");
+                //         return;
+                //     }
+                //     const isFullPayment = parseFloat(sApprovalAmt) === parseFloat(oData.TotalAmt);
 
-                    aCustReq.push({
-                        "RequestNo": "",
-                        "DateAson": formatToODataDate(oData.DateAson || new Date()),
-                        "Kunnr": oData.Kunnr,
-                        "Gsber": oData.Gsber,
-                        "Pspid": oData.Pspid || "",
-                        "Name1": oData.Name1,
-                        "Paval": oData.Paval || "",
-                        "Project": oData.Project || "",
-                        "ProjectName": oData.ProjectName || "",
-                        "UnitNo": oData.UnitNo || "",
-                        "Docnr": oData.Docnr,
-                        "Gjahr": oData.Gjahr,
-                        "Bukrs": oData.Bukrs,
-                        "Budat": formatToODataDate(oData.Budat),
-                        "TotalAmt": oData.TotalAmt,
-                        "PayMethod": isFullPayment ? "X" : "",
-                        "ApprovalAmt": sApprovalAmt,
-                        "Bankl": oData.Bankl || "",
-                        "Buzei": oData.Buzei
-                    });
-                }
+                //     aCustReq.push({
+                //         "RequestNo": "",
+                //         "DateAson": formatToODataDate(oData.DateAson || new Date()),
+                //         "Kunnr": oData.Kunnr,
+                //         "Gsber": oData.Gsber,
+                //         "Pspid": oData.Pspid || "",
+                //         "Name1": oData.Name1,
+                //         "Paval": oData.Paval || "",
+                //         "Project": oData.Project || "",
+                //         "ProjectName": oData.ProjectName || "",
+                //         "UnitNo": oData.UnitNo || "",
+                //         "Docnr": oData.Docnr,
+                //         "Gjahr": oData.Gjahr,
+                //         "Bukrs": oData.Bukrs,
+                //         "Budat": formatToODataDate(oData.Budat),
+                //         "TotalAmt": oData.TotalAmt,
+                //         "PayMethod": isFullPayment ? "X" : "",
+                //         "ApprovalAmt": sApprovalAmt,
+                //         "Bankl": oData.Bankl || "",
+                //         "Buzei": oData.Buzei
+                //     });
+                // }
 
-                const oPayload = {
-                    RequestNo: "",
-                    CustReq: aCustReq
-                };
+                // const oPayload = {
+                //     RequestNo: "",
+                //     CustReq: aCustReq
+                // };
 
-                oModel.create("/CustomerReqSet", oPayload, {
-                    success: function () {
-                        oView.setBusy(false);
-                        MessageBox.success("Customer submission successful!");
-                        othis.clearAllFields();
-                        othis.onTableRefresh();
-                    },
-                    error: function (oError) {
-                        oView.setBusy(false);
-                        console.error("Error: ", oError);
-                        MessageBox.error("Customer submission failed. Please try again.");
-                    }
-                });
+                // oModel.create("/CustomerReqSet", oPayload, {
+                //     success: function () {
+                //         oView.setBusy(false);
+                //         MessageBox.success("Customer submission successful!");
+                //         othis.clearAllFields();
+                //         othis.onTableRefresh();
+                //     },
+                //     error: function (oError) {
+                //         oView.setBusy(false);
+                //         console.error("Error: ", oError);
+                //         MessageBox.error("Customer submission failed. Please try again.");
+                //     }
+                // });
 
             }
             else if (sSelectedKey === "Vendors") {
-                const oVendorTable = oView.byId("vendorTable");
+                // const oVendorTable = oView.byId("vendorsTable"); 
 
-                const aInputs = oTable.findAggregatedObjects(true, control => control.isA("sap.m.Input")); 
-                const bHasError = aInputs.some(input => input.getValueState() === "Error");
+                // const aInputs = oVendorTable.findAggregatedObjects(true, control => control.isA("sap.m.Input")); 
+                // const bHasError = aInputs.some(input => input.getValueState() === "Error");
 
-                if (bHasError) {
-                    MessageBox.warning("Please correct all input errors before submitting.");
-                    return; 
-                }
-                const aSelectedVendors = oVendorTable.getSelectedItems();
+                // if (bHasError) {
+                //     MessageBox.warning("Please correct all input errors before submitting.");
+                //     return; 
+                // }
 
-                if (!aSelectedVendors.length) {
-                    MessageToast.show("Please select at least one Vendor record.");
-                    oView.setBusy(false);
-                    return;
-                }
 
-                let bHasMissingPayMethod = false;
-                aSelectedVendors.forEach(function (oItem1) {
-                    const aCells = oItem1.getCells();
-                    const oButton = aCells[4];
-                    const sButtonText = oButton.getText();
-
-                    if (!sButtonText.trim()) {
-                        bHasMissingPayMethod = true;
-                    }
-                });
-
-                if (bHasMissingPayMethod) {
-                    oView.setBusy(false);
-                    MessageToast.show("Please add Payment Method in all selected records.");
-                    return;
-                }
                 const aVenReq = [];
-                const oVendorData = this.projectModel.getProperty("/VendorDetails");
-                aSelectedVendors.forEach(function (oItem) {
-                    const oData = oItem.getBindingContext().getObject();
-                    const sLifnr = oData.Lifnr;
-                    const aInvoices = oVendorData[sLifnr]?.Invoices || [];
+                const oVendorData = this.selectedOrdersModel.getProperty("/selectedProducts");
+
+                Object.values(oVendorData).forEach(oVendor => {
+                    // if (!oVendor.isSelected) return;  
+                    const aInvoices = oVendor.Order_Details || [];
                     aInvoices.forEach(function (invoice) {
                         aVenReq.push({
                             "Lifnr": invoice.Lifnr,
@@ -1041,19 +1038,20 @@ sap.ui.define([
                             "Gjahr": invoice.Gjahr,
                             "Budat": invoice.Budat,
                             "DocAmt": invoice.DocAmt,
-                            "PayMethod": invoice.PayMethod,
+                            "PayMethod":parseFloat(invoice.DocAmt) === parseFloat(invoice.ApprovalAmt) ? "X" : "",
                             "ApprovalAmt": invoice.ApprovalAmt,
                             "Project": invoice.Project || "",
                             "ProjectName": invoice.ProjectName || "",
-                            "Buzei": invoice.Buzei,
-                            "RequestNo": ""
+                            "RequestNo": "",
+                            "Zzcity": "",
+                            "BusSeg": ""
                         });
                     });
                 });
-                console.log("aVenReq", aVenReq)
 
                 if (aVenReq.length === 0) {
                     console.log("Please select at least one vendor record.");
+                    oView.setBusy(false);
                     return;
                 }
                 const oPayload = {
@@ -1075,53 +1073,92 @@ sap.ui.define([
                     }
                 });
 
+                
+
             }
         },
         clearAllFields: function () {
-            const sSelectedKey = this.projectModel.getProperty("/VendorDetails/SelectedKey");
+            const sSelectedKey = this.projectModel.getProperty("/SelectedKey");
+            this.byId("cityList").removeSelections();
+            this.byId("projectList").setVisible(false);
+            this._currentLevel = "city";
+
             var oSmartFilterBar;
             if (sSelectedKey === "Customers") {
-                const oCustomerTable = this.getView().byId("customerTable");
-                oSmartFilterBar = this.byId("customerFilterBar");
-                var aItems = oCustomerTable.getItems();
-                aItems.forEach(function (oRow) {
-                    const aCells = oRow.getCells();
-                    const oCheckBox = aCells[7];
-                    if (oCheckBox && oCheckBox.isA("sap.m.CheckBox")) {
-                        oCheckBox.setSelected(false);
-                    }
-                    const payableAmt = aCells[8];
-                    payableAmt.setValue("0.00");
-                });
-                oCustomerTable.removeSelections(true);
+                // const oCustomerTable = this.getView().byId("customerTable");
+                // oSmartFilterBar = this.byId("customerFilterBar");
+                // var aItems = oCustomerTable.getItems();
+                // aItems.forEach(function (oRow) {
+                //     const aCells = oRow.getCells();
+                //     const oCheckBox = aCells[7];
+                //     if (oCheckBox && oCheckBox.isA("sap.m.CheckBox")) {
+                //         oCheckBox.setSelected(false);
+                //     }
+                //     const payableAmt = aCells[8];
+                //     payableAmt.setValue("0.00");
+                // });
+                // oCustomerTable.removeSelections(true);
 
             } else if (sSelectedKey === "Vendors") {
-                const oVendorTable = this.getView().byId("vendorTable");
-                oSmartFilterBar = this.byId("vendorFilterBar");
-                var oData = this.projectModel.getData();
-                oData.VendorDetails = models.getVendorBlank();
-                this.projectModel.updateBindings();
-                const aItems = oVendorTable.getItems();
-                aItems.forEach(function (oItem1) {
-                    const aCells = oItem1.getCells();
-                    const approvalAmt = aCells[3];
-                    const oButton = aCells[4];
-                    approvalAmt.setText("0.00");
-                    oButton.setText("");
-                });
-                oVendorTable.removeSelections(true);
+                MessageToast.show("Refreshed!");
+
+                this.byId("fallbackPage").setVisible(true);
+                this.byId("splitContainer").setVisible(false);
+
+                this.clearModel();
+
+
+                //     let blankModel = new JSONModel({
+                //     SelectedKey: "Vendors",
+                //     VendorDetails: {},
+                //     CustomerDetails: {},
+                //     BusinessSegmentList:[],
+                //     CityProjectList:[],
+                //     CompanyList:[],
+                //     ProjectList:[]
+                // });
+                //     this.getView().setModel(blankModel, "projectModel");
+
+
+
+
 
             }
-            var oFilterData = oSmartFilterBar.getFilterData();
-            var oPreservedDate = oFilterData.DateAson;
-            var oPreservedPaval = oFilterData.Paval;
-            oSmartFilterBar.clear();
-            oSmartFilterBar.setFilterData({
-                DateAson: oPreservedDate,
-                Paval: oPreservedPaval
-            });
-            oSmartFilterBar.search();
+            // var oFilterData = oSmartFilterBar.getFilterData();
+            // var oPreservedDate = oFilterData.DateAson;
+            // var oPreservedPaval = oFilterData.Paval;
+            // oSmartFilterBar.clear();
+            // oSmartFilterBar.setFilterData({
+            //     DateAson: oPreservedDate,
+            //     Paval: oPreservedPaval
+            // });
+            // oSmartFilterBar.search();
         },
+        clearModel: function () {
+            this.selectedOrdersModel.setData({});
+            this.projectModel.setProperty("/VendorDetails", {});
+            this.projectModel.setProperty("/CustomerDetails", {});
+            this.projectModel.setProperty("/BusinessSegmentList", []);
+            this.projectModel.setProperty("/CityProjectList", []);
+            this.projectModel.setProperty("/CompanyList", []);
+            this.projectModel.setProperty("/ProjectList", []);
+            this.projectModel.setProperty("/SelectedKey", "Vendors");
+            if (this.getView().getModel("ordersModel")) {
+                this.getView().getModel("ordersModel").setProperty("/vendors", []);
+
+                this.getView().getModel("ordersModel").updateBindings(true)
+                this.byId("vendorsTable").getBinding("items").refresh();;
+                this.byId("vendorsTable").getBinding("items").refresh();
+            }
+            this.getView().getModel("projectModel").updateBindings(true);
+            this.byId("cityList").getBinding("items").refresh();
+            this.byId("busSegList").getBinding("items").refresh();
+            this.byId("busCompList").getBinding("items").refresh();
+            this.byId("projectList").getBinding("items").refresh();
+
+
+        },
+
         onTableRefresh: function () {
 
             const sSelectedKey = this.projectModel.getProperty("/VendorDetails/SelectedKey");
