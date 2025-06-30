@@ -680,6 +680,33 @@ sap.ui.define([
         },
         onCancelOrderDialog: function()
         {
+            this._pDialog.then(oDialog => {
+                const oVendor = this.sProduct;
+                const sProjectId = this.currentProjectId;
+                const sVendorId = oVendor.Lifnr;
+        
+                // Get previously saved data
+                const oSavedData = this.projectModel.getProperty(`/VendorDetails/${sProjectId}/${sVendorId}`) || {};
+                const aDetails = oVendor?.VenDet?.results || [];
+        
+                // Rebuild dialog model data with only saved values
+                const aMerged = aDetails.map(doc => {
+                    const saved = oSavedData[doc.Ukey] || {};
+                    return {
+                        ...doc,
+                        ApprovalAmt: saved.ApprovalAmt || "0.00"
+                    };
+                });
+        
+                const sPayType = oSavedData.PayType || "Partial";
+        
+                const oDialogModel = oDialog.getModel("dialogModel");
+                oDialogModel.setProperty("/Invoices", aMerged);
+                oDialogModel.setProperty("/PayType", sPayType);
+        
+                // Close dialog
+                oDialog.close();
+            });
             return;
         },
 

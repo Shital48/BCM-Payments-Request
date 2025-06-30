@@ -115,18 +115,20 @@
             </items>
         </Table>
 
-        <beginButton>
+        <endButton>
+        <!-- <beginButton> -->
             <Button
                 text="{i18n>Confirm}"
                 type="Emphasized"
                 press="onCloseOrderDialog" 
             />
-        </beginButton>
-        <endButton>
+        <!-- </beginButton> -->
+        </endButton>
+        <!-- <endButton>
             <Button
                 text="{i18n>Cancel}"
                 press="onCancelOrderDialog"
             />
-        </endButton>
+        </endButton> -->
     </Dialog>
 </core:FragmentDefinition>
