@@ -447,11 +447,12 @@ sap.ui.define([
                 }, 0);
 
                 const oOrdersModel = this.getView().getModel("ordersModel");
-                const aOrders = oOrdersModel.getProperty("/vendors"); // Adjust path as needed
+                const aOrders = oOrdersModel.getProperty("/vendors");  
                 const oVendorOrder = aOrders.find(row => row.Lifnr === sVendorId);
                 if (oVendorOrder) {
                     oVendorOrder.ApprovalAmt = total.toFixed(2);
                     oSavedData.ApprovalAmt = total.toFixed(2);
+                    oSavedData.PayType=oOrdersModel.PayType;
                 }
                 this._checkIfAllInvoicesSelected(oDialogModel);
 
@@ -485,6 +486,8 @@ sap.ui.define([
                 this.dialogModelCache = this.dialogModelCache || {};
                 this.dialogModelCache[`${sProjectId}_${sVendorId}`] = aMerged;
 
+                // const oSavedData = this.projectModel.getProperty(`/VendorDetails/${sProjectId}/${sVendorId}`) || {};
+
                 // ------- PayType auto-detection -------
                 const oOrdersModel = this.getView().getModel("ordersModel");
                 const oVendorContext = oSource.getBindingContext("ordersModel");
@@ -500,7 +503,7 @@ sap.ui.define([
                 }
 
                 oOrdersModel.setProperty(sPath + "/PayType", sPayType);
-
+                oSavedData.PayType=sPayType;
                 // Optional: update button text if already rendered
                 const aButtons = oSource.getParent().findAggregatedObjects(true, c => c.isA("sap.m.Button"));
                 const oPayBtn = aButtons?.find(b => b.hasStyleClass("fullButtonStyle"));
@@ -674,6 +677,10 @@ sap.ui.define([
 
                 oDialog.close();
             });
+        },
+        onCancelOrderDialog: function()
+        {
+            return;
         },
 
         onNavBack: function () {
@@ -1043,8 +1050,9 @@ sap.ui.define([
                             "Project": invoice.Project || "",
                             "ProjectName": invoice.ProjectName || "",
                             "RequestNo": "",
-                            "Zzcity": "",
-                            "BusSeg": ""
+                            "Zzcity": invoice.Zzcity,
+                            "BusSeg": invoice.BusSeg,
+                            "Buzei": invoice.Buzei,
                         });
                     });
                 });

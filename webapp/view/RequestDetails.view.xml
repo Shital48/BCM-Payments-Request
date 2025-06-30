@@ -43,7 +43,7 @@
 
         <smartFilterBar:SmartFilterBar
             id="vendorFilterBar"
-            entitySet="VendorInvSet"
+            entitySet="CityLevelSet"
             class="customSmartFilterButtons "
             persistencyKey="VendorSmartFilter"
             basicSearchFieldName="Lifnr"
@@ -52,12 +52,11 @@
             initialized="onSmartFilterBarInitialized"
         >
             <smartFilterBar:controlConfiguration>
-                <smartFilterBar:ControlConfiguration
+                <!-- <smartFilterBar:ControlConfiguration
                     key="Paval"
                     visibleInAdvancedArea="true"
-                    index="0"
-                    mandatory="mandatory"
-                />
+                    index="0" 
+                /> -->
                 <smartFilterBar:ControlConfiguration
                     key="Bukrs"
                     visibleInAdvancedArea="true"
@@ -71,8 +70,7 @@
 
                 <smartFilterBar:ControlConfiguration
                     key="Gsber"
-                    visibleInAdvancedArea="true"
-                    mandatory="mandatory"
+                    visibleInAdvancedArea="true" 
                     index="3"
                 />
                 <smartFilterBar:ControlConfiguration
@@ -82,12 +80,12 @@
                 />
 
                 <!-- Need to modify for city filter-->
-                <smartFilterBar:ControlConfiguration
+                <!-- <smartFilterBar:ControlConfiguration
                     key="Ktokk"
                     visibleInAdvancedArea="true"
                     index="5"
                     label="City"
-                />
+                /> -->
                 <smartFilterBar:ControlConfiguration
                     key="DateAson"
                     visibleInAdvancedArea="true"
