@@ -34,7 +34,7 @@ sap.ui.define([
             this.getView().setModel(this.projectModel, "projectModel");
         },
 
-         onSmartFilterBarInitialized: function (oEvent) {
+        onSmartFilterBarInitialized: function (oEvent) {
             const oSmartFilterBar = oEvent.getSource();
             oSmartFilterBar.setFilterData({
                 DateAson: {
@@ -218,12 +218,14 @@ sap.ui.define([
             this.byId("masterPage").setShowNavButton(true);
             this.byId("masterPage").setTitle("Business Segment");
             const city = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject().Zzcity;
+            this.projectModel.setProperty("/BusinessSegmentList", []);
             this.byId("cityList").setVisible(false);
             this.byId("busSegList").setVisible(true);
             const cachedSegments = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById`);
             if (cachedSegments && Object.keys(cachedSegments).length) {
+                const aBisSeg = Object.values(cachedSegments);
+                that.projectModel.setProperty("/BusinessSegmentList", aBisSeg);  
                 this.byId("cityList").removeSelections();
-
                 return;
             }
             const oModel = this.getView().getModel();
@@ -256,11 +258,14 @@ sap.ui.define([
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
             const city = context.Zzcity;
             const busSeg = context.BusSeg;
+            this.projectModel.setProperty("/CompanyList", []);
             this.byId("busSegList").setVisible(false);
             this.byId("busCompList").setVisible(true);
             const oModel = this.getView().getModel();
             const cachedCompanies = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById`);
             if (cachedCompanies && Object.keys(cachedCompanies).length) {
+                const aCompany = Object.values(cachedCompanies);
+                that.projectModel.setProperty("/CompanyList", aCompany);  
                 this.byId("busSegList").removeSelections();
                 return;
             }
@@ -289,6 +294,7 @@ sap.ui.define([
         onBusCompSelect: function (oEvent) {
             var that = this;
             this._currentLevel = "project";
+            this.projectModel.setProperty("/ProjectList", []);
             this.byId("busCompList").setVisible(false);
             this.byId("projectList").setVisible(true);
             this.byId("masterPage").setTitle("Project");
@@ -298,7 +304,8 @@ sap.ui.define([
             const bukrs = context.Bukrs;
             const cachedProjects = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`);
             if (cachedProjects && Object.keys(cachedProjects).length) {
-
+                const aProject = Object.values(cachedProjects);
+                that.projectModel.setProperty("/ProjectList", aProject);                  
                 this.byId("busCompList").removeSelections();
                 return;
             }
@@ -334,6 +341,8 @@ sap.ui.define([
             const sPath = `/ProjLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
             const vendorPath = `/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById/${gsber}/VendorsById`;
             this.currentProjectId = gsber;
+            // this.projectModel.setProperty("/BusinessSegmentList", []);
+            
             const oDetailPage = this.byId("detailPage");
             if (!oDetailPage.getVisible()) {
                 oDetailPage.setVisible(true);
@@ -447,12 +456,12 @@ sap.ui.define([
                 }, 0);
 
                 const oOrdersModel = this.getView().getModel("ordersModel");
-                const aOrders = oOrdersModel.getProperty("/vendors");  
+                const aOrders = oOrdersModel.getProperty("/vendors");
                 const oVendorOrder = aOrders.find(row => row.Lifnr === sVendorId);
                 if (oVendorOrder) {
                     oVendorOrder.ApprovalAmt = total.toFixed(2);
                     oSavedData.ApprovalAmt = total.toFixed(2);
-                    oSavedData.PayType=oOrdersModel.PayType;
+                    oSavedData.PayType = oOrdersModel.PayType;
                 }
                 this._checkIfAllInvoicesSelected(oDialogModel);
 
@@ -503,7 +512,7 @@ sap.ui.define([
                 }
 
                 oOrdersModel.setProperty(sPath + "/PayType", sPayType);
-                oSavedData.PayType=sPayType;
+                oSavedData.PayType = sPayType;
                 // Optional: update button text if already rendered
                 const aButtons = oSource.getParent().findAggregatedObjects(true, c => c.isA("sap.m.Button"));
                 const oPayBtn = aButtons?.find(b => b.hasStyleClass("fullButtonStyle"));
@@ -678,17 +687,16 @@ sap.ui.define([
                 oDialog.close();
             });
         },
-        onCancelOrderDialog: function()
-        {
+        onCancelOrderDialog: function () {
             this._pDialog.then(oDialog => {
                 const oVendor = this.sProduct;
                 const sProjectId = this.currentProjectId;
                 const sVendorId = oVendor.Lifnr;
-        
+
                 // Get previously saved data
                 const oSavedData = this.projectModel.getProperty(`/VendorDetails/${sProjectId}/${sVendorId}`) || {};
                 const aDetails = oVendor?.VenDet?.results || [];
-        
+
                 // Rebuild dialog model data with only saved values
                 const aMerged = aDetails.map(doc => {
                     const saved = oSavedData[doc.Ukey] || {};
@@ -697,13 +705,13 @@ sap.ui.define([
                         ApprovalAmt: saved.ApprovalAmt || "0.00"
                     };
                 });
-        
+
                 const sPayType = oSavedData.PayType || "Partial";
-        
+
                 const oDialogModel = oDialog.getModel("dialogModel");
                 oDialogModel.setProperty("/Invoices", aMerged);
                 oDialogModel.setProperty("/PayType", sPayType);
-        
+
                 // Close dialog
                 oDialog.close();
             });
@@ -1072,7 +1080,7 @@ sap.ui.define([
                             "Gjahr": invoice.Gjahr,
                             "Budat": invoice.Budat,
                             "DocAmt": invoice.DocAmt,
-                            "PayMethod":parseFloat(invoice.DocAmt) === parseFloat(invoice.ApprovalAmt) ? "X" : "",
+                            "PayMethod": parseFloat(invoice.DocAmt) === parseFloat(invoice.ApprovalAmt) ? "X" : "",
                             "ApprovalAmt": invoice.ApprovalAmt,
                             "Project": invoice.Project || "",
                             "ProjectName": invoice.ProjectName || "",
@@ -1108,7 +1116,7 @@ sap.ui.define([
                     }
                 });
 
-                
+
 
             }
         },

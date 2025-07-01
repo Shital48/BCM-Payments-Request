@@ -28,7 +28,7 @@ function (JSONModel, Device) {
             });
             return oModel;
         }
-        
+          
     };
 
 });
