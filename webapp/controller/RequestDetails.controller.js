@@ -213,24 +213,30 @@ sap.ui.define([
         },
 
         onCitySelect: function (oEvent) {
+            const city = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject().Zzcity;
+            if (!city || city.trim() === "") {
+                MessageToast.show("City not found");
+                return;
+            }
             var that = this;
             this._currentLevel = "busSeg";
             this.byId("masterPage").setShowNavButton(true);
             this.byId("masterPage").setTitle("Business Segment");
-            const city = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject().Zzcity;
+
             this.projectModel.setProperty("/BusinessSegmentList", []);
             this.byId("cityList").setVisible(false);
             this.byId("busSegList").setVisible(true);
             const cachedSegments = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById`);
             if (cachedSegments && Object.keys(cachedSegments).length) {
                 const aBisSeg = Object.values(cachedSegments);
-                that.projectModel.setProperty("/BusinessSegmentList", aBisSeg);  
+                that.projectModel.setProperty("/BusinessSegmentList", aBisSeg);
                 this.byId("cityList").removeSelections();
                 return;
             }
             const oModel = this.getView().getModel();
             this.getView().setBusy(true);
-            oModel.read(`/CityLevelSet('${city}')/CityBus`, {
+            const encodedCity = encodeURIComponent(city);
+            oModel.read(`/CityLevelSet('${encodedCity}')/CityBus`, {
                 success: function (oData) {
                     const aBisSeg = oData.results;
                     const oBisSegById = {};
@@ -252,12 +258,17 @@ sap.ui.define([
 
         },
         onBusSegSelect: function (oEvent) {
-            var that = this;
-            this._currentLevel = "busComp";
-            this.byId("masterPage").setTitle("Company");
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
             const city = context.Zzcity;
             const busSeg = context.BusSeg;
+            if (!busSeg || busSeg.trim() === "") {
+                MessageToast.show("Business Segment not found");
+                return;
+            }
+            var that = this;
+            this._currentLevel = "busComp";
+            this.byId("masterPage").setTitle("Company");
+           
             this.projectModel.setProperty("/CompanyList", []);
             this.byId("busSegList").setVisible(false);
             this.byId("busCompList").setVisible(true);
@@ -265,12 +276,15 @@ sap.ui.define([
             const cachedCompanies = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById`);
             if (cachedCompanies && Object.keys(cachedCompanies).length) {
                 const aCompany = Object.values(cachedCompanies);
-                that.projectModel.setProperty("/CompanyList", aCompany);  
+                that.projectModel.setProperty("/CompanyList", aCompany);
                 this.byId("busSegList").removeSelections();
                 return;
             }
             this.getView().setBusy(true);
-            oModel.read(`/BusSegLevelSet(Zzcity='${city}',BusSeg='${busSeg}')/BusComp`, {
+            const encodedCity = encodeURIComponent(city);
+            const encodedBusSeg=encodeURIComponent(busSeg);
+
+            oModel.read(`/BusSegLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}')/BusComp`, {
                 success: function (oData) {
                     const aCompany = oData.results;
                     const oCompanyById = {};
@@ -292,26 +306,34 @@ sap.ui.define([
 
         },
         onBusCompSelect: function (oEvent) {
+            const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
+            const city =  context.Zzcity;
+            const busSeg =  context.BusSeg;
+            const bukrs =  context.Bukrs;
+            if (!bukrs || bukrs.trim() === "") {
+                MessageToast.show("Company not found");
+                return;
+            }
             var that = this;
             this._currentLevel = "project";
             this.projectModel.setProperty("/ProjectList", []);
             this.byId("busCompList").setVisible(false);
             this.byId("projectList").setVisible(true);
             this.byId("masterPage").setTitle("Project");
-            const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
-            const city = context.Zzcity;
-            const busSeg = context.BusSeg;
-            const bukrs = context.Bukrs;
+
             const cachedProjects = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`);
             if (cachedProjects && Object.keys(cachedProjects).length) {
                 const aProject = Object.values(cachedProjects);
-                that.projectModel.setProperty("/ProjectList", aProject);                  
+                that.projectModel.setProperty("/ProjectList", aProject);
                 this.byId("busCompList").removeSelections();
                 return;
             }
             const oModel = this.getView().getModel();
             this.getView().setBusy(true);
-            oModel.read(`/CompanyLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}')/CompProj`, {
+            const encodedCity = encodeURIComponent(city);
+            const encodedBusSeg=encodeURIComponent(busSeg);
+
+            oModel.read(`/CompanyLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}')/CompProj`, {
                 success: function (oData) {
                     const aProjects = oData.results;
                     const oProjectsById = {};
@@ -336,13 +358,30 @@ sap.ui.define([
             var that = this;
 
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
-            this.projectData = context;
             const { Zzcity: city, BusSeg: busSeg, Bukrs: bukrs, Gsber: gsber } = context;
-            const sPath = `/ProjLevelSet(Zzcity='${city}',BusSeg='${busSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
+
+            if (!gsber || gsber.trim() === "") {
+                MessageToast.show("Project not found");
+                return;
+            }
+
+            if (this.getView().getModel("ordersModel")) {
+                this.getView().getModel("ordersModel").setProperty("/vendors", []);
+
+                this.getView().getModel("ordersModel").updateBindings(true)
+                this.byId("vendorsTable").getBinding("items").refresh();;
+                this.byId("vendorsTable").getBinding("items").refresh();
+            }
+
+
+            const encodedCity = encodeURIComponent(city);
+            const encodedBusSeg=encodeURIComponent(busSeg);
+
+            const sPath = `/ProjLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
             const vendorPath = `/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById/${gsber}/VendorsById`;
             this.currentProjectId = gsber;
             // this.projectModel.setProperty("/BusinessSegmentList", []);
-            
+
             const oDetailPage = this.byId("detailPage");
             if (!oDetailPage.getVisible()) {
                 oDetailPage.setVisible(true);
