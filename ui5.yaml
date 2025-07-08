@@ -18,8 +18,8 @@ server:
         backend:
           - scp: true
             path: /sap
-            url: http://falcon-dev.sap.prestigeconstructions.com:443
-            destination: PED100        
+            url:  http://falcon-sdx.sap.prestigeconstructions.com:443
+            destination: sandbox      
     - name: fiori-tools-appreload
       afterMiddleware: compression
       configuration:
