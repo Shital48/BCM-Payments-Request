@@ -342,7 +342,7 @@ sap.ui.define([
                     });
                     that.projectModel.setProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`, oProjectsById);
                     that.projectModel.setProperty("/ProjectList", aProjects);
-                    that.getView().setBusy(false);
+                    that.getView().setBusy(false); 
 
                 }.bind(that),
                 error: function (oError) {
@@ -999,7 +999,7 @@ sap.ui.define([
             const oView = this.getView();
 
             const sSelectedKey = this.projectModel.getProperty("/SelectedKey");
-            // oView.setBusy(true);
+             oView.setBusy(true);
 
             const formatToODataDate = function (dateString) {
                 const oDate = new Date(dateString);
