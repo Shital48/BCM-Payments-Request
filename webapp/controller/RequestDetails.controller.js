@@ -17,13 +17,13 @@ sap.ui.define([
             this.selectedOrdersModel = new JSONModel({ selectedProducts: [] });
             this.getView().setModel(this.selectedOrdersModel, "selectedOrdersModel");
         },
-        formatAmount: function (value) {
-            if (!value) return "";
-            return parseFloat(value).toLocaleString("en-IN", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        },
+        // formatAmount: function (value) {
+        //     if (!value) return "";
+        //     return parseFloat(value).toLocaleString("en-IN", {
+        //         minimumFractionDigits: 2,
+        //         maximumFractionDigits: 2
+        //     });
+        // },
 
         onBeforeRendering: function () {
             var oModel1 = this.getView().getModel();
@@ -90,7 +90,10 @@ sap.ui.define([
                 return "Advance Request";
             } else if (sCategory === "R") {
                 return "Retention";
+            }else if (sCategory === "D") {
+                return "AdHoc Amount";
             }
+            
             return "";
         },
         formatAmount: function (Amt) {
@@ -191,7 +194,8 @@ sap.ui.define([
                     const aCities = oData.results;
                     const oCitiesById = {};
                     aCities.forEach(city => {
-                        oCitiesById[city.Zzcity] = city;
+                        const key = city.Zzcity && city.Zzcity.trim() !== "" ? city.Zzcity : "noncity";
+                        oCitiesById[key] = city;
                     });
                     that.projectModel.setProperty("/CityProjectsById", oCitiesById);
                     that.projectModel.setProperty("/CityProjectList", aCities);
@@ -213,11 +217,13 @@ sap.ui.define([
         },
 
         onCitySelect: function (oEvent) {
-            const city = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject().Zzcity;
-            if (!city || city.trim() === "") {
-                MessageToast.show("City not found");
-                return;
-            }
+            let city = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject().Zzcity;
+            const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
+
+            // if (!city || city.trim() === "") {
+            //     MessageToast.show("City not found");
+            //     return;
+            // }
             var that = this;
             this._currentLevel = "busSeg";
             this.byId("masterPage").setShowNavButton(true);
@@ -226,7 +232,7 @@ sap.ui.define([
             this.projectModel.setProperty("/BusinessSegmentList", []);
             this.byId("cityList").setVisible(false);
             this.byId("busSegList").setVisible(true);
-            const cachedSegments = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById`);
+            const cachedSegments = this.projectModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById`);
             if (cachedSegments && Object.keys(cachedSegments).length) {
                 const aBisSeg = Object.values(cachedSegments);
                 that.projectModel.setProperty("/BusinessSegmentList", aBisSeg);
@@ -235,7 +241,7 @@ sap.ui.define([
             }
             const oModel = this.getView().getModel();
             this.getView().setBusy(true);
-            const encodedCity = encodeURIComponent(city);
+            const encodedCity = encodeURIComponent(city || "");
             oModel.read(`/CityLevelSet('${encodedCity}')/CityBus`, {
                 success: function (oData) {
                     const aBisSeg = oData.results;
@@ -243,7 +249,7 @@ sap.ui.define([
                     aBisSeg.forEach(seg => {
                         oBisSegById[seg.BusSeg] = seg;
                     });
-                    that.projectModel.setProperty(`/CityProjectsById/${city}/BusinessSegmentById`, oBisSegById);
+                    that.projectModel.setProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById`, oBisSegById);
                     that.projectModel.setProperty("/BusinessSegmentList", aBisSeg);
                     that.getView().setBusy(false);
 
@@ -260,6 +266,8 @@ sap.ui.define([
         onBusSegSelect: function (oEvent) {
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
             const city = context.Zzcity;
+            const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
+
             const busSeg = context.BusSeg;
             if (!busSeg || busSeg.trim() === "") {
                 MessageToast.show("Business Segment not found");
@@ -273,7 +281,7 @@ sap.ui.define([
             this.byId("busSegList").setVisible(false);
             this.byId("busCompList").setVisible(true);
             const oModel = this.getView().getModel();
-            const cachedCompanies = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById`);
+            const cachedCompanies = this.projectModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById`);
             if (cachedCompanies && Object.keys(cachedCompanies).length) {
                 const aCompany = Object.values(cachedCompanies);
                 that.projectModel.setProperty("/CompanyList", aCompany);
@@ -291,7 +299,7 @@ sap.ui.define([
                     aCompany.forEach(company => {
                         oCompanyById[company.Bukrs] = company;
                     });
-                    that.projectModel.setProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById`, oCompanyById);
+                    that.projectModel.setProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById`, oCompanyById);
                     that.projectModel.setProperty("/CompanyList", aCompany);
                     that.getView().setBusy(false);
 
@@ -308,6 +316,7 @@ sap.ui.define([
         onBusCompSelect: function (oEvent) {
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
             const city =  context.Zzcity;
+            const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
             const busSeg =  context.BusSeg;
             const bukrs =  context.Bukrs;
             if (!bukrs || bukrs.trim() === "") {
@@ -321,7 +330,7 @@ sap.ui.define([
             this.byId("projectList").setVisible(true);
             this.byId("masterPage").setTitle("Project");
 
-            const cachedProjects = this.projectModel.getProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`);
+            const cachedProjects = this.projectModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`);
             if (cachedProjects && Object.keys(cachedProjects).length) {
                 const aProject = Object.values(cachedProjects);
                 that.projectModel.setProperty("/ProjectList", aProject);
@@ -340,7 +349,7 @@ sap.ui.define([
                     aProjects.forEach(project => {
                         oProjectsById[project.Gsber] = project;
                     });
-                    that.projectModel.setProperty(`/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`, oProjectsById);
+                    that.projectModel.setProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`, oProjectsById);
                     that.projectModel.setProperty("/ProjectList", aProjects);
                     that.getView().setBusy(false); 
 
@@ -359,6 +368,7 @@ sap.ui.define([
 
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
             const { Zzcity: city, BusSeg: busSeg, Bukrs: bukrs, Gsber: gsber } = context;
+            const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
 
             if (!gsber || gsber.trim() === "") {
                 MessageToast.show("Project not found");
@@ -378,7 +388,7 @@ sap.ui.define([
             const encodedBusSeg=encodeURIComponent(busSeg);
 
             const sPath = `/ProjLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
-            const vendorPath = `/CityProjectsById/${city}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById/${gsber}/VendorsById`;
+            const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById/${gsber}/VendorsById`;
             this.currentProjectId = gsber;
             // this.projectModel.setProperty("/BusinessSegmentList", []);
 
@@ -813,8 +823,10 @@ sap.ui.define([
             const {
                 Zzcity, BusSeg, Bukrs, Gsber
             } = projectRef;
+            const normalizedCityKey = Zzcity && Zzcity.trim() !== "" ? Zzcity : "noncity";
+            
 
-            const vendorPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}/VendorsById`;
+            const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}/VendorsById`;
             const vendorsById = this.projectModel.getProperty(vendorPath) || {};
 
 
@@ -898,7 +910,7 @@ sap.ui.define([
             this.selectedOrdersModel.setProperty("/selectedProducts", mergedSelectedData);
 
             this._updateApprovalHierarchy({
-                Zzcity,
+                normalizedCityKey,
                 BusSeg,
                 Bukrs,
                 Gsber
@@ -907,13 +919,13 @@ sap.ui.define([
         _updateApprovalHierarchy: function (projectDetails, selectedVendorIds = []) {
             const oModel = this.projectModel;
 
-            if (!projectDetails || !projectDetails.Zzcity || !projectDetails.BusSeg || !projectDetails.Bukrs || !projectDetails.Gsber) {
+            if (!projectDetails || !projectDetails.normalizedCityKey || !projectDetails.BusSeg || !projectDetails.Bukrs || !projectDetails.Gsber) {
                 console.warn("Invalid project details for hierarchy update", projectDetails);
                 return;
             }
 
-            const { Zzcity, BusSeg, Bukrs, Gsber } = projectDetails;
-            const vendorPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}/VendorsById`;
+            const { normalizedCityKey, BusSeg, Bukrs, Gsber } = projectDetails;
+            const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}/VendorsById`;
             const allVendors = oModel.getProperty(vendorPath) || {};
 
             let totalVendor = 0;
@@ -925,7 +937,7 @@ sap.ui.define([
 
             const projectPath = vendorPath.replace("/VendorsById", "");
             oModel.setProperty(`${projectPath}/ApprovalAmt`, totalVendor.toFixed(2));
-            const companyProjectsPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById`;
+            const companyProjectsPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById`;
             const allProjects = oModel.getProperty(companyProjectsPath) || {};
 
             let totalCompany = 0;
@@ -934,11 +946,11 @@ sap.ui.define([
                 totalCompany += isNaN(amt) ? 0 : amt;
             });
 
-            const companyPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}`;
+            const companyPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}`;
             oModel.setProperty(`${companyPath}/ApprovalAmt`, totalCompany.toFixed(2));
 
             // ---------------- BUSINESS SEGMENT LEVEL ----------------
-            const allCompanies = oModel.getProperty(`/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}/oCompanyById`) || {};
+            const allCompanies = oModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById`) || {};
 
             let totalBusSeg = 0;
             Object.values(allCompanies).forEach(company => {
@@ -946,9 +958,9 @@ sap.ui.define([
                 totalBusSeg += isNaN(amt) ? 0 : amt;
             });
 
-            const segmentPath = `/CityProjectsById/${Zzcity}/BusinessSegmentById/${BusSeg}`;
+            const segmentPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}`;
             oModel.setProperty(`${segmentPath}/ApprovalAmt`, totalBusSeg.toFixed(2));
-            const allSegments = oModel.getProperty(`/CityProjectsById/${Zzcity}/BusinessSegmentById`) || {};
+            const allSegments = oModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById`) || {};
 
             let totalCity = 0;
             Object.values(allSegments).forEach(segment => {
@@ -956,11 +968,11 @@ sap.ui.define([
                 totalCity += isNaN(amt) ? 0 : amt;
             });
 
-            const cityPath = `/CityProjectsById/${Zzcity}`;
+            const cityPath = `/CityProjectsById/${normalizedCityKey}`;
             oModel.setProperty(`${cityPath}/ApprovalAmt`, totalCity.toFixed(2));
             const cityList = oModel.getProperty("/CityProjectList") || [];
             cityList.forEach(city => {
-                if (city.Zzcity === Zzcity) {
+                if (city.Zzcity === normalizedCityKey) {
                     city.ApprovalAmt = totalCity.toFixed(2);
                 }
             });
@@ -1110,6 +1122,7 @@ sap.ui.define([
                     // if (!oVendor.isSelected) return;  
                     const aInvoices = oVendor.Order_Details || [];
                     aInvoices.forEach(function (invoice) {
+                        if (parseFloat(invoice.ApprovalAmt) !== 0) {
                         aVenReq.push({
                             "Lifnr": invoice.Lifnr,
                             "Gsber": invoice.Gsber,
@@ -1128,6 +1141,7 @@ sap.ui.define([
                             "BusSeg": invoice.BusSeg,
                             "Buzei": invoice.Buzei,
                         });
+                    }
                     });
                 });
 

@@ -31,6 +31,7 @@
             <core:Item
                 key="OPTION_CUSTOMER"
                 text="Customers"
+                enabled="false"
             />
         </Select>
 
