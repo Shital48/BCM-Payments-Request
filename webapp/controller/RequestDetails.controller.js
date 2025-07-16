@@ -1011,8 +1011,7 @@ sap.ui.define([
             const oView = this.getView();
 
             const sSelectedKey = this.projectModel.getProperty("/SelectedKey");
-             oView.setBusy(true);
-
+            
             const formatToODataDate = function (dateString) {
                 const oDate = new Date(dateString);
                 return `/Date(${oDate.getTime()})/`;
@@ -1117,6 +1116,11 @@ sap.ui.define([
 
                 const aVenReq = [];
                 const oVendorData = this.selectedOrdersModel.getProperty("/selectedProducts");
+               
+                if (!oVendorData || Object.keys(oVendorData).length === 0) {
+                    MessageToast.show("Please select at least one vendor record.");
+                    return;
+                }
 
                 Object.values(oVendorData).forEach(oVendor => {
                     // if (!oVendor.isSelected) return;  
@@ -1144,12 +1148,9 @@ sap.ui.define([
                     }
                     });
                 });
+ 
+                oView.setBusy(true);
 
-                if (aVenReq.length === 0) {
-                    console.log("Please select at least one vendor record.");
-                    oView.setBusy(false);
-                    return;
-                }
                 const oPayload = {
                     RequestNo: "",
                     VenReq: aVenReq
