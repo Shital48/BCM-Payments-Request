@@ -322,7 +322,7 @@
                                     <Column hAlign="Center">
                                         <Text text="MSME" />
                                     </Column>
-                                    <Column hAlign="Right">
+                                    <Column hAlign="Center">
                                         <Text text="Invoices" />
                                     </Column>
                                     <Column hAlign="Right">
@@ -355,7 +355,8 @@
                                             <Text
                                                 text="{path:'ordersModel>TotalAmt',formatter: '.formatAmount'}"
                                             />
-                                            <Text text="{ordersModel>Msme}" />
+                                            <!-- <Text text="{ordersModel>Msme}" /> -->
+                                            <Text text="{= !${ordersModel>Msme} ? '-' : ${ordersModel>Msme} }" />
                                             <Text text="{ordersModel>Invno}" />
                                             <Input
                                                 value="{path:'ordersModel>ApprovalAmt'}"

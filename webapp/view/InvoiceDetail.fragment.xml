@@ -108,7 +108,7 @@
                                 </customData>
                                 </Input> 
 
-                        <Text text="{dialogModel>Project}" /> 
+                        <Text text="{dialogModel>ProjectName}" /> 
 
                     </cells>
                 </ColumnListItem>
