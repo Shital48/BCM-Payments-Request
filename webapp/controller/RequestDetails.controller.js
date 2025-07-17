@@ -184,12 +184,12 @@ sap.ui.define([
             this.byId("masterPage").setVisible(true);
             this.byId("cityList").setVisible(true);
             var oSmartFilterBar = this.byId("vendorFilterBar");
-            var aFilters = oSmartFilterBar.getFilters();
+            this.aFilters = oSmartFilterBar.getFilters();
             const oModel = this.getView().getModel();
             this.getView().setBusy(true);
 
             oModel.read("/CityLevelSet", {
-                filters: aFilters,
+                filters: this.aFilters,
                 success: function (oData) {
                     const aCities = oData.results;
                     const oCitiesById = {};
@@ -242,7 +242,8 @@ sap.ui.define([
             const oModel = this.getView().getModel();
             this.getView().setBusy(true);
             const encodedCity = encodeURIComponent(city || "");
-            oModel.read(`/CityLevelSet('${encodedCity}')/CityBus`, {
+            oModel.read(`/CityLevelSet('${encodedCity}')/CityBus`, {                
+                filters: this.aFilters,
                 success: function (oData) {
                     const aBisSeg = oData.results;
                     const oBisSegById = {};
@@ -292,7 +293,8 @@ sap.ui.define([
             const encodedCity = encodeURIComponent(city);
             const encodedBusSeg=encodeURIComponent(busSeg);
 
-            oModel.read(`/BusSegLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}')/BusComp`, {
+            oModel.read(`/BusSegLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}')/BusComp`, {                
+                filters: this.aFilters,
                 success: function (oData) {
                     const aCompany = oData.results;
                     const oCompanyById = {};
@@ -342,7 +344,8 @@ sap.ui.define([
             const encodedCity = encodeURIComponent(city);
             const encodedBusSeg=encodeURIComponent(busSeg);
 
-            oModel.read(`/CompanyLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}')/CompProj`, {
+            oModel.read(`/CompanyLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}')/CompProj`, {                
+                filters: this.aFilters,
                 success: function (oData) {
                     const aProjects = oData.results;
                     const oProjectsById = {};
