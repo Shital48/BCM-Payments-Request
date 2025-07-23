@@ -1,0 +1,91 @@
+/* Enter your custom styles here */
+.whiteBackgroundPage {
+    background-color: white !important; 
+}
+/* Enter your custom styles here */
+.redText {
+    color: red;
+}
+
+.greenText {
+    color: green;
+}
+
+.boldText {
+    font-weight: bold;
+}
+.smallText {
+    font-size: 0.75rem; /* Smaller text size */
+}
+
+.alignRight {
+    align-items: flex-end;
+    text-align: right;
+}
+.paddedItem {
+    padding: 0.75rem; /* Adds padding from all sides */
+}
+.fullButtonStyle .sapMBtnInner {
+    background-color: #27AE60; 
+    color: white !important;              /* Icon and text color */
+    border-radius: 6px !important;
+}
+.fullButtonStyle .sapMBtnContent {
+    color: white !important; /* Ensures the text inside is white */
+}
+
+.fullButtonStyle .sapMBtnIcon {
+    color: white !important; /* Ensures the icon is also white */
+}
+.fullButtonStyle .sapMBtnInner:hover {
+    background-color:  #27AE60 !important;  /* Slightly darker on hover */
+    color: white !important;
+}
+
+/* 🔥 Fix active (pressed) and focus state */
+.fullButtonStyle .sapMBtnInner:active,
+.fullButtonStyle .sapMBtnInner:focus {
+    background-color: #90EE90!important;  /* Even darker shade */
+    color: white !important;
+}
+
+/* Change background color of Page header */
+.customPageHeader .sapMBar {
+    background-color: #f5f0d8 !important; /* Replace with desired color */
+    color:black !important;
+}
+
+/* Optional: Change title text color */
+.customPageHeader .sapMTitle {
+    color: black !important;
+    font-weight: bold;
+}
+
+/* Styles the 'Go', 'Filter', 'Hide Filter' buttons */
+.customSmartFilterButtons .sapMBtnInner {
+    background-color: #b17a21 !important;
+    color: white !important;
+    border-radius: 6px;
+}
+
+.customSmartFilterButtons .sapMBtnIcon,
+.customSmartFilterButtons .sapMBtnContent {
+    color: white !important;
+}
+.pageHeader .sapMBar{
+    background-color:#FFFFFF !important;
+}
+.customHeaderStyle .sapMColumnHeader .sapMText {
+    color: #8B4513 !important;  /* Brown color */
+    font-weight: bold;
+}
+.customSmartFilterButtons #container-bcmrequest---RequestDetails--vendorFilterBar-variant-vm-trigger-inner {
+    background-color: white !important;
+    border: 1px solid #ccc !important;  /* Light gray box */
+    border-radius: 4px !important;      /* Optional: rounded corners */
+
+
+}
+.customSmartFilterButtons .sapMBtn .sapUiIcon {
+    color: black !important; /* Change if needed */
+}

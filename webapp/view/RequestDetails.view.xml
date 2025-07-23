@@ -1,0 +1,614 @@
+<mvc:View
+    controllerName="bcmrequest.controller.RequestDetails"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+    xmlns="sap.m"
+    xmlns:ui="sap.ui.table"
+    xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
+    xmlns:smartTable="sap.ui.comp.smarttable"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    xmlns:app="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1"
+    height="100%"
+    xmlns:rowmodes="sap.ui.table.rowmodes"
+>
+    <Page
+        id="page"
+        class="whiteBackgroundPage"
+        showHeader="false"
+    >
+        <Select
+            id="mySelect"
+            selectedKey="OPTION_VENDER"
+            width="400px"
+            change="onSelectionChange"
+            class="sapUiSmallMarginBegin"
+        >
+            <core:Item
+                key="OPTION_VENDER"
+                text="Vendors"
+            />
+            <core:Item
+                key="OPTION_CUSTOMER"
+                text="Customers"
+                enabled="false"
+            />
+        </Select>
+
+        <!-- <VBox
+                fitContainer="true"
+                id="vendorsSection"
+                visible="true"            > -->
+
+        <!-- ADD BASIC SEARCH FIELD PROJECT -->
+
+        <smartFilterBar:SmartFilterBar
+            id="vendorFilterBar"
+            entitySet="CityLevelSet"
+            class="customSmartFilterButtons "
+            persistencyKey="VendorSmartFilter"
+            basicSearchFieldName="Lifnr"
+            enableBasicSearch="false"
+            search=".onVendorFilterSearch"
+            initialized="onSmartFilterBarInitialized"
+        >
+            <smartFilterBar:controlConfiguration>
+                <!-- <smartFilterBar:ControlConfiguration
+                    key="Paval"
+                    visibleInAdvancedArea="true"
+                    index="0" 
+                /> -->
+                <smartFilterBar:ControlConfiguration
+                    key="Bukrs"
+                    visibleInAdvancedArea="true"
+                    index="1"
+                />
+                <smartFilterBar:ControlConfiguration
+                    key="Lifnr"
+                    visibleInAdvancedArea="true"
+                    index="2"
+                />
+
+                <smartFilterBar:ControlConfiguration
+                    key="Gsber"
+                    visibleInAdvancedArea="true" 
+                    index="3"
+                />
+                <smartFilterBar:ControlConfiguration
+                    key="Ktokk"
+                    visibleInAdvancedArea="true"
+                    index="4"
+                />
+
+                <!-- Need to modify for city filter-->
+                <!-- <smartFilterBar:ControlConfiguration
+                    key="Ktokk"
+                    visibleInAdvancedArea="true"
+                    index="5"
+                    label="City"
+                /> -->
+                <smartFilterBar:ControlConfiguration
+                    key="DateAson"
+                    visibleInAdvancedArea="true"
+                    mandatory="mandatory"
+                    index="6"
+                />
+            </smartFilterBar:controlConfiguration>
+            <smartFilterBar:layoutData>
+                <FlexItemData shrinkFactor="0" />
+            </smartFilterBar:layoutData>
+        </smartFilterBar:SmartFilterBar>
+
+        
+
+        <VBox id="fallbackPage" visible="true" class="sapUiSmallMargin">
+    <Text text="Please select filters to show data." />
+</VBox>
+
+
+        <SplitContainer id="splitContainer" visible="false">
+            <masterPages>
+                <Page
+                    id="masterPage"
+                    title=""
+                    class="customPageHeader"
+                    showNavButton="true"
+                    navButtonPress="onNavBack"
+                    visible="false"
+                >
+                    <content>
+                        <!--  City List (Top Level) -->
+                        <List
+                            id="cityList"
+                            mode="SingleSelectMaster"
+                            selectionChange="onCitySelect"
+                            visible="false"
+                            growing="true"
+                            items="{projectModel>/CityProjectList}"
+                        >
+                            <CustomListItem type="Active">
+                                <VBox
+                                    width="100%"
+                                    class="customListItem paddedItem"
+                                >
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{projectModel>Zzcity}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="Total: {path:'projectModel>TotalAmt',formatter:'.formatAmount'}"
+                                            class="redText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                    <HBox justifyContent="End">
+                                        <!-- <Text
+                                            text="A.A: {projectModel>AdvanceAmt}"
+                                            class="smallText"
+                                        /> -->
+                                        <Text
+                                            text="Approval: {path:'projectModel>ApprovalAmt',formatter:'.formatAmount'}"
+                                            class="greenText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                </VBox>
+                            </CustomListItem>
+                        </List>
+
+                        <!--  Business Segment List (CityBus) -->
+                        <List
+                            id="busSegList"
+                            visible="false"
+                            mode="SingleSelectMaster"
+                            selectionChange="onBusSegSelect"
+                            items="{projectModel>/BusinessSegmentList}"
+                        >
+                            <CustomListItem type="Active">
+                                <VBox
+                                    width="100%"
+                                    class="customListItem paddedItem"
+                                >
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{projectModel>BusSeg}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="Total: {path:'projectModel>TotalAmt',formatter: '.formatAmount'}"
+                                            class="redText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                    <HBox justifyContent="End">
+                                        <!-- <Text
+                                            text="{projectModel>AdvanceAmt}"
+                                            class="smallText"
+                                        /> -->
+                                        <Text
+                                            text="Approval: {path:'projectModel>ApprovalAmt',formatter: '.formatAmount'}"
+                                            class="greenText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                </VBox>
+                            </CustomListItem>
+                        </List>
+
+                        <!--  Business Component List (BusComp) -->
+                        <List
+                            id="busCompList"
+                            visible="false"
+                            mode="SingleSelectMaster"
+                            selectionChange="onBusCompSelect"
+                            items="{projectModel>/CompanyList}"
+                        >
+                            <CustomListItem type="Active">
+                                <VBox
+                                    width="100%"
+                                    class="customListItem paddedItem"
+                                >
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{projectModel>Butxt}"
+                                            class="smallText"
+                                        />
+
+                                        <Text
+                                            text="Total: {path:'projectModel>TotalAmt',formatter: '.formatAmount'}"
+                                            class="redText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="Code: {projectModel>Bukrs}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="Approval: {path:'projectModel>ApprovalAmt',formatter: '.formatAmount'}"
+                                            class="greenText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                </VBox>
+                            </CustomListItem>
+                        </List>
+
+                        <!--  Project/Vendor List (ProjVen with VenDet) -->
+                        <List
+                            id="projectList"
+                            visible="false"
+                            mode="SingleSelectMaster"
+                            selectionChange="onProjectPress"
+                            items="{projectModel>/ProjectList}"
+                        >
+                            <CustomListItem type="Active">
+                                <VBox
+                                    width="100%"
+                                    class="customListItem paddedItem"
+                                >
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="{projectModel>Gtext}"
+                                            class="smallText"
+                                        />
+
+                                        <Text
+                                            text="Total: {path:'projectModel>TotalAmt',formatter: '.formatAmount'}"
+                                            class="redText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                    <HBox justifyContent="SpaceBetween">
+                                        <Text
+                                            text="Code: {projectModel>Gsber}"
+                                            class="smallText"
+                                        />
+                                        <Text
+                                            text="Approval: {path:'projectModel>ApprovalAmt',formatter: '.formatAmount'}"
+                                            class="greenText smallText"
+                                            textAlign="End"
+                                        />
+                                    </HBox>
+                                </VBox>
+                            </CustomListItem>
+                        </List>
+                    </content>
+                </Page>
+            </masterPages>
+
+            <detailPages>
+                <Page
+                    id="detailPage"
+                    title="Vendor Details"
+                    visible="false"
+                    enableScrolling="false"
+                    class="customPageHeader"
+                >
+                    <VBox
+                        id="detailContent"
+                        class="sapUiSmallMargin"
+                        height="100%"
+                    >
+                        <ScrollContainer
+                            horizontal="true"
+                            vertical="true"
+                            height="100%"
+                            width="100%"
+                        >
+                            <Table
+                                id="vendorsTable"
+                                class="customHeaderStyle"
+                                inset="false"
+                                growing="true"
+                                selectionChange=".onVendorSelection"
+                                growingScrollToLoad="true"
+                                mode="MultiSelect"
+                                items="{ordersModel>/vendors}"
+                                width="1500px"
+                                sticky="ColumnHeaders"
+                                updateFinished=".onVendorsTableUpdateFinished"
+                                fixedLayout="Strict"
+                            >
+                                <columns>
+                                    <Column>
+                                        <Text text="Vendor Name" />
+                                    </Column>
+                                    <Column hAlign="Right">
+                                        <Text text="Total Amount" />
+                                    </Column>
+                                    <Column hAlign="Center">
+                                        <Text text="MSME" />
+                                    </Column>
+                                    <Column hAlign="Center">
+                                        <Text text="Invoices" />
+                                    </Column>
+                                    <Column hAlign="Right">
+                                        <Text text="Approval Amount" />
+                                    </Column>
+                                    <Column hAlign="Center">
+                                        <Text text="Payment Method" />
+                                    </Column>
+                                    <Column hAlign="Right">
+                                        <Text text="Invoice Amount" />
+                                    </Column>
+                                    <Column hAlign="Right">
+                                        <Text text="Advance Amount" />
+                                    </Column>
+                                    <Column hAlign="Right">
+                                        <Text text="Retention Amount" />
+                                    </Column>
+                                    <Column hAlign="Right">
+                                        <Text text="AdHoc Amount" />
+                                    </Column>
+                                </columns>
+
+                                <items>
+                                    <ColumnListItem>
+                                        <cells>
+                                            <Text
+                                                text="{= ${ordersModel>Lifnr} + ' - ' + ${ordersModel>Name1} }"
+                                            />
+
+                                            <Text
+                                                text="{path:'ordersModel>TotalAmt',formatter: '.formatAmount'}"
+                                            />
+                                            <!-- <Text text="{ordersModel>Msme}" /> -->
+                                            <Text text="{= !${ordersModel>Msme} ? '-' : ${ordersModel>Msme} }" />
+                                            <Text text="{ordersModel>Invno}" />
+                                            <Input
+                                                value="{path:'ordersModel>ApprovalAmt'}"
+                                                editable="{= !${ordersModel>isSelected} }"
+                                                placeholder="Enter amount"
+                                                valueLiveUpdate="true"
+                                                type="Number"
+                                                liveChange=".onFieldValueChange"
+                                                textAlign="Right"
+                                            >
+                                                <customData>
+                                                    <core:CustomData
+                                                        key="field"
+                                                        value="ApprovalAmt"
+                                                    />
+                                                </customData>
+                                            </Input>
+                                            <Button
+                                                icon="sap-icon://action"
+                                                text="{ordersModel>PayType}"
+                                                press=".onPayMethodPress"
+                                                class="fullButtonStyle"
+                                                enabled="{= !${ordersModel>isSelected} }"
+                                            />
+                                            <Text
+                                                text="{path:'ordersModel>InvoiceAmt',formatter:'.formatAmount'}"
+                                            />
+                                            <Text
+                                                text="{path:'ordersModel>AdvanceAmt',formatter:'.formatAmount'}"
+                                            />
+                                            <Text
+                                                text="{path:'ordersModel>RetentionAmt',formatter:'.formatAmount'}"
+                                            />
+                                            <Text
+                                                text="{path:'ordersModel>AdhocAmt',formatter:'.formatAmount'}"
+                                            />
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </ScrollContainer>
+                    </VBox>
+                </Page>
+            </detailPages>
+        </SplitContainer>
+
+        <!-- <VBox
+                fitContainer="true"
+                id="customersSection"
+                visible="false"            >
+                <smartFilterBar:SmartFilterBar
+                    id="customerFilterBar"
+                    entitySet="CustomerRetSet"
+                    persistencyKey="CustomerSmartFilter"
+                    basicSearchFieldName="Bukrs"
+                    enableBasicSearch="true"                >
+                    <smartFilterBar:controlConfiguration>
+                       
+                        <smartFilterBar:ControlConfiguration
+                            key="Paval"
+                            visibleInAdvancedArea="true"
+                            index="0" 
+                            mandatory="mandatory"
+                        />
+                        <smartFilterBar:ControlConfiguration
+                            key="Bukrs"
+                            visibleInAdvancedArea="true"
+                            index="1"
+                        />
+                        <smartFilterBar:ControlConfiguration
+                            key="Kunnr"
+                            visibleInAdvancedArea="true"
+                            index="2"
+                        />
+                         <smartFilterBar:ControlConfiguration
+                            key="Gsber"
+                            visibleInAdvancedArea="true"
+                            index="3"
+                        /> 
+                        
+                        <smartFilterBar:ControlConfiguration
+                            key="Ktokd"
+                            visibleInAdvancedArea="true"
+                            index="4"
+                        />   
+                         <smartFilterBar:ControlConfiguration
+                            key="DateAson"
+                            visibleInAdvancedArea="true"
+                            mandatory="mandatory"
+                            index="5"
+                        />
+                    </smartFilterBar:controlConfiguration>
+                    <smartFilterBar:layoutData>
+                        <FlexItemData shrinkFactor="0" />
+                    </smartFilterBar:layoutData>
+                </smartFilterBar:SmartFilterBar>
+                <smartTable:SmartTable
+                    entitySet="CustomerRetSet"
+                    tableType="ResponsiveTable"
+                    smartFilterId="customerFilterBar"
+                    enableExport="true"
+                    useVariantManagement="true"
+                    useTablePersonalisation="true"
+                    header="Customer List"
+                    persistencyKey="CustomerSmartTable"
+                    enableAutoBinding="true"
+                    class="sapUiResponsiveContentPadding"
+                    ignoreFromPersonalisation="Bankl,Paval,Bukrs,DateAson,Gjahr,Buzei,PayMethod,Pspid,ProjectName,RequestNo"
+                    enableAutoColumnWidth="true"
+                    initiallyVisibleFields="Kunnr,Name1,Project,UnitNo,Docnr,Budat,TotalAmt,ApprovalAmt"
+                >
+                    <Table
+                        id="customerTable"
+                        mode="MultiSelect"
+                    >
+                        <columns>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "Kunnr", "leadingProperty": "Kunnr", "columnIndex": 0}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>CustomerName}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "Name1", "leadingProperty": "Name1", "columnIndex": 1}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>Name}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "Project", "leadingProperty": "Project", "columnIndex": 2}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>Project}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "UnitNo", "leadingProperty": "UnitNo", "columnIndex": 3}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>UnitNo}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "Docnr", "leadingProperty": "Docnr", "columnIndex": 4}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>Docnr}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "Budat", "leadingProperty": "Budat", "columnIndex": 5}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>Budat}" />
+                            </Column>
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "TotalAmt", "leadingProperty": "TotalAmt", "columnIndex": 6}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>TotalAmount}" />
+                            </Column>
+
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "FullPayment", "leadingProperty": "", "visible": true,"columnIndex": 7}'
+                                    />
+                                </customData>
+                                <header>
+                                    <Text text="{i18n>FullPayment}" />
+                                </header>
+                            </Column>
+
+                            <Column>
+                                <customData>
+                                    <core:CustomData
+                                        key="p13nData"
+                                        value='{"columnKey": "ApprovalAmt", "leadingProperty": "ApprovalAmt", "columnIndex": 8, 
+                            "additionalProperty": "Bukrs,DateAson,Pspid ,Paval,ProjectName,Gjahr,PayMethod,Bankl,Buzei,Gsber"}'
+                                    />
+                                </customData>
+                                <Text text="{i18n>ApprovalAmt}" />
+                            </Column>
+                        </columns>
+
+                        <items>
+                            <ColumnListItem>
+                                <cells>
+                                    <Text text="{Kunnr}" />
+                                    <Text text="{Name1}" />
+                                    <Text text="{Project}" />
+                                    <Text text="{UnitNo}" />
+                                    <Text text="{Docnr}" />
+                                    <Text
+                                        text="{path:'Budat',formatter:'.formatDate'}"
+                                    />
+                                    <Text text="{TotalAmt}" />
+                                    <CheckBox select=".onCheckboxSelect1" />
+                                    <Input
+                                        value="{ApprovalAmt}"
+                                        editable="true"
+                                        placeholder="Enter amount"
+                                        liveChange=".onQtyLiveChange"
+                                        valueLiveUpdate="true"
+                                        type="Number"
+                                    />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table> 
+
+                    <smartTable:layoutData>
+                        <FlexItemData
+                            growFactor="1"
+                            baseSize="0%"
+                        />
+                    </smartTable:layoutData>
+                </smartTable:SmartTable>
+            </VBox>  -->
+        <footer>
+            <Toolbar>
+                <ToolbarSpacer />
+                <Button
+                    type="Emphasized"
+                    text="Submit"
+                    press="onSubmitPress"
+                />
+                <Button
+                    text="Cancel"
+                    type="Reject"
+                    press="onCancelPress"
+                />
+            </Toolbar>
+        </footer>
+    </Page>
+</mvc:View>

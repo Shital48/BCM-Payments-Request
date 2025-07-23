@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+    <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/Common.xml">
+        <edmx:Include Namespace="com.sap.vocabularies.Common.v1" Alias="Common" />
+    </edmx:Reference>
+
+    <edmx:DataServices>
+        <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ZFI_BCM_PAYMENT_SRV">
+            
+ 
+            <Annotations Target="ZFI_BCM_PAYMENT_SRV.CityLevel/Bukrs">
+                <Annotation Term="Common.ValueList">
+                    <Record>
+                        <PropertyValue Property="Label" String="Company Code" />
+                        <PropertyValue Property="CollectionPath" String="CompanyCodeSet" />
+                        <PropertyValue Property="SearchSupported" Bool="true" />
+                        <PropertyValue Property="Parameters">
+                            <Collection>
+                                <Record Type="Common.ValueListParameterInOut">
+                                    <PropertyValue Property="LocalDataProperty" PropertyPath="Bukrs" />
+                                    <PropertyValue Property="ValueListProperty" String="Bukrs" />
+                                </Record> 
+                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Ort01" />
+                                </Record>
+                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Butxt" />
+                                </Record>
+                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Land1" />
+                                </Record>
+                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Waers" />
+                                </Record>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+            </Annotations>           
+
+            <Annotations Target="ZFI_BCM_PAYMENT_SRV.CityLevel/Lifnr">
+                <Annotation Term="Common.ValueList">
+                    <Record>
+                        <PropertyValue Property="Label" String="Vendor" />
+                        <PropertyValue Property="CollectionPath" String="VendorSet" />
+                        <PropertyValue Property="SearchSupported" Bool="true" />
+                        <PropertyValue Property="Parameters">
+                            <Collection>
+                                <Record Type="Common.ValueListParameterInOut">
+                                    <PropertyValue Property="LocalDataProperty" PropertyPath="Lifnr" />
+                                    <PropertyValue Property="ValueListProperty" String="Lifnr" />
+                                </Record>                                
+                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Land1" />
+                                </Record>
+                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Name1" />
+                                </Record>
+                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Name2" />
+                                </Record>
+                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Ort01" />
+                                </Record>
+                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Regio" />
+                                </Record>
+                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Ktokk" />
+                                </Record>
+                                
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+            </Annotations>
+            
+          
+
+            <Annotations Target="ZFI_BCM_PAYMENT_SRV.CityLevel/Gsber">
+                <Annotation Term="Common.ValueList">
+                    <Record>
+                        <PropertyValue Property="Label" String="Business Area" />
+                        <PropertyValue Property="CollectionPath" String="BusinessAreaSet" />
+                        <PropertyValue Property="SearchSupported" Bool="true" />
+                        <PropertyValue Property="Parameters">
+                            <Collection>
+                                <Record Type="Common.ValueListParameterInOut">
+                                    <PropertyValue Property="LocalDataProperty" PropertyPath="Gsber" />
+                                    <PropertyValue Property="ValueListProperty" String="Gsber" />
+                                </Record>
+                                  
+                                     <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Gtext" />
+                                </Record>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+            </Annotations>
+
+            <Annotations Target="ZFI_BCM_PAYMENT_SRV.CityLevel/Ktokk">
+                <Annotation Term="Common.ValueList">
+                    <Record>
+                        <PropertyValue Property="Label" String="Account group" />
+                        <PropertyValue Property="CollectionPath" String="VenAccountGrpSet" />
+                        <PropertyValue Property="SearchSupported" Bool="true" />
+                        <PropertyValue Property="Parameters">
+                            <Collection>
+                                <Record Type="Common.ValueListParameterInOut">
+                                    <PropertyValue Property="LocalDataProperty" PropertyPath="Ktokk" />
+                                    <PropertyValue Property="ValueListProperty" String="Ktokk" />
+                                </Record>
+                                  
+                                     <Record Type="Common.ValueListParameterDisplayOnly">
+                                    <PropertyValue Property="ValueListProperty" String="Txt30" />
+                                </Record>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+            </Annotations>
+
+            <Annotations Target="ZFI_BCM_PAYMENT_SRV.CityLevel/DateAson">
+                <Annotation Term="UI.SelectionFields">
+                    <Collection>
+                        <PropertyPath>DateAson</PropertyPath>
+                    </Collection>
+                </Annotation>
+                <Annotation Term="com.sap.vocabularies.UI.v1.Mandatory" Bool="true" />
+            </Annotations> 
+ 
+
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

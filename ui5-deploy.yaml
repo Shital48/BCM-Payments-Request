@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://sap.github.io/ui5-tooling/schema/ui5.yaml.json
+
+specVersion: "3.1"
+metadata:
+  name: bcmrequest
+type: application
+builder:
+  resources:
+    excludes:
+      - /test/**
+      - /localService/**
+  customTasks:
+    - name: deploy-to-abap
+      afterTask: generateCachebusterInfo
+      configuration:
+        target:
+          destination: sandbox
+          url: http://vhpgesdxci.sap.prestigeconstructions.com:8000
+          client: '400'
+        app:
+          name: Z_REQUEST_BCM
+          description: NEW BCM REQUEST DEPLOYMENT
+          package: zfiori
+          transport: SDXK905629
+        exclude:
+          - /test/
