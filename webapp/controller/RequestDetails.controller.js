@@ -103,6 +103,19 @@ sap.ui.define([
                 maximumFractionDigits: 2
             });
         },
+        formatPayIcon: function (PayMethod) {
+            if (PayMethod === "Full") {
+                return "sap-icon://multiselect-all"; // Icon for Full payment
+            } else {
+                return "sap-icon://multi-select"; // Icon for Partial payment
+            }
+        },
+        formatInvoiceIcon: function (sInvno) {
+            if (sInvno === "M") {
+                return "sap-icon://documents"; // Choose any SAP icon
+            }
+            return "-"; // Return empty string if no icon
+        },
         // onCheckboxSelect1: function (oEvent) {
         //     const bSelected = oEvent.getParameter("selected");
         //     const oCheckBox = oEvent.getSource();
@@ -636,7 +649,9 @@ sap.ui.define([
 
                 const dialogData = {
                     PayType: sPayType,
-                    Invoices: invoices
+                    Invoices: invoices,                    
+                    TotalAmount: sTotalAmt,
+                    ApprovalAmount: approvalAmt
                 };
 
                 dialog.setModel(new JSONModel(dialogData), "dialogModel");

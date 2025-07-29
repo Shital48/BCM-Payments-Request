@@ -314,34 +314,34 @@
                             >
                                 <columns>
                                     <Column>
-                                        <Text text="Vendor Name" />
+                                        <Text text="Vendor Code/Name" />
                                     </Column>
                                     <Column hAlign="Right">
-                                        <Text text="Total Amount" />
+                                        <Text text="Total O/S Amt" />
                                     </Column>
                                     <Column hAlign="Center">
                                         <Text text="MSME" />
                                     </Column>
                                     <Column hAlign="Center">
-                                        <Text text="Invoices" />
+                                        <Text text=" Multiple Invc" />
                                     </Column>
                                     <Column hAlign="Right">
-                                        <Text text="Approval Amount" />
+                                        <Text text="Approval Amt" />
                                     </Column>
                                     <Column hAlign="Center">
-                                        <Text text="Payment Method" />
+                                        <Text text="Invoice List" />
                                     </Column>
                                     <Column hAlign="Right">
-                                        <Text text="Invoice Amount" />
+                                        <Text text="Invoice Amt" />
                                     </Column>
                                     <Column hAlign="Right">
-                                        <Text text="Advance Amount" />
+                                        <Text text="Adv. Amt" />
                                     </Column>
                                     <Column hAlign="Right">
-                                        <Text text="Retention Amount" />
+                                        <Text text="Ret. Amt" />
                                     </Column>
                                     <Column hAlign="Right">
-                                        <Text text="AdHoc Amount" />
+                                        <Text text="AdHoc Amt" />
                                     </Column>
                                 </columns>
 
@@ -357,7 +357,13 @@
                                             />
                                             <!-- <Text text="{ordersModel>Msme}" /> -->
                                             <Text text="{= !${ordersModel>Msme} ? '-' : ${ordersModel>Msme} }" />
-                                            <Text text="{ordersModel>Invno}" />
+                                            <!-- <Text text="{ordersModel>Invno}" /> -->
+                                            <core:Icon
+                                               src="{path: 'ordersModel>Invno', formatter: '.formatInvoiceIcon'}"
+                                               visible="{= ${ordersModel>Invno} === 'M' }"
+                                               tooltip="Multiple Invoices"
+                                                class="sapUiSmallMarginEnd"
+                                           />
                                             <Input
                                                 value="{path:'ordersModel>ApprovalAmt'}"
                                                 editable="{= !${ordersModel>isSelected} }"
@@ -375,8 +381,9 @@
                                                 </customData>
                                             </Input>
                                             <Button
-                                                icon="sap-icon://action"
-                                                text="{ordersModel>PayType}"
+                                                
+                                                icon="{path: 'ordersModel>PayType', formatter: '.formatPayIcon'}"
+                                        text="{i18n>view}"
                                                 press=".onPayMethodPress"
                                                 class="fullButtonStyle"
                                                 enabled="{= !${ordersModel>isSelected} }"

@@ -3,8 +3,8 @@
     xmlns:core="sap.ui.core"
     xmlns:table="sap.ui.table"
     xmlns:mvc="sap.ui.core.mvc"
+    xmlns:layout="sap.ui.layout.form"
 >
-
     <Dialog
         id="orderDetailDialog"
         title="{i18n>InvoiceDetails}"
@@ -14,22 +14,64 @@
         contentHeight="90%"
         class="sapUiContentPadding"
     >
-     <!-- selectedKey="{dialogModel>/PayMethodSelectedKey}" -->
+        <!-- selectedKey="{dialogModel>/PayMethodSelectedKey}" -->
+        
         <Label text="Payment Type" />
         <Select
-            id="payMethodChangeid"           
+            id="payMethodChangeid"
             selectedKey="{dialogModel>/PayType}"
             width="30%"
             change="onDialogPayTypeChange"
             class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin"
         >
-           <core:Item key="Full" text="Full" />
-                <core:Item key="Partial" text="Partial" />
-            </Select>
+            <core:Item
+                key="Full"
+                text="Full"
+            />
+            <core:Item
+                key="Partial"
+                text="Partial"
+            />
+        </Select>
 
+        <!-- <layout:SimpleForm
+            editable="true"
+            layout="ResponsiveGridLayout"
+            labelSpanM="3"
+            labelSpanL="2"
+            emptySpanL="2"
+            columnsL="2"
+            columnsM="1"
+        >
+            <Label text="Total Approval Amt" />
+
+            <Input
+                id="totalAmountText"
+                value="{dialogModel>/ApprovalAmount}" 
+                editable="{= ${dialogModel>/PayType} === 'Partial' }"
+                width="150px"
+                textAlign="End"
+                class="sapUiSmallMarginEnd"
+                valueLiveUpdate="true" 
+            />
+
+            <Label text="Total O/S Amt" />
+            <Text
+                text="{dialogModel>/TotalAmount}"
+                textAlign="End"
+                width="150px"
+                class="sapUiSmallMarginEnd"
+            />
+
+            <Label text="{i18n>Project}" />
+             <Input editable="false" width="150px" id="project" textAlign="End"
+     value="{path:'dialogModel>/Project'}" />
+       
+        </layout:SimpleForm> -->
+        
         <Table
             id="invoiceTable"
-            items= "{dialogModel>/Invoices}" 
+            items="{dialogModel>/Invoices}"
             width="100%"
         >
             <!-- <headerToolbar>
@@ -70,9 +112,9 @@
                 </Column>
                 <Column>
                     <header>
-                        <Label text="{i18n>Project}" />
+                        <Label text="{i18n>InvoiceNo}" />
                     </header>
-                </Column> 
+                </Column>
             </columns>
 
             <items>
@@ -84,9 +126,11 @@
                         <Text text="{dialogModel>Docnr}" />
                         <Text
                             text="{path:'dialogModel>Budat',formatter:'.formatDate'}"
-                        /> 
-                        <Text text="{path:'dialogModel>DocAmt',formatter:'.formatAmount'}" />
-                        
+                        />
+                        <Text
+                            text="{path:'dialogModel>DocAmt',formatter:'.formatAmount'}"
+                        />
+
                         <CheckBox
                             selected="{= parseFloat(${dialogModel>ApprovalAmt}).toFixed(2) === parseFloat(${dialogModel>DocAmt}).toFixed(2) }"
                             enabled="{= ${dialogModel>/PayType} === 'Partial' }"
@@ -100,29 +144,28 @@
                             valueLiveUpdate="true"
                             type="Number"
                         >
-                         <customData>
-                                    <core:CustomData
-                                        key="field"
-                                        value="ApprovalAmt"
-                                    />
-                                </customData>
-                                </Input> 
+                            <customData>
+                                <core:CustomData
+                                    key="field"
+                                    value="ApprovalAmt"
+                                />
+                            </customData>
+                        </Input>
 
-                        <Text text="{dialogModel>ProjectName}" /> 
-
+                        <Text text="{dialogModel>Xblnr}" />
                     </cells>
                 </ColumnListItem>
             </items>
         </Table>
 
         <endButton>
-        <!-- <beginButton> -->
+            <!-- <beginButton> -->
             <Button
                 text="{i18n>Confirm}"
                 type="Emphasized"
-                press="onCloseOrderDialog" 
+                press="onCloseOrderDialog"
             />
-        <!-- </beginButton> -->
+            <!-- </beginButton> -->
         </endButton>
         <!-- <endButton>
             <Button
