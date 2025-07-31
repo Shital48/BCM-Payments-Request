@@ -34,7 +34,7 @@
             />
         </Select>
 
-        <!-- <layout:SimpleForm
+        <layout:SimpleForm
             editable="true"
             layout="ResponsiveGridLayout"
             labelSpanM="3"
@@ -51,9 +51,17 @@
                 editable="{= ${dialogModel>/PayType} === 'Partial' }"
                 width="150px"
                 textAlign="End"
-                class="sapUiSmallMarginEnd"
-                valueLiveUpdate="true" 
-            />
+                class="sapUiSmallMarginEnd" 
+                valueLiveUpdate="true"
+                liveChange=".onFieldValueChange"  
+            >
+             <customData>
+                                <core:CustomData
+                                    key="field"
+                                    value="ApprovalAmount"
+                                />
+                            </customData>
+                        </Input>
 
             <Label text="Total O/S Amt" />
             <Text
@@ -63,11 +71,11 @@
                 class="sapUiSmallMarginEnd"
             />
 
-            <Label text="{i18n>Project}" />
+            <!-- <Label text="{i18n>Project}" />
              <Input editable="false" width="150px" id="project" textAlign="End"
-     value="{path:'dialogModel>/Project'}" />
+     value="{path:'dialogModel>/Project'}" /> -->
        
-        </layout:SimpleForm> -->
+        </layout:SimpleForm>
         
         <Table
             id="invoiceTable"
@@ -137,7 +145,7 @@
                             select=".onFullPaymentSelected"
                         />
                         <Input
-                            value="{dialogModel>ApprovalAmt}"
+                            value="{path: 'dialogModel>ApprovalAmt',formatter: '.formatAmount'}" 
                             editable="{= ${dialogModel>/PayType} === 'Partial' }"
                             placeholder="Enter amount"
                             liveChange=".onFieldValueChange"

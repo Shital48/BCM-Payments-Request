@@ -90,14 +90,14 @@ sap.ui.define([
                 return "Advance Request";
             } else if (sCategory === "R") {
                 return "Retention";
-            }else if (sCategory === "D") {
+            } else if (sCategory === "D") {
                 return "AdHoc Amount";
             }
-            
+
             return "";
         },
         formatAmount: function (Amt) {
-            if (!Amt) return "";
+            if (!Amt) return 0.00;
             return parseFloat(Amt).toLocaleString("en-IN", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
@@ -173,7 +173,7 @@ sap.ui.define([
         onApprovalAmtChange: function (oEvent) {
             const oInput = oEvent.getSource();
             const sNewApprovalAmt = oInput.getValue();
-            const approvalAmt = parseFloat(sNewApprovalAmt);
+            const approvalAmt = parseFloat(sNewApprovalAmt).toFixed(2);
 
             const oContext = oInput.getBindingContext("dialogModel");
             const record = oContext.getObject();
@@ -255,7 +255,7 @@ sap.ui.define([
             const oModel = this.getView().getModel();
             this.getView().setBusy(true);
             const encodedCity = encodeURIComponent(city || "");
-            oModel.read(`/CityLevelSet('${encodedCity}')/CityBus`, {                
+            oModel.read(`/CityLevelSet('${encodedCity}')/CityBus`, {
                 filters: this.aFilters,
                 success: function (oData) {
                     const aBisSeg = oData.results;
@@ -290,7 +290,7 @@ sap.ui.define([
             var that = this;
             this._currentLevel = "busComp";
             this.byId("masterPage").setTitle("Company");
-           
+
             this.projectModel.setProperty("/CompanyList", []);
             this.byId("busSegList").setVisible(false);
             this.byId("busCompList").setVisible(true);
@@ -304,9 +304,9 @@ sap.ui.define([
             }
             this.getView().setBusy(true);
             const encodedCity = encodeURIComponent(city);
-            const encodedBusSeg=encodeURIComponent(busSeg);
+            const encodedBusSeg = encodeURIComponent(busSeg);
 
-            oModel.read(`/BusSegLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}')/BusComp`, {                
+            oModel.read(`/BusSegLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}')/BusComp`, {
                 filters: this.aFilters,
                 success: function (oData) {
                     const aCompany = oData.results;
@@ -330,10 +330,10 @@ sap.ui.define([
         },
         onBusCompSelect: function (oEvent) {
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
-            const city =  context.Zzcity;
+            const city = context.Zzcity;
             const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
-            const busSeg =  context.BusSeg;
-            const bukrs =  context.Bukrs;
+            const busSeg = context.BusSeg;
+            const bukrs = context.Bukrs;
             if (!bukrs || bukrs.trim() === "") {
                 MessageToast.show("Company not found");
                 return;
@@ -355,9 +355,9 @@ sap.ui.define([
             const oModel = this.getView().getModel();
             this.getView().setBusy(true);
             const encodedCity = encodeURIComponent(city);
-            const encodedBusSeg=encodeURIComponent(busSeg);
+            const encodedBusSeg = encodeURIComponent(busSeg);
 
-            oModel.read(`/CompanyLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}')/CompProj`, {                
+            oModel.read(`/CompanyLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}')/CompProj`, {
                 filters: this.aFilters,
                 success: function (oData) {
                     const aProjects = oData.results;
@@ -367,7 +367,7 @@ sap.ui.define([
                     });
                     that.projectModel.setProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`, oProjectsById);
                     that.projectModel.setProperty("/ProjectList", aProjects);
-                    that.getView().setBusy(false); 
+                    that.getView().setBusy(false);
 
                 }.bind(that),
                 error: function (oError) {
@@ -401,7 +401,7 @@ sap.ui.define([
 
 
             const encodedCity = encodeURIComponent(city);
-            const encodedBusSeg=encodeURIComponent(busSeg);
+            const encodedBusSeg = encodeURIComponent(busSeg);
 
             const sPath = `/ProjLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
             const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById/${gsber}/VendorsById`;
@@ -480,6 +480,7 @@ sap.ui.define([
 
         onFieldValueChange: function (oEvent) {
             const oSource = oEvent.getSource();
+            const oOrdersModel = this.getView().getModel("ordersModel");
             const sField = oSource.getCustomData().find(d => d.getKey() === "field")?.getValue();
             const sProjectId = this.currentProjectId;
             if (!sField || !sProjectId) return;
@@ -487,7 +488,6 @@ sap.ui.define([
             const oRowData = oContext?.getObject();
             const sVendorId = oRowData?.Lifnr;
             const sOrderId = oRowData?.Ukey;
-            if (!sVendorId || !oRowData) return;
             let vValue = oEvent.getParameter("value");
             const approvalAmt = parseFloat(vValue || 0);
             const oData = this.projectModel.getProperty("/VendorDetails") || {};
@@ -520,20 +520,26 @@ sap.ui.define([
                     return sum + parseFloat(row.ApprovalAmt || 0);
                 }, 0);
 
-                const oOrdersModel = this.getView().getModel("ordersModel");
                 const aOrders = oOrdersModel.getProperty("/vendors");
                 const oVendorOrder = aOrders.find(row => row.Lifnr === sVendorId);
                 if (oVendorOrder) {
                     oVendorOrder.ApprovalAmt = total.toFixed(2);
                     oSavedData.ApprovalAmt = total.toFixed(2);
-                    oSavedData.PayType = oOrdersModel.PayType;
+                    oSavedData.PayType = oOrdersModel.PayType;  
+                    oDialogModel.setProperty("/ApprovalAmount", total.toFixed(2));
                 }
                 this._checkIfAllInvoicesSelected(oDialogModel);
 
             } else {
                 // ----------- Vendor Table Input Change ------------
+                let sTotalAmt;
 
-                const sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
+                if (sField === "ApprovalAmount") {
+                    sTotalAmt = this.vendorData.TotalAmt;
+                } else {
+                    sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
+                }
+                
                 if (isNaN(approvalAmt) || approvalAmt < 0) {
                     oSource.setValueState("Error");
                     oSource.setValueStateText("Enter valid amount");
@@ -544,7 +550,7 @@ sap.ui.define([
                     oSource.setValueState("None");
                 }
                 oSavedData[sField] = vValue;
-                const oVenDet = oRowData?.VenDet;
+                const oVenDet = this.vendorData?.VenDet;
                 const approvalAmount = parseFloat(vValue || 0);
                 let remaining = approvalAmount;
                 const sortedDetails = oVenDet.results?.slice().sort((a, b) => parseFloat(b.DocAmt) - parseFloat(a.DocAmt)) || [];
@@ -560,16 +566,23 @@ sap.ui.define([
                 this.dialogModelCache = this.dialogModelCache || {};
                 this.dialogModelCache[`${sProjectId}_${sVendorId}`] = aMerged;
 
+                if (sField == "ApprovalAmount") {
+                        const dialogModel = this.dialog.getModel("dialogModel");
+                   
+                      
+                            dialogModel.setProperty("/Invoices", aMerged);
+                         
+                }
+
                 // const oSavedData = this.projectModel.getProperty(`/VendorDetails/${sProjectId}/${sVendorId}`) || {};
 
                 // ------- PayType auto-detection -------
-                const oOrdersModel = this.getView().getModel("ordersModel");
-                const oVendorContext = oSource.getBindingContext("ordersModel");
-                const sPath = oVendorContext.getPath();
-                const oVendorRow = oOrdersModel.getProperty(sPath);
 
-                const totalAmt = parseFloat(oVendorRow.TotalAmt || 0);
-                const enteredAmt = parseFloat(vValue || 0);
+                const sPath = this.Context.getPath();
+
+
+                const totalAmt = sTotalAmt;
+                const enteredAmt = vValue;
                 let sPayType = "Partial";
 
                 if (Math.abs(enteredAmt - totalAmt) < 0.01) {
@@ -577,24 +590,27 @@ sap.ui.define([
                 }
 
                 oOrdersModel.setProperty(sPath + "/PayType", sPayType);
+                // oOrdersModel.setProperty(this.vendorData.PayType, sPayType);
                 oSavedData.PayType = sPayType;
                 // Optional: update button text if already rendered
-                const aButtons = oSource.getParent().findAggregatedObjects(true, c => c.isA("sap.m.Button"));
-                const oPayBtn = aButtons?.find(b => b.hasStyleClass("fullButtonStyle"));
-                if (oPayBtn) {
-                    oPayBtn.setText(sPayType);
-                }
+
+                // const aButtons = oSource.getParent().findAggregatedObjects(true, c => c.isA("sap.m.Button"));
+                // const oPayBtn = aButtons?.find(b => b.hasStyleClass("fullButtonStyle"));
+                // if (oPayBtn) {
+                //     oPayBtn.setText(sPayType);
+                // }
             }
             this.projectModel.setProperty("/VendorDetails", oData);
         },
         onPayMethodPress: function (oEvent) {
             this.oSource1 = oEvent.getSource();
-
             const oSource = oEvent.getSource();
             const oContext = oSource.getBindingContext("ordersModel");
+            this.Context = oContext;
             const oRowData = oContext?.getObject();
-            const approvalAmt = parseFloat(oRowData?.ApprovalAmt || 0);
-            const sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
+            this.vendorData = oRowData;
+            const approvalAmt = parseFloat(oRowData?.ApprovalAmt || 0).toFixed(2);
+            const sTotalAmt = parseFloat(oRowData?.TotalAmt || 0).toFixed(2); 
             if (isNaN(approvalAmt) || approvalAmt < 0) {
                 MessageBox.warning("Enter valid amount");
                 return;
@@ -649,13 +665,14 @@ sap.ui.define([
 
                 const dialogData = {
                     PayType: sPayType,
-                    Invoices: invoices,                    
+                    Invoices: invoices,
                     TotalAmount: sTotalAmt,
                     ApprovalAmount: approvalAmt
                 };
 
                 dialog.setModel(new JSONModel(dialogData), "dialogModel");
                 dialog.open();
+                this.dialog = dialog;
             });
         },
         onDialogPayTypeChange: function (oEvent) {
@@ -671,27 +688,41 @@ sap.ui.define([
                     row.ApprovalAmt = parseFloat(row.DocAmt).toFixed(2);
                     row.FullSelected = true;
                 });
+                
+                oDialogModel.setProperty("/ApprovalAmount", this.vendorData.TotalAmt);
                 oDialogModel.setProperty("/Invoices", aInvoices);
             }
             else {
                 aInvoices.forEach(row => {
-                    row.ApprovalAmt = 0.00;
+                    row.ApprovalAmt = parseFloat(0).toFixed(2);
                 });
-
+                oDialogModel.setProperty("/ApprovalAmount", parseFloat(0).toFixed(2));
             }
             oDialogModel.setProperty("/Invoices", aInvoices);
         },
         onFullPaymentSelected: function (oEvent) {
             const bSelected = oEvent.getParameter("selected");
             const oContext = oEvent.getSource().getBindingContext("dialogModel");
+            const oDialogModel = oContext.getModel("dialogModel");
+            const aDetails = oDialogModel.getData();
+            
             const record = oContext.getObject();
             if (bSelected) {
                 record.ApprovalAmt = record.DocAmt;
                 record.PayMethod = "X";
             } else {
-                record.ApprovalAmt = "0.00";
+                record.ApprovalAmt = parseFloat(0).toFixed(2);
                 record.PayMethod = "";
             }
+            const total = parseFloat(
+                (aDetails.Invoices || []).reduce((sum, row) => {
+                    return sum + (parseFloat(row.ApprovalAmt) || 0);
+                }, 0).toFixed(2)
+            );
+            
+            oDialogModel.setProperty("/ApprovalAmount", total);
+
+
             const oModel = oContext.getModel();
             oModel.checkUpdate(true);
 
@@ -842,7 +873,7 @@ sap.ui.define([
                 Zzcity, BusSeg, Bukrs, Gsber
             } = projectRef;
             const normalizedCityKey = Zzcity && Zzcity.trim() !== "" ? Zzcity : "noncity";
-            
+
 
             const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}/VendorsById`;
             const vendorsById = this.projectModel.getProperty(vendorPath) || {};
@@ -1029,7 +1060,7 @@ sap.ui.define([
             const oView = this.getView();
 
             const sSelectedKey = this.projectModel.getProperty("/SelectedKey");
-            
+
             const formatToODataDate = function (dateString) {
                 const oDate = new Date(dateString);
                 return `/Date(${oDate.getTime()})/`;
@@ -1134,7 +1165,7 @@ sap.ui.define([
 
                 const aVenReq = [];
                 const oVendorData = this.selectedOrdersModel.getProperty("/selectedProducts");
-               
+
                 if (!oVendorData || Object.keys(oVendorData).length === 0) {
                     MessageToast.show("Please select at least one vendor record.");
                     return;
@@ -1145,28 +1176,28 @@ sap.ui.define([
                     const aInvoices = oVendor.Order_Details || [];
                     aInvoices.forEach(function (invoice) {
                         if (parseFloat(invoice.ApprovalAmt) !== 0) {
-                        aVenReq.push({
-                            "Lifnr": invoice.Lifnr,
-                            "Gsber": invoice.Gsber,
-                            "Category": invoice.Category,
-                            "Docnr": invoice.Docnr,
-                            "Bukrs": invoice.Bukrs,
-                            "Gjahr": invoice.Gjahr,
-                            "Budat": invoice.Budat,
-                            "DocAmt": invoice.DocAmt,
-                            "PayMethod": parseFloat(invoice.DocAmt) === parseFloat(invoice.ApprovalAmt) ? "X" : "",
-                            "ApprovalAmt": invoice.ApprovalAmt,
-                            "Project": invoice.Project || "",
-                            "ProjectName": invoice.ProjectName || "",
-                            "RequestNo": "",
-                            "Zzcity": invoice.Zzcity,
-                            "BusSeg": invoice.BusSeg,
-                            "Buzei": invoice.Buzei,
-                        });
-                    }
+                            aVenReq.push({
+                                "Lifnr": invoice.Lifnr,
+                                "Gsber": invoice.Gsber,
+                                "Category": invoice.Category,
+                                "Docnr": invoice.Docnr,
+                                "Bukrs": invoice.Bukrs,
+                                "Gjahr": invoice.Gjahr,
+                                "Budat": invoice.Budat,
+                                "DocAmt": invoice.DocAmt,
+                                "PayMethod": parseFloat(invoice.DocAmt) === parseFloat(invoice.ApprovalAmt) ? "X" : "",
+                                "ApprovalAmt": invoice.ApprovalAmt,
+                                "Project": invoice.Project || "",
+                                "ProjectName": invoice.ProjectName || "",
+                                "RequestNo": "",
+                                "Zzcity": invoice.Zzcity,
+                                "BusSeg": invoice.BusSeg,
+                                "Buzei": invoice.Buzei,
+                            });
+                        }
                     });
                 });
- 
+
                 oView.setBusy(true);
 
                 const oPayload = {

@@ -307,10 +307,10 @@
                                 growingScrollToLoad="true"
                                 mode="MultiSelect"
                                 items="{ordersModel>/vendors}"
-                                width="1500px"
+                                width="1200px"
                                 sticky="ColumnHeaders"
                                 updateFinished=".onVendorsTableUpdateFinished"
-                                fixedLayout="Strict"
+                                fixedLayout="false"
                             >
                                 <columns>
                                     <Column>
