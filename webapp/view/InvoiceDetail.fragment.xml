@@ -145,7 +145,7 @@
                             select=".onFullPaymentSelected"
                         />
                         <Input
-                            value="{path: 'dialogModel>ApprovalAmt',formatter: '.formatAmount'}" 
+                            value="{dialogModel>ApprovalAmt}" 
                             editable="{= ${dialogModel>/PayType} === 'Partial' }"
                             placeholder="Enter amount"
                             liveChange=".onFieldValueChange"

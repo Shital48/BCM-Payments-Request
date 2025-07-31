@@ -97,7 +97,7 @@ sap.ui.define([
             return "";
         },
         formatAmount: function (Amt) {
-            if (!Amt) return 0.00;
+            if (!Amt) return "";
             return parseFloat(Amt).toLocaleString("en-IN", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
@@ -487,7 +487,8 @@ sap.ui.define([
             const oContext = oSource.getBindingContext("dialogModel") || oSource.getBindingContext("ordersModel");
             const oRowData = oContext?.getObject();
             const sVendorId = oRowData?.Lifnr;
-            const sOrderId = oRowData?.Ukey;
+            const sOrderId = oRowData?.Ukey; 
+
             let vValue = oEvent.getParameter("value");
             const approvalAmt = parseFloat(vValue || 0);
             const oData = this.projectModel.getProperty("/VendorDetails") || {};
@@ -512,13 +513,16 @@ sap.ui.define([
                 } else {
                     oSource.setValueState("None");
                 }
-
+                oRowData.ApprovalAmt=vValue;
                 // SCENARIO 2: Update vendor-level ApprovalAmt
                 const oDialogModel = oContext.getModel("dialogModel");
                 const aDetails = oDialogModel.getData();
-                const total = (aDetails.Invoices || []).reduce((sum, row) => {
-                    return sum + parseFloat(row.ApprovalAmt || 0);
-                }, 0);
+                const total = parseFloat(
+                    (aDetails.Invoices || []).reduce((sum, row) => {
+                        return sum + (parseFloat(row.ApprovalAmt) || 0);
+                    }, 0).toFixed(2)
+                );
+    
 
                 const aOrders = oOrdersModel.getProperty("/vendors");
                 const oVendorOrder = aOrders.find(row => row.Lifnr === sVendorId);
@@ -532,12 +536,14 @@ sap.ui.define([
 
             } else {
                 // ----------- Vendor Table Input Change ------------
-                let sTotalAmt;
+                let sTotalAmt,oVenDet;
 
                 if (sField === "ApprovalAmount") {
                     sTotalAmt = this.vendorData.TotalAmt;
+                    oVenDet=this.vendorData.VenDet;
                 } else {
                     sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
+                    oVenDet = oRowData?.VenDet;
                 }
                 
                 if (isNaN(approvalAmt) || approvalAmt < 0) {
@@ -550,10 +556,9 @@ sap.ui.define([
                     oSource.setValueState("None");
                 }
                 oSavedData[sField] = vValue;
-                const oVenDet = this.vendorData?.VenDet;
                 const approvalAmount = parseFloat(vValue || 0);
                 let remaining = approvalAmount;
-                const sortedDetails = oVenDet.results?.slice().sort((a, b) => parseFloat(b.DocAmt) - parseFloat(a.DocAmt)) || [];
+                const sortedDetails = oVenDet.results?.slice() || []; 
                 const aMerged = sortedDetails.map(doc => {
                     const distAmt = Math.min(remaining, parseFloat(doc.DocAmt));
                     remaining -= distAmt;
@@ -578,8 +583,9 @@ sap.ui.define([
 
                 // ------- PayType auto-detection -------
 
-                const sPath = this.Context.getPath();
-
+                const oOrdersModel = this.getView().getModel("ordersModel");
+                const oVendorContext = oSource.getBindingContext("ordersModel");
+                const sPath = oVendorContext.getPath(); 
 
                 const totalAmt = sTotalAmt;
                 const enteredAmt = vValue;
@@ -607,8 +613,9 @@ sap.ui.define([
             const oSource = oEvent.getSource();
             const oContext = oSource.getBindingContext("ordersModel");
             this.Context = oContext;
-            const oRowData = oContext?.getObject();
+            const oRowData = oContext?.getObject();  
             this.vendorData = oRowData;
+
             const approvalAmt = parseFloat(oRowData?.ApprovalAmt || 0).toFixed(2);
             const sTotalAmt = parseFloat(oRowData?.TotalAmt || 0).toFixed(2); 
             if (isNaN(approvalAmt) || approvalAmt < 0) {

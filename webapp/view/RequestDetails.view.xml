@@ -313,7 +313,7 @@
                                 fixedLayout="false"
                             >
                                 <columns>
-                                    <Column>
+                                    <Column width="150px">
                                         <Text text="Vendor Code/Name" />
                                     </Column>
                                     <Column hAlign="Right">
@@ -325,7 +325,7 @@
                                     <Column hAlign="Center">
                                         <Text text=" Multiple Invc" />
                                     </Column>
-                                    <Column hAlign="Right">
+                                    <Column hAlign="Right" width="120px">
                                         <Text text="Approval Amt" />
                                     </Column>
                                     <Column hAlign="Center">
