@@ -313,17 +313,14 @@
                                 fixedLayout="false"
                             >
                                 <columns>
-                                    <Column width="150px">
+                                    <Column width="100px">
                                         <Text text="Vendor Code/Name" />
                                     </Column>
                                     <Column hAlign="Right">
                                         <Text text="Total O/S Amt" />
                                     </Column>
                                     <Column hAlign="Center">
-                                        <Text text="MSME" />
-                                    </Column>
-                                    <Column hAlign="Center">
-                                        <Text text=" Multiple Invc" />
+                                        <Text text=" M. Inv." />
                                     </Column>
                                     <Column hAlign="Right" width="120px">
                                         <Text text="Approval Amt" />
@@ -335,13 +332,16 @@
                                         <Text text="Invoice Amt" />
                                     </Column>
                                     <Column hAlign="Right">
-                                        <Text text="Adv. Amt" />
+                                        <Text text="{i18n>AdvanceAmount}" />
                                     </Column>
                                     <Column hAlign="Right">
                                         <Text text="Ret. Amt" />
                                     </Column>
                                     <Column hAlign="Right">
                                         <Text text="AdHoc Amt" />
+                                    </Column>
+                                     <Column hAlign="Center">
+                                        <Text text="MSME" />
                                     </Column>
                                 </columns>
 
@@ -356,7 +356,7 @@
                                                 text="{path:'ordersModel>TotalAmt',formatter: '.formatAmount'}"
                                             />
                                             <!-- <Text text="{ordersModel>Msme}" /> -->
-                                            <Text text="{= !${ordersModel>Msme} ? '-' : ${ordersModel>Msme} }" />
+                                            <!-- <Text text="{= !${ordersModel>Msme} ? '-' : ${ordersModel>Msme} }" /> -->
                                             <!-- <Text text="{ordersModel>Invno}" /> -->
                                             <core:Icon
                                                src="{path: 'ordersModel>Invno', formatter: '.formatInvoiceIcon'}"
@@ -365,7 +365,7 @@
                                                 class="sapUiSmallMarginEnd"
                                            />
                                             <Input
-                                                value="{path:'ordersModel>ApprovalAmt'}"
+                                                value="{ordersModel>ApprovalAmt}"
                                                 editable="{= !${ordersModel>isSelected} }"
                                                 placeholder="Enter amount"
                                                 valueLiveUpdate="true"
@@ -400,6 +400,7 @@
                                             <Text
                                                 text="{path:'ordersModel>AdhocAmt',formatter:'.formatAmount'}"
                                             />
+                                            <Text text="{= !${ordersModel>Msme} ? '-' : ${ordersModel>Msme} }" />
                                         </cells>
                                     </ColumnListItem>
                                 </items>
