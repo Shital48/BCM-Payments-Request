@@ -408,7 +408,6 @@ sap.ui.define([
             const oRowData = oContext?.getObject();
             const sVendorId = oRowData?.Lifnr;
             const sOrderId = oRowData?.Ukey;
-
             let vValue = oEvent.getParameter("value");
             const approvalAmt = parseFloat(vValue || 0);
             const oData = this.projectModel.getProperty("/VendorDetails") || {};

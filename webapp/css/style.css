@@ -51,14 +51,12 @@
 
 /* Change background color of Page header */
 .customPageHeader .sapMBar {
-    background-color: #f5f0d8 !important; /* Replace with desired color */
-    color:black !important;
+    background-color: #f5f0d8 !important;  
 }
 
 /* Optional: Change title text color */
 .customPageHeader .sapMTitle {
-    color: black !important;
-    font-weight: bold;
+    color: black !important; 
 }
 
 /* Styles the 'Go', 'Filter', 'Hide Filter' buttons */
@@ -89,3 +87,36 @@
 .customSmartFilterButtons .sapMBtn .sapUiIcon {
     color: black !important; /* Change if needed */
 }
+
+/* style.css */
+.customScroll {
+    overflow: auto !important;
+}
+
+.customScroll ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.customScroll ::-webkit-scrollbar-thumb {
+    background-color: #aaa;
+    border-radius: 4px;
+}
+
+.customScroll ::-webkit-scrollbar-track {
+    background-color: #f0f0f0;
+}
+
+/* style.css */
+.smallTextTable .sapMText,
+.smallTextTable .sapMLabel,
+.smallTextTable .sapMInputBase,
+.smallTextTable .sapMBtnInner,
+.smallTextTable .sapMInput,
+.smallTextTable .sapMIcon {
+    font-size: 0.75rem; /* or 12px, adjust as needed */
+}
+
+
+ 
+ 

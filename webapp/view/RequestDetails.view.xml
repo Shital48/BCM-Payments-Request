@@ -283,34 +283,34 @@
                 <Page
                     id="detailPage"
                     title="Vendor Details"
-                    visible="false"
-                    enableScrolling="false"
-                    class="customPageHeader"
+                    visible="false" 
+                    enableScrolling="false" 
+                    class="customPageHeader"                    
                 >
                     <VBox
-                        id="detailContent"
-                        class="sapUiSmallMargin"
+                        id="detailContent" 
                         height="100%"
                     >
-                        <ScrollContainer
-                            horizontal="true"
+                        <ScrollContainer 
                             vertical="true"
-                            height="100%"
-                            width="100%"
+                            horizontal="true"
+                            height="470px"
+                            width="100%" 
+                            focusable="true" 
                         >
                             <Table
                                 id="vendorsTable"
-                                class="customHeaderStyle"
+                                class="smallTextTable customHeaderStyle" 
                                 inset="false"
                                 growing="true"
-                                selectionChange=".onVendorSelection"
+                                selectionChange=".onVendorSelection" 
                                 growingScrollToLoad="true"
                                 mode="MultiSelect"
                                 items="{ordersModel>/vendors}"
-                                width="1200px"
+                                width="1200px"                                
                                 sticky="ColumnHeaders"
                                 updateFinished=".onVendorsTableUpdateFinished"
-                                fixedLayout="false"
+                                fixedLayout="false" 
                             >
                                 <columns>
                                     <Column width="100px">
@@ -320,16 +320,16 @@
                                         <Text text="Total O/S Amt" />
                                     </Column>
                                     <Column hAlign="Center">
-                                        <Text text=" M. Inv." />
+                                        <Text text=" M. Inv" />
                                     </Column>
                                     <Column hAlign="Right" width="120px">
                                         <Text text="Approval Amt" />
                                     </Column>
                                     <Column hAlign="Center">
-                                        <Text text="Invoice List" />
+                                        <Text text="Inv. List" />
                                     </Column>
                                     <Column hAlign="Right">
-                                        <Text text="Invoice Amt" />
+                                        <Text text="Inv. Amt" />
                                     </Column>
                                     <Column hAlign="Right">
                                         <Text text="{i18n>AdvanceAmount}" />
@@ -364,11 +364,11 @@
                                                tooltip="Multiple Invoices"
                                                 class="sapUiSmallMarginEnd"
                                            />
-                                            <Input
-                                                value="{ordersModel>ApprovalAmt}"
+                                            <Input 
+                                                value="{path:'ordersModel>ApprovalAmt'}"
                                                 editable="{= !${ordersModel>isSelected} }"
                                                 placeholder="Enter amount"
-                                                valueLiveUpdate="true"
+                                                valueLiveUpdate="true" 
                                                 type="Number"
                                                 liveChange=".onFieldValueChange"
                                                 textAlign="Right"

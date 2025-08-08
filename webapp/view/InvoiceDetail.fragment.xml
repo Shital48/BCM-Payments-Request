@@ -66,8 +66,10 @@
                     <f:FormElement label="Total Approval Amt">
                     <f:fields>
                           <Input
-                id="totalAmountText"
+                id="totalAmountText"  
                 value="{dialogModel>/ApprovalAmount}"                 
+
+                             
                 editable="{= ${dialogModel>/PayType} === 'Partial' }"
                 width="100%"
                 textAlign="End"
@@ -91,9 +93,8 @@
                 <f:formElements>
                     <f:FormElement label="Total O/S Amt">
                     <f:fields>
-                        <Input 
-                        value="{dialogModel>/TotalAmount}" 
-                
+                        <Input  
+                        value="{path:'dialogModel>/TotalAmount',formatter:'.formatAmount'}"  
                 textAlign="End"
                 width="100%"
                 editable="false"
@@ -111,6 +112,7 @@
             id="invoiceTable"
             items="{dialogModel>/Invoices}"
             width="100%"
+            growing="true"
         >
             <!-- <headerToolbar>
                 <Toolbar>
@@ -174,8 +176,10 @@
                             enabled="{= ${dialogModel>/PayType} === 'Partial' }"
                             select=".onFullPaymentSelected"
                         />
-                        <Input
+                        <Input 
                             value="{dialogModel>ApprovalAmt}" 
+
+
                             editable="{= ${dialogModel>/PayType} === 'Partial' }"
                             placeholder="Enter amount"
                             liveChange=".onFieldValueChange"
