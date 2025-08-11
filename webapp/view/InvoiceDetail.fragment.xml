@@ -209,11 +209,6 @@
             />
             <!-- </beginButton> -->
         </endButton>
-        <!-- <endButton>
-            <Button
-                text="{i18n>Cancel}"
-                press="onCancelOrderDialog"
-            />
-        </endButton> -->
+        
     </Dialog>
 </core:FragmentDefinition>

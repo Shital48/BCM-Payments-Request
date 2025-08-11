@@ -343,6 +343,9 @@
                                      <Column hAlign="Center">
                                         <Text text="MSME" />
                                     </Column>
+                                     <Column hAlign="Left">
+                                        <Text text="Remark" />
+                                    </Column>
                                 </columns>
 
                                 <items>
@@ -401,6 +404,11 @@
                                                 text="{path:'ordersModel>AdhocAmt',formatter:'.formatAmount'}"
                                             />
                                             <Text text="{= !${ordersModel>Msme} ? '-' : ${ordersModel>Msme} }" />
+                                             <Input 
+                                                value="{path:'ordersModel>Remarks'}" 
+                                                placeholder="Enter Remark"  
+                                            >
+                                            </Input>
                                         </cells>
                                     </ColumnListItem>
                                 </items>
