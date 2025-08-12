@@ -345,16 +345,11 @@ sap.ui.define([
         //             oDialog.close();
         //         });                
         //     },
-        
+
         onProjectPress: function (oEvent) {
-            var that = this;
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
             const { Zzcity: city, BusSeg: busSeg, Bukrs: bukrs, Gsber: gsber } = context;
             const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
-            if (!gsber || gsber.trim() === "") {
-                MessageToast.show("Project not found");
-                return;
-            }
             if (this.getView().getModel("ordersModel")) {
                 this.getView().getModel("ordersModel").setProperty("/vendors", []);
                 this.getView().getModel("ordersModel").updateBindings(true)
@@ -366,19 +361,15 @@ sap.ui.define([
             const encodedBusSeg = encodeURIComponent(busSeg);
             const sPath = `/ProjLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
             const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById/${gsber}/VendorsById`;
+            this.vendorPathBase = vendorPath;
             this.currentProjectId = gsber;
             const oDetailPage = this.byId("detailPage");
             if (!oDetailPage.getVisible()) {
                 oDetailPage.setVisible(true);
             }
-            const vendorDetails = this.projectModel.getProperty("/VendorDetails") || {};
-            if (!vendorDetails[gsber]) {
-                vendorDetails[gsber] = { CompanyName: bukrs };
-                this.projectModel.setProperty("/VendorDetails", vendorDetails);
-            }
             const cachedVendors = this.projectModel.getProperty(vendorPath);
             if (cachedVendors && Object.keys(cachedVendors).length) {
-                this._loadVendorDetails(gsber, vendorPath);
+                this._loadVendorDetails(vendorPath);
                 this.VendorsObj = this.projectModel.getProperty(vendorPath);
 
                 this.byId("projectList").removeSelections();
@@ -419,7 +410,7 @@ sap.ui.define([
             }
             this.byId("projectList").removeSelections();
         },
-        _loadVendorDetails: function (projectId, vendorPath) {
+        _loadVendorDetails: function (vendorPath) {
             const oVendors = this.projectModel.getProperty(vendorPath) || {};
             const aOrders = Object.values(oVendors);
             this.getView().setModel(new sap.ui.model.json.JSONModel({ vendors: aOrders }), "ordersModel");
@@ -438,29 +429,35 @@ sap.ui.define([
 
         onFieldValueChange: function (oEvent) {
             const oSource = oEvent.getSource();
-            const oOrdersModel = this.getView().getModel("ordersModel");
             const sField = oSource.getCustomData().find(d => d.getKey() === "field")?.getValue();
+
             const sProjectId = this.currentProjectId;
-            if (!sField || !sProjectId) return;
             const oContext = oSource.getBindingContext("dialogModel") || oSource.getBindingContext("ordersModel");
-            const oRowData = oContext?.getObject();
-            const sVendorId = oRowData?.Lifnr;
+            const oRowData = oContext?.getObject(); 
             const sOrderId = oRowData?.Ukey;
             let vValue = oEvent.getParameter("value");
             const approvalAmt = parseFloat(vValue || 0);
-            const oData = this.projectModel.getProperty("/VendorDetails") || {};
-            if (!oData[sProjectId])
-                oData[sProjectId] = {};
-            if (!oData[sProjectId][sVendorId])
-                oData[sProjectId][sVendorId] = {};
-            const oSavedData = oData[sProjectId][sVendorId];
+            
+              let sTotalAmt, oVenDet,sVendorId;
 
+                if (sField === "ApprovalAmount") {
+                    sTotalAmt = this.vendorData.TotalAmt;
+                    oVenDet = this.vendorData.VenDet;
+                    sVendorId = this.vendorData.Lifnr;
+                    
+                } else {
+                    sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
+                    oVenDet = oRowData?.VenDet;
+                    sVendorId = oRowData?.Lifnr;
+                    // oSavedData[sField] = vValue; 
+                }
+                const vendorPath = `${this.vendorPathBase}/${sVendorId}`;
+            const oSavedData = this.projectModel.getProperty(vendorPath);
 
             // Invoice Dialog Input Change
             if (sOrderId) {
-                if (!oSavedData[sOrderId]) oSavedData[sOrderId] = {};
-                oSavedData[sOrderId][sField] = vValue;
                 const sDocAmt = parseFloat(oRowData?.DocAmt || 0);
+                
                 if (isNaN(approvalAmt) || approvalAmt < 0) {
                     oSource.setValueState("Error");
                     oSource.setValueStateText("Enter valid amount");
@@ -475,33 +472,19 @@ sap.ui.define([
                 const oDialogModel = oContext.getModel("dialogModel");
                 const aDetails = oDialogModel.getData();
                 const total = parseFloat(
-                    (aDetails.Invoices || []).reduce((sum, row) => {
-                        return sum + (parseFloat(row.ApprovalAmt) || 0);
-                    }, 0).toFixed(2)
-                );
+                (aDetails.Invoices || []).reduce((sum, row) => {
+                    return sum + (parseFloat(row.ApprovalAmt) || 0);
+                }, 0).toFixed(2)
+            );
+
+            oDialogModel.setProperty("/ApprovalAmount", total);
 
 
-                const aOrders = oOrdersModel.getProperty("/vendors");
-                const oVendorOrder = aOrders.find(row => row.Lifnr === sVendorId);
-                if (oVendorOrder) {
-                    oVendorOrder.ApprovalAmt = total.toFixed(2);
-                    oSavedData.ApprovalAmt = total.toFixed(2);
-                    oSavedData.PayType = oOrdersModel.PayType;
-                    oDialogModel.setProperty("/ApprovalAmount", total.toFixed(2));
-                }
                 this._checkIfAllInvoicesSelected(oDialogModel);
 
             } else {
                 // ----------- Vendor Table Input Change ------------
-                let sTotalAmt, oVenDet;
-
-                if (sField === "ApprovalAmount") {
-                    sTotalAmt = this.vendorData.TotalAmt;
-                    oVenDet = this.vendorData.VenDet;
-                } else {
-                    sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
-                    oVenDet = oRowData?.VenDet;
-                }
+              
 
                 if (isNaN(approvalAmt) || approvalAmt < 0) {
                     oSource.setValueState("Error");
@@ -512,7 +495,7 @@ sap.ui.define([
                 } else {
                     oSource.setValueState("None");
                 }
-                oSavedData[sField] = vValue;
+                
                 const approvalAmount = parseFloat(vValue || 0);
                 let remaining = approvalAmount;
                 const sortedDetails = oVenDet.results?.slice() || [];
@@ -559,7 +542,6 @@ sap.ui.define([
                 oSavedData.PayType = sPayType;
 
             }
-            this.projectModel.setProperty("/VendorDetails", oData);
         },
         onPayMethodPress: function (oEvent) {
             this.oSource1 = oEvent.getSource();
@@ -982,7 +964,6 @@ sap.ui.define([
         },
         clearModel: function () {
             this.selectedVendorsModel.setData({});
-            this.projectModel.setProperty("/VendorDetails", {});
             this.projectModel.setProperty("/CustomerDetails", {});
             this.projectModel.setProperty("/BusinessSegmentList", []);
             this.projectModel.setProperty("/CityProjectList", []);
@@ -1007,7 +988,7 @@ sap.ui.define([
 
         onTableRefresh: function () {
 
-            const sSelectedKey = this.projectModel.getProperty("/VendorDetails/SelectedKey");
+            const sSelectedKey = Vendors;
             const oSmartTable = this.getView().byId(sSelectedKey === "Customers" ? "customerTable" : "vendorTable");
             if (oSmartTable) {
                 const oTableBinding = oSmartTable.getBinding("items");
