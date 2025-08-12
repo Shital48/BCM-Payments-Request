@@ -96,13 +96,13 @@ sap.ui.define([
                 maximumFractionDigits: 2
             });
         },
-        formatPayIcon: function (PayMethod) {
-            if (PayMethod === "Full") {
+        formatPayIcon: function (TotalAmt, ApprovalAmt) {
+            if (parseFloat(TotalAmt) === parseFloat(ApprovalAmt)) {
                 return "sap-icon://multiselect-all";
-            } else {
-                return "sap-icon://multi-select";
             }
+            return "sap-icon://multi-select";
         },
+
         formatInvoiceIcon: function (sInvno) {
             if (sInvno === "M") {
                 return "sap-icon://documents";
@@ -312,6 +312,40 @@ sap.ui.define([
             this.byId("busCompList").removeSelections();
 
         },
+        // onAdHocPress:function(oEvent)
+        // {
+        //       const oView = this.getView();
+        //         const pProduct = oEvent.getSource().getBindingContext("ordersModel").getObject();
+        //         const aDetails = pProduct?.AppVenDet?.results || [];
+        //         const sApprovalAmt = pProduct?.ApprovalAmt || "0.00";
+        //         const sTotalAmt = pProduct?.TotalAmt || "0.00";
+        //         const sProject = aDetails.length > 0 ? aDetails[0].Project : "";
+        //         this._adHocDialog = this._adHocDialog || Fragment.load({
+        //             name: "bcmrequest.view.AdHocDetails",
+        //             controller: this
+        //         }).then(dialog => {
+        //             oView.addDependent(dialog);
+        //             return dialog;
+        //         });
+        //         this._adHocDialog.then(dialog => {
+        //             const dialogData = {
+        //                 Invoices: aDetails,
+        //                 ApprovalAmt: sApprovalAmt,
+        //                 TotalAmt: sTotalAmt,
+        //                 Project: sProject
+
+        //             };
+
+        //             dialog.setModel(new JSONModel(dialogData), "dialogModel");
+        //             dialog.open();
+        //         });
+        // },
+        //   onCancelDialog: function () {
+        //         this._adHocDialog.then(oDialog => {
+        //             oDialog.close();
+        //         });                
+        //     },
+        
         onProjectPress: function (oEvent) {
             var that = this;
             const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
@@ -504,7 +538,8 @@ sap.ui.define([
                     //TRY
                     const vendorId = oRowData.Lifnr;
                     this.VendorsObj[vendorId].VenDet.results = aMerged;
-
+                    this.VendorsObj[vendorId].Invoices = aMerged;
+                    // oRowData?.Invoices.results=aMerged;
                 }
                 // ------- PayType auto-detection -------
 
@@ -752,7 +787,8 @@ sap.ui.define([
                 const oProduct = oItem.getBindingContext("ordersModel").getObject();
                 return {
                     ...this.VendorsObj[oProduct.Lifnr],
-                    Gsber: projectId // store projectId for clarity
+                    Gsber: projectId,
+                    Remark: oProduct.Remark
                 };
             });
 
@@ -766,7 +802,7 @@ sap.ui.define([
                     selectedProductsByProject[projectId].push(newVendor);
                 }
             });
- 
+
             // Save back to model
             this.selectedVendorsModel.setProperty("/selectedProducts", selectedProductsByProject);
 
@@ -864,10 +900,10 @@ sap.ui.define([
                     return;
                 }
 
-                Object.values(oVendorData).forEach(oVendor => {
-                    // if (!oVendor.isSelected) return;  
-                    const aInvoices = oVendor.Order_Details || [];
-                    aInvoices.forEach(function (invoice) {
+
+                Object.values(oVendorData).forEach(aInvoices => {
+
+                    aInvoices.forEach(invoice => {
                         if (parseFloat(invoice.ApprovalAmt) !== 0) {
                             aVenReq.push({
                                 "Lifnr": invoice.Lifnr,

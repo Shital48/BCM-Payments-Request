@@ -17,8 +17,7 @@
         id="page"
         class="whiteBackgroundPage"
         showHeader="false"
-    >       
-
+    >
         <f:Form editable="true">
             <f:layout>
                 <f:ResponsiveGridLayout
@@ -47,8 +46,7 @@
                                     width="400px"
                                     change="onSelectionChange"
                                     class="sapUiSmallMarginBegin"
-                                >                                 
-
+                                >
                                     <core:Item
                                         key="OPTION_VENDER"
                                         text="Vendors"
@@ -63,7 +61,7 @@
                         </f:FormElement>
                     </f:formElements>
                 </f:FormContainer>
-                
+
                 <f:FormContainer>
                     <f:formElements>
                         <f:FormElement label="Total Approval Amt">
@@ -73,7 +71,7 @@
                                     textAlign="End"
                                     width="100%"
                                     editable="false"
-                                    class="sapUiSmallMarginEnd" 
+                                    class="sapUiSmallMarginEnd"
                                 />
                             </f:fields>
                         </f:FormElement>
@@ -438,7 +436,13 @@
                                                 </customData>
                                             </Input>
                                             <Button
-                                                icon="{path: 'ordersModel>PayType', formatter: '.formatPayIcon'}"
+                                                icon="{
+                                                    parts: [
+                                                        'ordersModel>TotalAmt',
+                                                        'ordersModel>ApprovalAmt'
+                                                    ],
+                                                    formatter: '.formatPayIcon'
+                                                }"
                                                 text="{i18n>view}"
                                                 press=".onPayMethodPress"
                                                 class="fullButtonStyle"
@@ -453,9 +457,16 @@
                                             <Text
                                                 text="{path:'ordersModel>RetentionAmt',formatter:'.formatAmount'}"
                                             />
-                                            <Text
+                                            <!-- <Text
                                                 text="{path:'ordersModel>AdhocAmt',formatter:'.formatAmount'}"
+                                            /> -->
+                                            <!-- icon="sap-icon://action"   -->
+                                            <Button
+                                            text="{path:'ordersModel>AdhocAmt',formatter:'.formatAmount'}"                                                                                              
+                                                press=".onAdHocPress" 
+                                                enabled="{= !${ordersModel>isSelected} }"
                                             />
+                                             
                                             <Text
                                                 text="{= !${ordersModel>Msme} ? '-' : ${ordersModel>Msme} }"
                                             />
