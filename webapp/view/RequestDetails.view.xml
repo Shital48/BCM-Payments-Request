@@ -11,29 +11,76 @@
     xmlns:app="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1"
     height="100%"
     xmlns:rowmodes="sap.ui.table.rowmodes"
+    xmlns:f="sap.ui.layout.form"
 >
     <Page
         id="page"
         class="whiteBackgroundPage"
         showHeader="false"
-    >
-        <Select
-            id="mySelect"
-            selectedKey="OPTION_VENDER"
-            width="400px"
-            change="onSelectionChange"
-            class="sapUiSmallMarginBegin"
-        >
-            <core:Item
-                key="OPTION_VENDER"
-                text="Vendors"
-            />
-            <core:Item
-                key="OPTION_CUSTOMER"
-                text="Customers"
-                enabled="false"
-            />
-        </Select>
+    >       
+
+        <f:Form editable="true">
+            <f:layout>
+                <f:ResponsiveGridLayout
+                    labelSpanXL="3"
+                    labelSpanL="4"
+                    labelSpanM="6"
+                    labelSpanS="12"
+                    adjustLabelSpan="false"
+                    emptySpanXL="0"
+                    emptySpanL="0"
+                    emptySpanM="0"
+                    emptySpanS="0"
+                    columnsXL="3"
+                    columnsL="3"
+                    columnsM="3"
+                />
+            </f:layout>
+            <f:formContainers>
+                <f:FormContainer>
+                    <f:formElements>
+                        <f:FormElement>
+                            <f:fields>
+                                <Select
+                                    id="mySelect"
+                                    selectedKey="OPTION_VENDER"
+                                    width="400px"
+                                    change="onSelectionChange"
+                                    class="sapUiSmallMarginBegin"
+                                >                                 
+
+                                    <core:Item
+                                        key="OPTION_VENDER"
+                                        text="Vendors"
+                                    />
+                                    <core:Item
+                                        key="OPTION_CUSTOMER"
+                                        text="Customers"
+                                        enabled="false"
+                                    />
+                                </Select>
+                            </f:fields>
+                        </f:FormElement>
+                    </f:formElements>
+                </f:FormContainer>
+                
+                <f:FormContainer>
+                    <f:formElements>
+                        <f:FormElement label="Total Approval Amt">
+                            <f:fields>
+                                <Input
+                                    value="{path:'selectedVendors>/ApprovalAmount',formatter:'.formatAmount'}"
+                                    textAlign="End"
+                                    width="100%"
+                                    editable="false"
+                                    class="sapUiSmallMarginEnd" 
+                                />
+                            </f:fields>
+                        </f:FormElement>
+                    </f:formElements>
+                </f:FormContainer>
+            </f:formContainers>
+        </f:Form>
 
         <!-- <VBox
                 fitContainer="true"
@@ -71,7 +118,7 @@
 
                 <smartFilterBar:ControlConfiguration
                     key="Gsber"
-                    visibleInAdvancedArea="true" 
+                    visibleInAdvancedArea="true"
                     index="3"
                 />
                 <smartFilterBar:ControlConfiguration
@@ -99,14 +146,18 @@
             </smartFilterBar:layoutData>
         </smartFilterBar:SmartFilterBar>
 
-        
+        <VBox
+            id="fallbackPage"
+            visible="true"
+            class="sapUiSmallMargin"
+        >
+            <Text text="Please select filters to show data." />
+        </VBox>
 
-        <VBox id="fallbackPage" visible="true" class="sapUiSmallMargin">
-    <Text text="Please select filters to show data." />
-</VBox>
-
-
-        <SplitContainer id="splitContainer" visible="false">
+        <SplitContainer
+            id="splitContainer"
+            visible="false"
+        >
             <masterPages>
                 <Page
                     id="masterPage"
@@ -283,34 +334,34 @@
                 <Page
                     id="detailPage"
                     title="Vendor Details"
-                    visible="false" 
-                    enableScrolling="false" 
-                    class="customPageHeader"                    
+                    visible="false"
+                    enableScrolling="false"
+                    class="customPageHeader"
                 >
                     <VBox
-                        id="detailContent" 
+                        id="detailContent"
                         height="100%"
                     >
-                        <ScrollContainer 
+                        <ScrollContainer
                             vertical="true"
                             horizontal="true"
                             height="470px"
-                            width="100%" 
-                            focusable="true" 
+                            width="100%"
+                            focusable="true"
                         >
                             <Table
                                 id="vendorsTable"
-                                class="smallTextTable customHeaderStyle" 
+                                class="smallTextTable customHeaderStyle"
                                 inset="false"
                                 growing="true"
-                                selectionChange=".onVendorSelection" 
+                                selectionChange=".onVendorSelection"
                                 growingScrollToLoad="true"
                                 mode="MultiSelect"
                                 items="{ordersModel>/vendors}"
-                                width="1200px"                                
+                                width="1200px"
                                 sticky="ColumnHeaders"
                                 updateFinished=".onVendorsTableUpdateFinished"
-                                fixedLayout="false" 
+                                fixedLayout="false"
                             >
                                 <columns>
                                     <Column width="100px">
@@ -322,7 +373,10 @@
                                     <Column hAlign="Center">
                                         <Text text=" M. Inv" />
                                     </Column>
-                                    <Column hAlign="Right" width="120px">
+                                    <Column
+                                        hAlign="Right"
+                                        width="120px"
+                                    >
                                         <Text text="Approval Amt" />
                                     </Column>
                                     <Column hAlign="Center">
@@ -340,10 +394,10 @@
                                     <Column hAlign="Right">
                                         <Text text="AdHoc Amt" />
                                     </Column>
-                                     <Column hAlign="Center">
+                                    <Column hAlign="Center">
                                         <Text text="MSME" />
                                     </Column>
-                                     <Column hAlign="Left">
+                                    <Column hAlign="Left">
                                         <Text text="Remark" />
                                     </Column>
                                 </columns>
@@ -362,16 +416,16 @@
                                             <!-- <Text text="{= !${ordersModel>Msme} ? '-' : ${ordersModel>Msme} }" /> -->
                                             <!-- <Text text="{ordersModel>Invno}" /> -->
                                             <core:Icon
-                                               src="{path: 'ordersModel>Invno', formatter: '.formatInvoiceIcon'}"
-                                               visible="{= ${ordersModel>Invno} === 'M' }"
-                                               tooltip="Multiple Invoices"
+                                                src="{path: 'ordersModel>Invno', formatter: '.formatInvoiceIcon'}"
+                                                visible="{= ${ordersModel>Invno} === 'M' }"
+                                                tooltip="Multiple Invoices"
                                                 class="sapUiSmallMarginEnd"
-                                           />
-                                            <Input 
+                                            />
+                                            <Input
                                                 value="{path:'ordersModel>ApprovalAmt'}"
                                                 editable="{= !${ordersModel>isSelected} }"
                                                 placeholder="Enter amount"
-                                                valueLiveUpdate="true" 
+                                                valueLiveUpdate="true"
                                                 type="Number"
                                                 liveChange=".onFieldValueChange"
                                                 textAlign="Right"
@@ -384,9 +438,8 @@
                                                 </customData>
                                             </Input>
                                             <Button
-                                                
                                                 icon="{path: 'ordersModel>PayType', formatter: '.formatPayIcon'}"
-                                        text="{i18n>view}"
+                                                text="{i18n>view}"
                                                 press=".onPayMethodPress"
                                                 class="fullButtonStyle"
                                                 enabled="{= !${ordersModel>isSelected} }"
@@ -403,12 +456,13 @@
                                             <Text
                                                 text="{path:'ordersModel>AdhocAmt',formatter:'.formatAmount'}"
                                             />
-                                            <Text text="{= !${ordersModel>Msme} ? '-' : ${ordersModel>Msme} }" />
-                                             <Input 
-                                                value="{path:'ordersModel>Remarks'}" 
-                                                placeholder="Enter Remark"  
-                                            >
-                                            </Input>
+                                            <Text
+                                                text="{= !${ordersModel>Msme} ? '-' : ${ordersModel>Msme} }"
+                                            />
+                                            <Input
+                                                value="{path:'ordersModel>Remarks'}"
+                                                placeholder="Enter Remark"
+                                            />
                                         </cells>
                                     </ColumnListItem>
                                 </items>

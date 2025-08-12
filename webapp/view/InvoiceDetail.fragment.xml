@@ -15,98 +15,91 @@
         class="sapUiContentPadding"
     >
         <!-- selectedKey="{dialogModel>/PayMethodSelectedKey}" -->
-        
-       <f:Form editable="true">
-                        <f:layout>
-                            <f:ResponsiveGridLayout
-                                    labelSpanXL="3"
-                                    labelSpanL="4"
-                                    labelSpanM="6"
-                                    labelSpanS="12"
-                                    adjustLabelSpan="false"
-                                    emptySpanXL="0"
-                                    emptySpanL="0"
-                                    emptySpanM="0"
-                                    emptySpanS="0"
-                                    columnsXL="3"
-                                    columnsL="3"
-                                    columnsM="3"
+
+        <f:Form editable="true">
+            <f:layout>
+                <f:ResponsiveGridLayout
+                    labelSpanXL="3"
+                    labelSpanL="4"
+                    labelSpanM="6"
+                    labelSpanS="12"
+                    adjustLabelSpan="false"
+                    emptySpanXL="0"
+                    emptySpanL="0"
+                    emptySpanM="0"
+                    emptySpanS="0"
+                    columnsXL="3"
+                    columnsL="3"
+                    columnsM="3"
+                />
+            </f:layout>
+            <f:formContainers>
+                <f:FormContainer>
+                    <f:formElements>
+                        <f:FormElement label="Payment Type">
+                            <f:fields>
+                                <Select
+                                    id="payMethodChangeid"
+                                    selectedKey="{dialogModel>/PayType}"
+                                    width="100%"
+                                    change="onDialogPayTypeChange"
+                                >
+                                    <core:Item
+                                        key="Full"
+                                        text="Full"
                                     />
-                            </f:layout>
-                            <f:formContainers>
-                                <f:FormContainer>
-                                <f:formElements>
-
-                    <f:FormElement label="Payment Type">
-                    <f:fields>
-                <Select
-            id="payMethodChangeid"
-            selectedKey="{dialogModel>/PayType}"
-            width="100%"
-            change="onDialogPayTypeChange"
-            
-        >
-            <core:Item
-                key="Full"
-                text="Full"
-            />
-            <core:Item
-                key="Partial"
-                text="Partial"
-            />
-        </Select>
-                    </f:fields>
-                    </f:FormElement>
-                </f:formElements>
+                                    <core:Item
+                                        key="Partial"
+                                        text="Partial"
+                                    />
+                                </Select>
+                            </f:fields>
+                        </f:FormElement>
+                    </f:formElements>
                 </f:FormContainer>
                 <f:FormContainer>
-                <f:formElements>
-
-                    <!-- 1st element -->
-                    <f:FormElement label="Total Approval Amt">
-                    <f:fields>
-                          <Input
-                id="totalAmountText"  
-                value="{dialogModel>/ApprovalAmount}"                 
-
-                             
-                editable="{= ${dialogModel>/PayType} === 'Partial' }"
-                width="100%"
-                textAlign="End"
-                class="sapUiSmallMarginEnd" 
-                valueLiveUpdate="true"
-                liveChange=".onFieldValueChange"  
-            >
-             <customData>
-                                <core:CustomData
-                                    key="field"
-                                    value="ApprovalAmount"
+                    <f:formElements>
+                        <!-- 1st element -->
+                        <f:FormElement label="Total Approval Amt">
+                            <f:fields>
+                                <Input
+                                    id="totalAmountText"
+                                    value="{dialogModel>/ApprovalAmount}"
+                                    editable="{= ${dialogModel>/PayType} === 'Partial' }"
+                                    width="100%"
+                                    textAlign="End"
+                                    class="sapUiSmallMarginEnd"
+                                    valueLiveUpdate="true"
+                                    liveChange=".onFieldValueChange"
+                                >
+                                    <customData>
+                                        <core:CustomData
+                                            key="field"
+                                            value="ApprovalAmount"
+                                        />
+                                    </customData>
+                                </Input>
+                            </f:fields>
+                        </f:FormElement>
+                    </f:formElements>
+                </f:FormContainer>
+                <f:FormContainer>
+                    <f:formElements>
+                        <f:FormElement label="Total O/S Amt">
+                            <f:fields>
+                                <Input
+                                    value="{path:'dialogModel>/TotalAmount',formatter:'.formatAmount'}"
+                                    textAlign="End"
+                                    width="100%"
+                                    editable="false"
+                                    class="sapUiSmallMarginEnd"
                                 />
-                            </customData>
-                        </Input>
-                    </f:fields>
-                    </f:FormElement>
-
-                </f:formElements>
-                </f:FormContainer>
-                <f:FormContainer>
-                <f:formElements>
-                    <f:FormElement label="Total O/S Amt">
-                    <f:fields>
-                        <Input  
-                        value="{path:'dialogModel>/TotalAmount',formatter:'.formatAmount'}"  
-                textAlign="End"
-                width="100%"
-                editable="false"
-                class="sapUiSmallMarginEnd"
-            />
-                                </f:fields>
-                    </f:FormElement>
-
-                </f:formElements>
+                            </f:fields>
+                        </f:FormElement>
+                    </f:formElements>
                 </f:FormContainer>
             </f:formContainers>
-            </f:Form>
+        </f:Form>
 
         <Table
             id="invoiceTable"
@@ -176,10 +169,8 @@
                             enabled="{= ${dialogModel>/PayType} === 'Partial' }"
                             select=".onFullPaymentSelected"
                         />
-                        <Input 
-                            value="{dialogModel>ApprovalAmt}" 
-
-
+                        <Input
+                            value="{dialogModel>ApprovalAmt}"
                             editable="{= ${dialogModel>/PayType} === 'Partial' }"
                             placeholder="Enter amount"
                             liveChange=".onFieldValueChange"
@@ -209,6 +200,5 @@
             />
             <!-- </beginButton> -->
         </endButton>
-        
     </Dialog>
 </core:FragmentDefinition>
