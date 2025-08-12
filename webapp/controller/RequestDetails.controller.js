@@ -430,147 +430,133 @@ sap.ui.define([
         onFieldValueChange: function (oEvent) {
             const oSource = oEvent.getSource();
             const sField = oSource.getCustomData().find(d => d.getKey() === "field")?.getValue();
-
             const sProjectId = this.currentProjectId;
-            const oContext = oSource.getBindingContext("dialogModel") || oSource.getBindingContext("ordersModel");
-            const oRowData = oContext?.getObject(); 
-            const sOrderId = oRowData?.Ukey;
-            let vValue = oEvent.getParameter("value");
-            const approvalAmt = parseFloat(vValue || 0);
-            
-              let sTotalAmt, oVenDet,sVendorId;
 
-                if (sField === "ApprovalAmount") {
-                    sTotalAmt = this.vendorData.TotalAmt;
-                    oVenDet = this.vendorData.VenDet;
-                    sVendorId = this.vendorData.Lifnr;
-                    
-                } else {
-                    sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
-                    oVenDet = oRowData?.VenDet;
-                    sVendorId = oRowData?.Lifnr;
-                    // oSavedData[sField] = vValue; 
-                }
-                const vendorPath = `${this.vendorPathBase}/${sVendorId}`;
+            const oContext = oSource.getBindingContext("dialogModel") || oSource.getBindingContext("ordersModel");
+            const oRowData = oContext?.getObject();
+            const sOrderId = oRowData?.Ukey;
+            const approvalAmt = parseFloat(oEvent.getParameter("value") || 0);
+
+            let sTotalAmt, oVenDet, sVendorId;
+            if (sField === "ApprovalAmount") {
+                sTotalAmt = this.vendorData.TotalAmt;
+                oVenDet = this.vendorData.VenDet;
+                sVendorId = this.vendorData.Lifnr;
+            } else {
+                sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
+                oVenDet = oRowData?.VenDet;
+                sVendorId = oRowData?.Lifnr;
+            }
+
+            const vendorPath = `${this.vendorPathBase}/${sVendorId}`;
             const oSavedData = this.projectModel.getProperty(vendorPath);
 
-            // Invoice Dialog Input Change
+            // Validate
+            const validation = this._validateAmount(approvalAmt, sOrderId ? parseFloat(oRowData?.DocAmt || 0) : sTotalAmt);
+            oSource.setValueState(validation.state);
+            oSource.setValueStateText(validation.text);
+            if (validation.state === "Error") return;
+
             if (sOrderId) {
-                const sDocAmt = parseFloat(oRowData?.DocAmt || 0);
-                
-                if (isNaN(approvalAmt) || approvalAmt < 0) {
-                    oSource.setValueState("Error");
-                    oSource.setValueStateText("Enter valid amount");
-                } else if (approvalAmt > sDocAmt) {
-                    oSource.setValueState("Error");
-                    oSource.setValueStateText("Exceeds Doc Amount");
-                } else {
-                    oSource.setValueState("None");
-                }
-                oRowData.ApprovalAmt = vValue;
-                // SCENARIO 2: Update vendor-level ApprovalAmt
+                // --- Invoice-level change ---
+                oRowData.ApprovalAmt = approvalAmt;
+
                 const oDialogModel = oContext.getModel("dialogModel");
-                const aDetails = oDialogModel.getData();
-                const total = parseFloat(
-                (aDetails.Invoices || []).reduce((sum, row) => {
-                    return sum + (parseFloat(row.ApprovalAmt) || 0);
-                }, 0).toFixed(2)
-            );
+                const aInvoices = oDialogModel.getProperty("/Invoices") || [];
+                const total = aInvoices.reduce((sum, row) => sum + (parseFloat(row.ApprovalAmt) || 0), 0);
 
-            oDialogModel.setProperty("/ApprovalAmount", total);
-
-
+                oDialogModel.setProperty("/ApprovalAmount", parseFloat(total.toFixed(2)));
                 this._checkIfAllInvoicesSelected(oDialogModel);
 
             } else {
-                // ----------- Vendor Table Input Change ------------
-              
-
-                if (isNaN(approvalAmt) || approvalAmt < 0) {
-                    oSource.setValueState("Error");
-                    oSource.setValueStateText("Enter valid amount");
-                } else if (approvalAmt > sTotalAmt) {
-                    oSource.setValueState("Error");
-                    oSource.setValueStateText("Exceeds Total Amount");
-                } else {
-                    oSource.setValueState("None");
-                }
-                
-                const approvalAmount = parseFloat(vValue || 0);
-                let remaining = approvalAmount;
-                const sortedDetails = oVenDet.results?.slice() || [];
-                const aMerged = sortedDetails.map(doc => {
-                    const distAmt = Math.min(remaining, parseFloat(doc.DocAmt));
-                    remaining -= distAmt;
-                    if (!oSavedData[doc.Ukey]) oSavedData[doc.Ukey] = {};
-                    oSavedData[doc.Ukey].ApprovalAmt = distAmt.toFixed(2);
-                    return { ...doc, ApprovalAmt: distAmt.toFixed(2) };
-                });
-
-
-
-                // Save data into dialog model for later use
+                // --- Vendor-level change ---
+                const aMerged = this._distributeAmountAcrossInvoices(approvalAmt, oVenDet.results?.slice() || [], oSavedData);
                 this.dialogModelCache = this.dialogModelCache || {};
                 this.dialogModelCache[`${sProjectId}_${sVendorId}`] = aMerged;
 
-                if (sField == "ApprovalAmount") {
-                    const dialogModel = this.dialog.getModel("dialogModel");
-                    dialogModel.setProperty("/Invoices", aMerged);
-                }
-                else {
-                    //TRY
-                    const vendorId = oRowData.Lifnr;
-                    this.VendorsObj[vendorId].VenDet.results = aMerged;
-                    this.VendorsObj[vendorId].Invoices = aMerged;
-                    // oRowData?.Invoices.results=aMerged;
-                }
-                // ------- PayType auto-detection -------
-
-                const oOrdersModel = this.getView().getModel("ordersModel");
-                const oVendorContext = oSource.getBindingContext("ordersModel");
-                const sPath = oVendorContext.getPath();
-
-                const totalAmt = sTotalAmt;
-                const enteredAmt = vValue;
-                let sPayType = "Partial";
-
-                if (Math.abs(enteredAmt - totalAmt) < 0.01) {
-                    sPayType = "Full";
+                if (sField === "ApprovalAmount") {
+                    this.dialog.getModel("dialogModel").setProperty("/Invoices", aMerged);
+                } else {
+                    this.VendorsObj[sVendorId].VenDet.results = aMerged;
+                    this.VendorsObj[sVendorId].Invoices = aMerged;
                 }
 
-                oOrdersModel.setProperty(sPath + "/PayType", sPayType);
+                const sPayType = this._calculatePayType(approvalAmt, sTotalAmt);
+                const sPath = oSource.getBindingContext("ordersModel").getPath();
+                this.getView().getModel("ordersModel").setProperty(sPath + "/PayType", sPayType);
                 oSavedData.PayType = sPayType;
-
             }
+        },
+
+        _validateAmount: function (enteredAmt, maxAmt) {
+            if (isNaN(enteredAmt) || enteredAmt < 0) {
+                return { state: "Error", text: "Enter valid amount" };
+            }
+            if (enteredAmt > maxAmt) {
+                return { state: "Error", text: "Exceeds Total Amount" };
+            }
+            return { state: "None", text: "" };
+        },
+
+        // --- PAY TYPE CALCULATION ---
+        _calculatePayType: function (enteredAmt, totalAmt) {
+            return Math.abs(enteredAmt - totalAmt) < 0.01 ? "Full" : "Partial";
+        },
+
+        // --- AMOUNT DISTRIBUTION ACROSS INVOICES ---
+        _distributeAmountAcrossInvoices: function (totalAmt, invoiceList, savedData) {
+            let remaining = totalAmt;
+            return invoiceList.map(doc => {
+                const distAmt = Math.min(remaining, parseFloat(doc.DocAmt));
+                remaining -= distAmt;
+                if (!savedData[doc.Ukey]) savedData[doc.Ukey] = {};
+                savedData[doc.Ukey].ApprovalAmt = distAmt.toFixed(2);
+                return { ...doc, ApprovalAmt: distAmt.toFixed(2) };
+            });
         },
         onPayMethodPress: function (oEvent) {
             this.oSource1 = oEvent.getSource();
-            const oSource = oEvent.getSource();
-            const oContext = oSource.getBindingContext("ordersModel");
+            const oContext = this.oSource1.getBindingContext("ordersModel");
             this.Context = oContext;
+
             const oRowData = oContext?.getObject();
             this.vendorData = oRowData;
 
             const approvalAmt = parseFloat(oRowData?.ApprovalAmt || 0);
             const sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
-            if (isNaN(approvalAmt) || approvalAmt < 0) {
-                MessageBox.warning("Enter valid amount");
-                return;
-            } else if (approvalAmt > sTotalAmt) {
-                MessageBox.warning("Exceeds Total Amount");
+
+            // Validate Approval Amount
+            const validation = this._validateAmount(approvalAmt, sTotalAmt);
+            if (validation.state === "Error") {
+                MessageBox.warning(validation.text);
                 return;
             }
-            const aInvoices = oRowData?.Invoices || oRowData?.VenDet?.results || [];
-            const aInputs = oEvent.getSource().getParent().findAggregatedObjects(true, control => {
-                return control.isA("sap.m.Input") &&
-                    control.getCustomData().some(data => data.getKey() === "field" && data.getValue() === "ApprovalAmt");
-            });
-            const oApprovalInput = aInputs[0];
+
+            // Check if approval input has errors
+            const oApprovalInput = this._findApprovalAmtInput(oEvent.getSource());
             if (oApprovalInput?.getValueState() === "Error") {
                 MessageBox.warning("Please correct the Approval Amount before proceeding.");
                 return;
             }
 
+            const aInvoices = oRowData?.Invoices || oRowData?.VenDet?.results || [];
+            this._openInvoiceDialog({
+                PayType: oRowData.PayType,
+                Invoices: aInvoices,
+                TotalAmount: sTotalAmt,
+                ApprovalAmount: approvalAmt
+            });
+        },
+        _findApprovalAmtInput: function (oSource) {
+            const aInputs = oSource.getParent().findAggregatedObjects(true, control => {
+                return control.isA("sap.m.Input") &&
+                    control.getCustomData().some(data => data.getKey() === "field" && data.getValue() === "ApprovalAmt");
+            });
+            return aInputs[0];
+        },
+
+        // --- OPEN INVOICE DIALOG ---
+        _openInvoiceDialog: function (dialogData) {
             const oView = this.getView();
             this._pDialog = this._pDialog || Fragment.load({
                 name: "bcmrequest.view.InvoiceDetail",
@@ -581,18 +567,12 @@ sap.ui.define([
             });
 
             this._pDialog.then(dialog => {
-                const dialogData = {
-                    PayType: oRowData.PayType,
-                    Invoices: aInvoices,
-                    TotalAmount: sTotalAmt,
-                    ApprovalAmount: approvalAmt
-                };
-
                 dialog.setModel(new JSONModel(dialogData), "dialogModel");
                 dialog.open();
                 this.dialog = dialog;
             });
         },
+
         onDialogPayTypeChange: function (oEvent) {
             const sSelected = oEvent.getSource().getSelectedKey();
             const oDialog = oEvent.getSource().getParent();
@@ -639,8 +619,6 @@ sap.ui.define([
             );
 
             oDialogModel.setProperty("/ApprovalAmount", total);
-
-
             const oModel = oContext.getModel();
             oModel.checkUpdate(true);
 
@@ -862,14 +840,7 @@ sap.ui.define([
         onSubmitPress: function (oEvent) {
             var othis = this;
             const oView = this.getView();
-
             const sSelectedKey = this.projectModel.getProperty("/SelectedKey");
-
-            const formatToODataDate = function (dateString) {
-                const oDate = new Date(dateString);
-                return `/Date(${oDate.getTime()})/`;
-            };
-
             if (sSelectedKey === "Customers") {
 
             }
@@ -881,7 +852,6 @@ sap.ui.define([
                     MessageToast.show("Please select at least one vendor record.");
                     return;
                 }
-
 
                 Object.values(oVendorData).forEach(aInvoices => {
 
