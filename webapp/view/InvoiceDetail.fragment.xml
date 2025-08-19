@@ -148,6 +148,11 @@
                         <Label text="{i18n>InvoiceNo}" />
                     </header>
                 </Column>
+                <Column>
+                    <header>
+                        <Label text="{i18n>Remark}" />
+                    </header>
+                </Column>
             </columns>
 
             <items>
@@ -186,6 +191,8 @@
                         </Input>
 
                         <Text text="{dialogModel>Xblnr}" />
+                        <Text text="{dialogModel>SGTXT}" />
+
                     </cells>
                 </ColumnListItem>
             </items>

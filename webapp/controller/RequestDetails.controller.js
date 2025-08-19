@@ -5,971 +5,989 @@ sap.ui.define([
     "sap/ui/core/format/DateFormat",
     "sap/ui/core/Fragment",
     "sap/m/MessageToast",
-    "sap/m/MessageBox"
+    "sap/m/MessageBox",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator"],
+    (models, Controller, JSONModel, DateFormat, Fragment, MessageToast, MessageBox, Filter, FilterOperator) => {
+        "use strict"; return Controller.extend("bcmrequest.controller.RequestDetails", {
+            onInit() {
+                this.byId("masterPage").setShowNavButton(false);
+                sap.ui.core.BusyIndicator.show(0);
+                this.selectedVendorsModel = new JSONModel({ selectedProducts: [] });
+                this.getView().setModel(this.selectedVendorsModel, "selectedVendors");
+            },
 
-], (models, Controller, JSONModel, DateFormat, Fragment, MessageToast, MessageBox) => {
-    "use strict";
+            onBeforeRendering: function () {
+                this.oModel = this.getView().getModel();
+                this.oModel.metadataLoaded().then(function () {
+                    sap.ui.core.BusyIndicator.hide();
+                });
+                this.projectModel = this.getOwnerComponent().getModel('zRequestModel');
+                this.getView().setModel(this.projectModel, "projectModel");
+            },
 
-    return Controller.extend("bcmrequest.controller.RequestDetails", {
+            onSmartFilterBarInitialized: function (oEvent) {
+                const oSmartFilterBar = oEvent.getSource();
+                oSmartFilterBar.setFilterData({
+                    DateAson: {
+                        items: [],
+                        ranges: [{
+                            exclude: false,
+                            operation: "LE",
+                            keyField: "DateAson",
+                            value1: new Date()
+                        }]
+                    }
+                });
+            },
 
-        onInit() {
-            this.byId("masterPage").setShowNavButton(false);
-            sap.ui.core.BusyIndicator.show(0);
-            this.selectedVendorsModel = new JSONModel({ selectedProducts: [] });
-            this.getView().setModel(this.selectedVendorsModel, "selectedVendors");
-        },
+            onSelectionChange: function (oEvent) {
+                var selectedKey = oEvent.getSource().getSelectedKey();
+                this._selectedPayMethodText = oEvent.getSource().getSelectedItem().getText();
 
-        onBeforeRendering: function () {
-            this.oModel = this.getView().getModel();
-            this.oModel.metadataLoaded().then(function () {
-                sap.ui.core.BusyIndicator.hide();
-            });
-            this.projectModel = this.getOwnerComponent().getModel('zRequestModel');
-            this.getView().setModel(this.projectModel, "projectModel");
-        },
+                // var oView = this.getView();
 
-        onSmartFilterBarInitialized: function (oEvent) {
-            const oSmartFilterBar = oEvent.getSource();
-            oSmartFilterBar.setFilterData({
-                DateAson: {
-                    items: [],
-                    ranges: [{
-                        exclude: false,
-                        operation: "LE",
-                        keyField: "DateAson",
-                        value1: new Date()
-                    }]
+                if (selectedKey === "OPTION_VENDER") {
+                    this.projectModel.setProperty("/SelectedKey", "Vendors");
+                    // oView.byId("vendorsSection").setVisible(true);
+                    // oView.byId("customersSection").setVisible(false);
+                    // this.clearAllFields();
+                } else if (selectedKey === "OPTION_CUSTOMER") {
+                    this.projectModel.setProperty("/SelectedKey", "Customers");
+                    // oView.byId("customersSection").setVisible(true);
+                    // oView.byId("vendorsSection").setVisible(false);
+                    // this.clearAllFields();
                 }
-            });
-        },
+            },
 
-        onSelectionChange: function (oEvent) {
-            var selectedKey = oEvent.getSource().getSelectedKey();
-            this._selectedPayMethodText = oEvent.getSource().getSelectedItem().getText();
+            //FORMATTER
 
-            // var oView = this.getView();
+            formatDate: function (sDate) {
+                if (!sDate) {
+                    return "";
+                }
+                var oDate = new Date(sDate);
+                return DateFormat.getDateTimeInstance({ pattern: "dd/MM/yyyy" }).format(oDate);
+            },
 
-            if (selectedKey === "OPTION_VENDER") {
-                this.projectModel.setProperty("/SelectedKey", "Vendors");
-                // oView.byId("vendorsSection").setVisible(true);
-                // oView.byId("customersSection").setVisible(false);
-                // this.clearAllFields();
-            } else if (selectedKey === "OPTION_CUSTOMER") {
-                this.projectModel.setProperty("/SelectedKey", "Customers");
-                // oView.byId("customersSection").setVisible(true);
-                // oView.byId("vendorsSection").setVisible(false);
-                // this.clearAllFields();
-            }
-        },
+            formatVendor: function (sLifnr, oContext) {
+                const sName1 = oContext.getProperty("Name1");
+                return sLifnr + " - " + sName1;
+            },
+            formatCategory: function (sCategory) {
+                if (sCategory === "I") {
+                    return "Invoice";
+                } else if (sCategory === "A") {
+                    return "Advance Request";
+                } else if (sCategory === "R") {
+                    return "Retention";
+                } else if (sCategory === "D") {
+                    return "AdHoc Amount";
+                }
 
-        //FORMATTER
-
-        formatDate: function (sDate) {
-            if (!sDate) {
                 return "";
-            }
-            var oDate = new Date(sDate);
-            return DateFormat.getDateTimeInstance({ pattern: "dd/MM/yyyy" }).format(oDate);
-        },
-
-        formatVendor: function (sLifnr, oContext) {
-            const sName1 = oContext.getProperty("Name1");
-            return sLifnr + " - " + sName1;
-        },
-        formatCategory: function (sCategory) {
-            if (sCategory === "I") {
-                return "Invoice";
-            } else if (sCategory === "A") {
-                return "Advance Request";
-            } else if (sCategory === "R") {
-                return "Retention";
-            } else if (sCategory === "D") {
-                return "AdHoc Amount";
-            }
-
-            return "";
-        },
-        formatAmount: function (Amt) {
-            if (!Amt) return "";
-            return parseFloat(Amt).toLocaleString("en-IN", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        },
-        formatPayIcon: function (TotalAmt, ApprovalAmt) {
-            if (parseFloat(TotalAmt) === parseFloat(ApprovalAmt)) {
-                return "sap-icon://multiselect-all";
-            }
-            return "sap-icon://multi-select";
-        },
-
-        formatInvoiceIcon: function (sInvno) {
-            if (sInvno === "M") {
-                return "sap-icon://documents";
-            }
-            return "-";
-        },
-
-
-        onPayMethodChange: function (oEvent) {
-            const sKey = oEvent.getSource().getSelectedKey();
-            const sLifnr = this._oButton.getBindingContext().getProperty("Lifnr");
-            const oDialog = this._dialogMap[sLifnr];
-            const oFilteredModel = oDialog.getModel("dialogModel");
-            const aInvoices = oFilteredModel.getProperty("/results");
-
-            if (sKey === "OPTION_Full") {
-                aInvoices.forEach(function (oInvoice) {
-                    oInvoice.PayMethod = "X";
-                    oInvoice.ApprovalAmt = oInvoice.DocAmt;
+            },
+            formatAmount: function (Amt) {
+                if (!Amt) return "";
+                return parseFloat(Amt).toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
                 });
-            } else if (sKey === "OPTION_Partial") {
-                aInvoices.forEach(function (oInvoice) {
-                    oInvoice.PayMethod = "";
-                    oInvoice.ApprovalAmt = 0.00;
-                });
-            }
+            },
+            formatPayIcon: function (TotalAmt, ApprovalAmt) {
+                if (parseFloat(TotalAmt) === parseFloat(ApprovalAmt)) {
+                    return "sap-icon://multiselect-all";
+                }
+                return "sap-icon://multi-select";
+            },
 
-            oFilteredModel.setProperty("/results", aInvoices);
-            oFilteredModel.checkUpdate(true);
-        },
-        onApprovalAmtChange: function (oEvent) {
-            const oInput = oEvent.getSource();
-            const sNewApprovalAmt = oInput.getValue();
-            const approvalAmt = parseFloat(sNewApprovalAmt).toFixed(2);
+            formatInvoiceIcon: function (sInvno) {
+                if (sInvno === "M") {
+                    return "sap-icon://documents";
+                }
+                return "-";
+            },
 
-            const oContext = oInput.getBindingContext("dialogModel");
-            const record = oContext.getObject();
-            const docAmt = parseFloat(record.DocAmt);
 
-            if (docAmt === approvalAmt) {
-                record.PayMethod = "X";
-            }
-            else {
-                record.PayMethod = "";
-            }
-        },
+            onPayMethodChange: function (oEvent) {
+                const sKey = oEvent.getSource().getSelectedKey();
+                const sLifnr = this._oButton.getBindingContext().getProperty("Lifnr");
+                const oDialog = this._dialogMap[sLifnr];
+                const oFilteredModel = oDialog.getModel("dialogModel");
+                const aInvoices = oFilteredModel.getProperty("/results");
 
-        onVendorFilterSearch: function (oEvent) {
-            this.clearModel();
-            this._currentLevel = "city";
-            this.onNavBack();
-            this.byId("masterPage").setTitle("City");
-            this.byId("masterPage").setVisible(true);
-            this.byId("cityList").setVisible(true);
-            var oSmartFilterBar = this.byId("vendorFilterBar");
-            this.aFilters = oSmartFilterBar.getFilters();
-            this.getView().setBusy(true);
-
-            this.oModel.read("/CityLevelSet", {
-                filters: this.aFilters,
-                success: (oData) => {
-                    const aCities = oData.results;
-                    const oCitiesById = {};
-                    aCities.forEach(city => {
-                        const key = city.Zzcity && city.Zzcity.trim() !== "" ? city.Zzcity : "noncity";
-                        oCitiesById[key] = city;
+                if (sKey === "OPTION_Full") {
+                    aInvoices.forEach(function (oInvoice) {
+                        oInvoice.PayMethod = "X";
+                        oInvoice.ApprovalAmt = oInvoice.DocAmt;
                     });
-                    this.projectModel.setProperty("/CityProjectsById", oCitiesById);
-                    this.projectModel.setProperty("/CityProjectList", aCities);
-                    this.byId("fallbackPage").setVisible(false);
-                    this.byId("splitContainer").setVisible(true);
-                    const oDetailPage = this.byId("detailPage");
-                    oDetailPage.setVisible(false);
-                    this.getView().setBusy(false);
-                },
-                error: (oError) => {
-                    this.getView().setBusy(false);
-                    MessageToast.show("Error while fetching city data");
-                    console.error("OData read failed", oError);
-                }
-            });
-        },
-
-        onCitySelect: function (oEvent) {
-            let city = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject().Zzcity;
-            const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
-            this._currentLevel = "busSeg";
-            this.byId("masterPage").setShowNavButton(true);
-            this.byId("masterPage").setTitle("Business Segment");
-
-            this.projectModel.setProperty("/BusinessSegmentList", []);
-            this.byId("cityList").setVisible(false);
-            this.byId("busSegList").setVisible(true);
-            const cachedSegments = this.projectModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById`);
-            if (cachedSegments && Object.keys(cachedSegments).length) {
-                const aBisSeg = Object.values(cachedSegments);
-                this.projectModel.setProperty("/BusinessSegmentList", aBisSeg);
-                this.byId("cityList").removeSelections();
-                return;
-            }
-            this.getView().setBusy(true);
-            const encodedCity = encodeURIComponent(city || "");
-            this.oModel.read(`/CityLevelSet('${encodedCity}')/CityBus`, {
-                filters: this.aFilters,
-                success: (oData) => {
-                    const aBisSeg = oData.results;
-                    const oBisSegById = {};
-                    aBisSeg.forEach(seg => {
-                        oBisSegById[seg.BusSeg] = seg;
+                } else if (sKey === "OPTION_Partial") {
+                    aInvoices.forEach(function (oInvoice) {
+                        oInvoice.PayMethod = "";
+                        oInvoice.ApprovalAmt = 0.00;
                     });
-                    this.projectModel.setProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById`, oBisSegById);
-                    this.projectModel.setProperty("/BusinessSegmentList", aBisSeg);
-                    this.getView().setBusy(false);
-                },
-                error: (oError) => {
-                    this.getView().setBusy(false);
-                    MessageToast.show("Error while fetching business segments");
-                    console.error("OData read failed", oError);
                 }
-            });
-            this.byId("cityList").removeSelections();
 
-        },
-        onBusSegSelect: function (oEvent) {
-            const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
-            const city = context.Zzcity;
-            const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
-            const busSeg = context.BusSeg;
-            this._currentLevel = "busComp";
-            this.byId("masterPage").setTitle("Company");
-            this.projectModel.setProperty("/CompanyList", []);
-            this.byId("busSegList").setVisible(false);
-            this.byId("busCompList").setVisible(true);
-            this.byId("busSegList").removeSelections();
-            const cachePath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById`;
-            const cachedCompanies = this.projectModel.getProperty(cachePath);
-            if (cachedCompanies && Object.keys(cachedCompanies).length) {
-                this.projectModel.setProperty("/CompanyList", Object.values(cachedCompanies));
-                return;
-            }
-            this.getView().setBusy(true);
-            const encodedCity = encodeURIComponent(city);
-            const encodedBusSeg = encodeURIComponent(busSeg);
-            this.oModel.read(`/BusSegLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}')/BusComp`, {
-                filters: this.aFilters,
-                success: (oData) => {
-                    const aCompany = oData.results;
-                    const oCompanyById = {};
-                    aCompany.forEach(company => {
-                        oCompanyById[company.Bukrs] = company;
-                    });
-                    this.projectModel.setProperty(cachePath, oCompanyById);
-                    this.projectModel.setProperty("/CompanyList", aCompany);
-                    this.getView().setBusy(false);
-                },
-                error: (oError) => {
-                    this.getView().setBusy(false);
-                    MessageToast.show("Error while fetching Companies");
-                    console.error("OData read failed", oError);
+                oFilteredModel.setProperty("/results", aInvoices);
+                oFilteredModel.checkUpdate(true);
+            },
+            onApprovalAmtChange: function (oEvent) {
+                const oInput = oEvent.getSource();
+                const sNewApprovalAmt = oInput.getValue();
+                const approvalAmt = parseFloat(sNewApprovalAmt).toFixed(2);
+
+                const oContext = oInput.getBindingContext("dialogModel");
+                const record = oContext.getObject();
+                const docAmt = parseFloat(record.DocAmt);
+
+                if (docAmt === approvalAmt) {
+                    record.PayMethod = "X";
                 }
-            });
-            this.byId("busSegList").removeSelections();
-
-        },
-        onBusCompSelect: function (oEvent) {
-            const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
-            const city = context.Zzcity;
-            const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
-
-            const busSeg = context.BusSeg;
-            const bukrs = context.Bukrs;
-            if (!bukrs || bukrs.trim() === "") {
-                MessageToast.show("Company not found");
-                return;
-            }
-            this._currentLevel = "project";
-            this.projectModel.setProperty("/ProjectList", []);
-            this.byId("busCompList").setVisible(false);
-            this.byId("projectList").setVisible(true);
-            this.byId("masterPage").setTitle("Project");
-            const cachedProjects = this.projectModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`);
-            if (cachedProjects && Object.keys(cachedProjects).length) {
-                const aProject = Object.values(cachedProjects);
-                this.projectModel.setProperty("/ProjectList", aProject);
-                this.byId("busCompList").removeSelections();
-
-                return;
-            }
-            this.getView().setBusy(true);
-            const encodedCity = encodeURIComponent(city);
-            const encodedBusSeg = encodeURIComponent(busSeg);
-            this.oModel.read(`/CompanyLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}')/CompProj`, {
-                filters: this.aFilters,
-                success: (oData) => {
-                    const aProjects = oData.results;
-                    const oProjectsById = Object.fromEntries(aProjects.map(project => [project.Gsber, project]));
-                    this.projectModel.setProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`, oProjectsById);
-                    this.projectModel.setProperty("/ProjectList", aProjects);
-                    this.getView().setBusy(false);
-                },
-                error: (oError) => {
-                    this.getView().setBusy(false);
-                    MessageToast.show("Error while fetching projects");
-                    console.error("OData read failed", oError);
+                else {
+                    record.PayMethod = "";
                 }
-            });
-            this.byId("busCompList").removeSelections();
+            },
 
-        },
-        // onAdHocPress:function(oEvent)
-        // {
-        //       const oView = this.getView();
-        //         const pProduct = oEvent.getSource().getBindingContext("ordersModel").getObject();
-        //         const aDetails = pProduct?.AppVenDet?.results || [];
-        //         const sApprovalAmt = pProduct?.ApprovalAmt || "0.00";
-        //         const sTotalAmt = pProduct?.TotalAmt || "0.00";
-        //         const sProject = aDetails.length > 0 ? aDetails[0].Project : "";
-        //         this._adHocDialog = this._adHocDialog || Fragment.load({
-        //             name: "bcmrequest.view.AdHocDetails",
-        //             controller: this
-        //         }).then(dialog => {
-        //             oView.addDependent(dialog);
-        //             return dialog;
-        //         });
-        //         this._adHocDialog.then(dialog => {
-        //             const dialogData = {
-        //                 Invoices: aDetails,
-        //                 ApprovalAmt: sApprovalAmt,
-        //                 TotalAmt: sTotalAmt,
-        //                 Project: sProject
-
-        //             };
-
-        //             dialog.setModel(new JSONModel(dialogData), "dialogModel");
-        //             dialog.open();
-        //         });
-        // },
-        //   onCancelDialog: function () {
-        //         this._adHocDialog.then(oDialog => {
-        //             oDialog.close();
-        //         });                
-        //     },
-
-        onProjectPress: function (oEvent) {
-            const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
-            const { Zzcity: city, BusSeg: busSeg, Bukrs: bukrs, Gsber: gsber } = context;
-            const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
-            if (this.getView().getModel("ordersModel")) {
-                this.getView().getModel("ordersModel").setProperty("/vendors", []);
-                this.getView().getModel("ordersModel").updateBindings(true)
-                this.byId("vendorsTable").getBinding("items").refresh();;
-
-                this.byId("vendorsTable").getBinding("items").refresh();
-            }
-            const encodedCity = encodeURIComponent(city);
-            const encodedBusSeg = encodeURIComponent(busSeg);
-            const sPath = `/ProjLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
-            const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById/${gsber}/VendorsById`;
-            this.vendorPathBase = vendorPath;
-            this.currentProjectId = gsber;
-            const oDetailPage = this.byId("detailPage");
-            if (!oDetailPage.getVisible()) {
-                oDetailPage.setVisible(true);
-            }
-            const cachedVendors = this.projectModel.getProperty(vendorPath);
-            if (cachedVendors && Object.keys(cachedVendors).length) {
-                this._loadVendorDetails(vendorPath);
-                this.VendorsObj = this.projectModel.getProperty(vendorPath);
-
-                this.byId("projectList").removeSelections();
-            } else {
+            onVendorFilterSearch: function (oEvent) {
+                this.clearModel();
+                this._currentLevel = "city";
+                this.onNavBack();
+                this.byId("masterPage").setTitle("City");
+                this.byId("masterPage").setVisible(true);
+                this.byId("cityList").setVisible(true);
+                var oSmartFilterBar = this.byId("vendorFilterBar");
+                this.aFilters = oSmartFilterBar.getFilters();
                 this.getView().setBusy(true);
-                this.getView().getModel().read(sPath, {
-                    urlParameters: {
-                        "$expand": "VenDet"
-                    },
+
+                this.oModel.read("/CityLevelSet", {
+                    filters: this.aFilters,
                     success: (oData) => {
-                        this.getView().setBusy(false);
-                        const aVendors = oData.results;
-                        const oVendorsById = {};
-                        aVendors.forEach(vendor => {
-                            oVendorsById[vendor.Lifnr] = vendor;
+                        const aCities = oData.results;
+                        const oCitiesById = {};
+                        aCities.forEach(city => {
+                            const key = city.Zzcity && city.Zzcity.trim() !== "" ? city.Zzcity : "noncity";
+                            oCitiesById[key] = city;
                         });
-                        //NOW oVendorsById CONTAINS ALL VENDOR DETAILS ALONG WITH INVOICES IN VENDET
-                        //SAVED THAT DATA TO const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById/${gsber}/VendorsById`;
-
-                        this.projectModel.setProperty(vendorPath, oVendorsById);
-                        // this._loadVendorDetails(gsber, vendorPath);
-
-                        const oVendors = this.projectModel.getProperty(vendorPath) || {};
-                        const aOrders = Object.values(oVendors);
-                        this.getView().setModel(
-                            new sap.ui.model.json.JSONModel({ vendors: aOrders }),
-                            "ordersModel"
-                        );
-                        this.VendorsObj = this.projectModel.getProperty(vendorPath);
-
+                        this.projectModel.setProperty("/CityProjectsById", oCitiesById);
+                        this.projectModel.setProperty("/CityProjectList", aCities);
+                        this.byId("fallbackPage").setVisible(false);
+                        this.byId("splitContainer").setVisible(true);
+                        const oDetailPage = this.byId("detailPage");
+                        oDetailPage.setVisible(false);
+                        this.getView().setBusy(false);
                     },
                     error: (oError) => {
                         this.getView().setBusy(false);
-                        MessageToast.show("Error while fetching Projects");
-                        console.error("Error fetching vendors", oError);
+                        MessageToast.show("Error while fetching city data");
+                        console.error("OData read failed", oError);
                     }
                 });
-            }
-            this.byId("projectList").removeSelections();
-        },
-        _loadVendorDetails: function (vendorPath) {
-            const oVendors = this.projectModel.getProperty(vendorPath) || {};
-            const aOrders = Object.values(oVendors);
-            this.getView().setModel(new sap.ui.model.json.JSONModel({ vendors: aOrders }), "ordersModel");
-        },
-        onVendorsTableUpdateFinished: function () {
-            const oTable = this.byId("vendorsTable");
-            if (!oTable) return;
+            },
 
-            oTable.getItems().forEach(item => {
-                const ctx = item.getBindingContext("ordersModel");
-                if (ctx?.getObject()?.isSelected) {
-                    oTable.setSelectedItem(item, true);
+            onCitySelect: function (oEvent) {
+                let city = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject().Zzcity;
+                const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
+                this._currentLevel = "busSeg";
+                this.byId("masterPage").setShowNavButton(true);
+                this.byId("masterPage").setTitle("Business Segment");
+
+                this.projectModel.setProperty("/BusinessSegmentList", []);
+                this.byId("cityList").setVisible(false);
+                this.byId("busSegList").setVisible(true);
+                const cachedSegments = this.projectModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById`);
+                if (cachedSegments && Object.keys(cachedSegments).length) {
+                    const aBisSeg = Object.values(cachedSegments);
+                    this.projectModel.setProperty("/BusinessSegmentList", aBisSeg);
+                    this.byId("cityList").removeSelections();
+                    return;
                 }
-            });
-        },
+                this.getView().setBusy(true);
+                const encodedCity = encodeURIComponent(city || "");
+                this.oModel.read(`/CityLevelSet('${encodedCity}')/CityBus`, {
+                    filters: this.aFilters,
+                    success: (oData) => {
+                        const aBisSeg = oData.results;
+                        const oBisSegById = {};
+                        aBisSeg.forEach(seg => {
+                            oBisSegById[seg.BusSeg] = seg;
+                        });
+                        this.projectModel.setProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById`, oBisSegById);
+                        this.projectModel.setProperty("/BusinessSegmentList", aBisSeg);
+                        this.getView().setBusy(false);
+                    },
+                    error: (oError) => {
+                        this.getView().setBusy(false);
+                        MessageToast.show("Error while fetching business segments");
+                        console.error("OData read failed", oError);
+                    }
+                });
+                this.byId("cityList").removeSelections();
 
-        onFieldValueChange: function (oEvent) {
-            const oSource = oEvent.getSource();
-            const sField = oSource.getCustomData().find(d => d.getKey() === "field")?.getValue();
-            const sProjectId = this.currentProjectId;
-
-            const oContext = oSource.getBindingContext("dialogModel") || oSource.getBindingContext("ordersModel");
-            const oRowData = oContext?.getObject();
-            const sOrderId = oRowData?.Ukey;
-            const approvalAmt = parseFloat(oEvent.getParameter("value") || 0);
-
-            let sTotalAmt, oVenDet, sVendorId;
-            if (sField === "ApprovalAmount") {
-                sTotalAmt = this.vendorData.TotalAmt;
-                oVenDet = this.vendorData.VenDet;
-                sVendorId = this.vendorData.Lifnr;
-            } else {
-                sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
-                oVenDet = oRowData?.VenDet;
-                sVendorId = oRowData?.Lifnr;
-            }
-
-            const vendorPath = `${this.vendorPathBase}/${sVendorId}`;
-            const oSavedData = this.projectModel.getProperty(vendorPath);
-
-            // Validate
-            const validation = this._validateAmount(approvalAmt, sOrderId ? parseFloat(oRowData?.DocAmt || 0) : sTotalAmt);
-            oSource.setValueState(validation.state);
-            oSource.setValueStateText(validation.text);
-            if (validation.state === "Error") return;
-
-            if (sOrderId) {
-                // --- Invoice-level change ---
-                oRowData.ApprovalAmt = approvalAmt;
-
-                const oDialogModel = oContext.getModel("dialogModel");
-                const aInvoices = oDialogModel.getProperty("/Invoices") || [];
-                const total = aInvoices.reduce((sum, row) => sum + (parseFloat(row.ApprovalAmt) || 0), 0);
-
-                oDialogModel.setProperty("/ApprovalAmount", parseFloat(total.toFixed(2)));
-                this._checkIfAllInvoicesSelected(oDialogModel);
-
-            } else {
-                // --- Vendor-level change ---
-                const aMerged = this._distributeAmountAcrossInvoices(approvalAmt, oVenDet.results?.slice() || [], oSavedData);
-                this.dialogModelCache = this.dialogModelCache || {};
-                this.dialogModelCache[`${sProjectId}_${sVendorId}`] = aMerged;
-
-                if (sField === "ApprovalAmount") {
-                    this.dialog.getModel("dialogModel").setProperty("/Invoices", aMerged);
-                } else {
-                    this.VendorsObj[sVendorId].VenDet.results = aMerged;
-                    this.VendorsObj[sVendorId].Invoices = aMerged;
+            },
+            onBusSegSelect: function (oEvent) {
+                const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
+                const city = context.Zzcity;
+                const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
+                const busSeg = context.BusSeg;
+                this._currentLevel = "busComp";
+                this.byId("masterPage").setTitle("Company");
+                this.projectModel.setProperty("/CompanyList", []);
+                this.byId("busSegList").setVisible(false);
+                this.byId("busCompList").setVisible(true);
+                this.byId("busSegList").removeSelections();
+                const cachePath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById`;
+                const cachedCompanies = this.projectModel.getProperty(cachePath);
+                if (cachedCompanies && Object.keys(cachedCompanies).length) {
+                    this.projectModel.setProperty("/CompanyList", Object.values(cachedCompanies));
+                    return;
                 }
+                this.getView().setBusy(true);
+                const encodedCity = encodeURIComponent(city);
+                const encodedBusSeg = encodeURIComponent(busSeg);
+                this.oModel.read(`/BusSegLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}')/BusComp`, {
+                    filters: this.aFilters,
+                    success: (oData) => {
+                        const aCompany = oData.results;
+                        const oCompanyById = {};
+                        aCompany.forEach(company => {
+                            oCompanyById[company.Bukrs] = company;
+                        });
+                        this.projectModel.setProperty(cachePath, oCompanyById);
+                        this.projectModel.setProperty("/CompanyList", aCompany);
+                        this.getView().setBusy(false);
+                    },
+                    error: (oError) => {
+                        this.getView().setBusy(false);
+                        MessageToast.show("Error while fetching Companies");
+                        console.error("OData read failed", oError);
+                    }
+                });
+                this.byId("busSegList").removeSelections();
 
-                const sPayType = this._calculatePayType(approvalAmt, sTotalAmt);
-                const sPath = oSource.getBindingContext("ordersModel").getPath();
-                this.getView().getModel("ordersModel").setProperty(sPath + "/PayType", sPayType);
-                oSavedData.PayType = sPayType;
-            }
-        },
+            },
+            onBusCompSelect: function (oEvent) {
+                const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
+                const city = context.Zzcity;
+                const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
 
-        _validateAmount: function (enteredAmt, maxAmt) {
-            if (isNaN(enteredAmt) || enteredAmt < 0) {
-                return { state: "Error", text: "Enter valid amount" };
-            }
-            if (enteredAmt > maxAmt) {
-                return { state: "Error", text: "Exceeds Total Amount" };
-            }
-            return { state: "None", text: "" };
-        },
+                const busSeg = context.BusSeg;
+                const bukrs = context.Bukrs;
+                if (!bukrs || bukrs.trim() === "") {
+                    MessageToast.show("Company not found");
+                    return;
+                }
+                this._currentLevel = "project";
+                this.projectModel.setProperty("/ProjectList", []);
+                this.byId("busCompList").setVisible(false);
+                this.byId("projectList").setVisible(true);
+                this.byId("masterPage").setTitle("Project");
+                const cachedProjects = this.projectModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`);
+                if (cachedProjects && Object.keys(cachedProjects).length) {
+                    const aProject = Object.values(cachedProjects);
+                    this.projectModel.setProperty("/ProjectList", aProject);
+                    this.byId("busCompList").removeSelections();
 
-        // --- PAY TYPE CALCULATION ---
-        _calculatePayType: function (enteredAmt, totalAmt) {
-            return Math.abs(enteredAmt - totalAmt) < 0.01 ? "Full" : "Partial";
-        },
+                    return;
+                }
+                this.getView().setBusy(true);
+                const encodedCity = encodeURIComponent(city);
+                const encodedBusSeg = encodeURIComponent(busSeg);
+                this.oModel.read(`/CompanyLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}')/CompProj`, {
+                    filters: this.aFilters,
+                    success: (oData) => {
+                        const aProjects = oData.results;
+                        const oProjectsById = Object.fromEntries(aProjects.map(project => [project.Gsber, project]));
+                        this.projectModel.setProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById`, oProjectsById);
+                        this.projectModel.setProperty("/ProjectList", aProjects);
+                        this.getView().setBusy(false);
+                    },
+                    error: (oError) => {
+                        this.getView().setBusy(false);
+                        MessageToast.show("Error while fetching projects");
+                        console.error("OData read failed", oError);
+                    }
+                });
+                this.byId("busCompList").removeSelections();
 
-        // --- AMOUNT DISTRIBUTION ACROSS INVOICES ---
-        _distributeAmountAcrossInvoices: function (totalAmt, invoiceList, savedData) {
-            let remaining = totalAmt;
-            return invoiceList.map(doc => {
-                const distAmt = Math.min(remaining, parseFloat(doc.DocAmt));
-                remaining -= distAmt;
-                if (!savedData[doc.Ukey]) savedData[doc.Ukey] = {};
-                savedData[doc.Ukey].ApprovalAmt = distAmt.toFixed(2);
-                return { ...doc, ApprovalAmt: distAmt.toFixed(2) };
-            });
-        },
-        onPayMethodPress: function (oEvent) {
-            this.oSource1 = oEvent.getSource();
-            const oContext = this.oSource1.getBindingContext("ordersModel");
-            this.Context = oContext;
+            },
+            onAdHocPress: function (oEvent) {
+                const oView = this.getView();
+                const pProduct = oEvent.getSource().getBindingContext("ordersModel").getObject();
+                const oModel = this.getView().getModel(); // assuming ODataModel is default
+                const aFilters = [
+                    new Filter("Lifnr", FilterOperator.EQ, pProduct.Lifnr),
+                    new Filter("Bukrs", FilterOperator.EQ, pProduct.Bukrs)
+                ];
 
-            const oRowData = oContext?.getObject();
-            this.vendorData = oRowData;
+                oModel.read("/AdhocDetSet", {
+        filters: aFilters,
+        success: function (oData) {
+            console.log("Adhoc Data:", oData.results);
 
-            const approvalAmt = parseFloat(oRowData?.ApprovalAmt || 0);
-            const sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
-
-            // Validate Approval Amount
-            const validation = this._validateAmount(approvalAmt, sTotalAmt);
-            if (validation.state === "Error") {
-                MessageBox.warning(validation.text);
-                return;
-            }
-
-            // Check if approval input has errors
-            const oApprovalInput = this._findApprovalAmtInput(oEvent.getSource());
-            if (oApprovalInput?.getValueState() === "Error") {
-                MessageBox.warning("Please correct the Approval Amount before proceeding.");
-                return;
-            }
-
-            const aInvoices = oRowData?.Invoices || oRowData?.VenDet?.results || [];
-            this._openInvoiceDialog({
-                PayType: oRowData.PayType,
-                Invoices: aInvoices,
-                TotalAmount: sTotalAmt,
-                ApprovalAmount: approvalAmt
-            });
-        },
-        _findApprovalAmtInput: function (oSource) {
-            const aInputs = oSource.getParent().findAggregatedObjects(true, control => {
-                return control.isA("sap.m.Input") &&
-                    control.getCustomData().some(data => data.getKey() === "field" && data.getValue() === "ApprovalAmt");
-            });
-            return aInputs[0];
-        },
-
-        // --- OPEN INVOICE DIALOG ---
-        _openInvoiceDialog: function (dialogData) {
-            const oView = this.getView();
-            this._pDialog = this._pDialog || Fragment.load({
-                name: "bcmrequest.view.InvoiceDetail",
+            this._adHocDialog = this._adHocDialog || Fragment.load({
+                name: "bcmrequest.view.AdHocDetails",
                 controller: this
             }).then(dialog => {
                 oView.addDependent(dialog);
                 return dialog;
             });
 
-            this._pDialog.then(dialog => {
-                dialog.setModel(new JSONModel(dialogData), "dialogModel");
+            this._adHocDialog.then(dialog => {
+                dialog.setModel(new sap.ui.model.json.JSONModel(oData.results), "adHocModel");
                 dialog.open();
-                this.dialog = dialog;
-            });
-        },
-
-        onDialogPayTypeChange: function (oEvent) {
-            const sSelected = oEvent.getSource().getSelectedKey();
-            const oDialog = oEvent.getSource().getParent();
-            const oDialogModel = oDialog.getModel("dialogModel");
-            oDialogModel.setProperty("/PayType", sSelected);
-
-            const aInvoices = oDialogModel.getProperty("/Invoices") || [];
-
-            if (sSelected === "Full") {
-                aInvoices.forEach(row => {
-                    row.ApprovalAmt = parseFloat(row.DocAmt).toFixed(2);
-                    row.FullSelected = true;
-                });
-
-                oDialogModel.setProperty("/ApprovalAmount", this.vendorData.TotalAmt);
-                oDialogModel.setProperty("/Invoices", aInvoices);
-            }
-            else {
-                aInvoices.forEach(row => {
-                    row.ApprovalAmt = parseFloat(0).toFixed(2);
-                });
-                oDialogModel.setProperty("/ApprovalAmount", parseFloat(0).toFixed(2));
-            }
-            oDialogModel.setProperty("/Invoices", aInvoices);
-        },
-        onFullPaymentSelected: function (oEvent) {
-            const bSelected = oEvent.getParameter("selected");
-            const oContext = oEvent.getSource().getBindingContext("dialogModel");
-            const oDialogModel = oContext.getModel("dialogModel");
-            const aDetails = oDialogModel.getData();
-
-            const record = oContext.getObject();
-            if (bSelected) {
-                record.ApprovalAmt = record.DocAmt;
-                record.PayMethod = "X";
-            } else {
-                record.ApprovalAmt = parseFloat(0).toFixed(2);
-                record.PayMethod = "";
-            }
-            const total = parseFloat(
-                (aDetails.Invoices || []).reduce((sum, row) => {
-                    return sum + (parseFloat(row.ApprovalAmt) || 0);
-                }, 0).toFixed(2)
-            );
-
-            oDialogModel.setProperty("/ApprovalAmount", total);
-            const oModel = oContext.getModel();
-            oModel.checkUpdate(true);
-
-            this._checkIfAllInvoicesSelected(oModel);
-        },
-        _checkIfAllInvoicesSelected: function (oDialog) {
-            const aInvoices = oDialog.getProperty("/Invoices") || [];
-
-            const bAllSelected = aInvoices.every(invoice => {
-                const docAmt = parseFloat(invoice.DocAmt || 0).toFixed(2);
-                const approvalAmt = parseFloat(invoice.ApprovalAmt || 0).toFixed(2);
-                return docAmt === approvalAmt;
             });
 
-            if (bAllSelected) {
-                oDialog.setProperty("/PayType", "Full");
-            }
-        },
+        }.bind(this),
+        error: function (oError) {
+            sap.m.MessageToast.show("Error fetching Adhoc Details");
+            console.error(oError);
+        }
+    });
 
-        onCloseOrderDialog: function () {
-            this._pDialog.then(oDialog => {
-                const aInputs = oDialog.findElements(true).filter(c => c.isA("sap.m.Input"));
-                const hasError = aInputs.some(input => input.getValueState() === "Error");
 
-                if (hasError) {
-                    MessageBox.warning("Please correct all input errors before closing.");
+            },
+
+            onCancelDialog: function () {
+                this._adHocDialog.then(oDialog => {
+                    oDialog.close();
+                });
+            },
+
+            onProjectPress: function (oEvent) {
+                const context = oEvent.getSource().getSelectedItem().getBindingContext("projectModel").getObject();
+                const { Zzcity: city, BusSeg: busSeg, Bukrs: bukrs, Gsber: gsber } = context;
+                const normalizedCityKey = city && city.trim() !== "" ? city : "noncity";
+                if (this.getView().getModel("ordersModel")) {
+                    this.getView().getModel("ordersModel").setProperty("/vendors", []);
+                    this.getView().getModel("ordersModel").updateBindings(true)
+                    this.byId("vendorsTable").getBinding("items").refresh();;
+
+                    this.byId("vendorsTable").getBinding("items").refresh();
+                }
+                const encodedCity = encodeURIComponent(city);
+                const encodedBusSeg = encodeURIComponent(busSeg);
+                const sPath = `/ProjLevelSet(Zzcity='${encodedCity}',BusSeg='${encodedBusSeg}',Bukrs='${bukrs}',Gsber='${gsber}')/ProjVen`;
+                const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById/${gsber}/VendorsById`;
+                this.vendorPathBase = vendorPath;
+                this.currentProjectId = gsber;
+                const oDetailPage = this.byId("detailPage");
+                if (!oDetailPage.getVisible()) {
+                    oDetailPage.setVisible(true);
+                }
+                const cachedVendors = this.projectModel.getProperty(vendorPath);
+                if (cachedVendors && Object.keys(cachedVendors).length) {
+                    this._loadVendorDetails(vendorPath);
+                    this.VendorsObj = this.projectModel.getProperty(vendorPath);
+
+                    this.byId("projectList").removeSelections();
+                } else {
+                    this.getView().setBusy(true);
+                    this.getView().getModel().read(sPath, {
+                        urlParameters: {
+                            "$expand": "VenDet"
+                        },
+                        success: (oData) => {
+                            this.getView().setBusy(false);
+                            const aVendors = oData.results;
+                            const oVendorsById = {};
+                            aVendors.forEach(vendor => {
+                                oVendorsById[vendor.Lifnr] = vendor;
+                            });
+                            //NOW oVendorsById CONTAINS ALL VENDOR DETAILS ALONG WITH INVOICES IN VENDET
+                            //SAVED THAT DATA TO const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${busSeg}/oCompanyById/${bukrs}/ProjectsById/${gsber}/VendorsById`;
+
+                            this.projectModel.setProperty(vendorPath, oVendorsById);
+                            // this._loadVendorDetails(gsber, vendorPath);
+
+                            const oVendors = this.projectModel.getProperty(vendorPath) || {};
+                            const aOrders = Object.values(oVendors);
+                            this.getView().setModel(
+                                new sap.ui.model.json.JSONModel({ vendors: aOrders }),
+                                "ordersModel"
+                            );
+                            this.VendorsObj = this.projectModel.getProperty(vendorPath);
+
+                        },
+                        error: (oError) => {
+                            this.getView().setBusy(false);
+                            MessageToast.show("Error while fetching Projects");
+                            console.error("Error fetching vendors", oError);
+                        }
+                    });
+                }
+                this.byId("projectList").removeSelections();
+            },
+            _loadVendorDetails: function (vendorPath) {
+                const oVendors = this.projectModel.getProperty(vendorPath) || {};
+                const aOrders = Object.values(oVendors);
+                this.getView().setModel(new sap.ui.model.json.JSONModel({ vendors: aOrders }), "ordersModel");
+            },
+            onVendorsTableUpdateFinished: function () {
+                const oTable = this.byId("vendorsTable");
+                if (!oTable) return;
+
+                oTable.getItems().forEach(item => {
+                    const ctx = item.getBindingContext("ordersModel");
+                    if (ctx?.getObject()?.isSelected) {
+                        oTable.setSelectedItem(item, true);
+                    }
+                });
+            },
+
+            onFieldValueChange: function (oEvent) {
+                const oSource = oEvent.getSource();
+                const sField = oSource.getCustomData().find(d => d.getKey() === "field")?.getValue();
+                const sProjectId = this.currentProjectId;
+
+                const oContext = oSource.getBindingContext("dialogModel") || oSource.getBindingContext("ordersModel");
+                const oRowData = oContext?.getObject();
+                const sOrderId = oRowData?.Ukey;
+                const approvalAmt = parseFloat(oEvent.getParameter("value") || 0);
+
+                let sTotalAmt, oVenDet, sVendorId;
+                if (sField === "ApprovalAmount") {
+                    sTotalAmt = this.vendorData.TotalAmt;
+                    oVenDet = this.vendorData.VenDet;
+                    sVendorId = this.vendorData.Lifnr;
+                } else {
+                    sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
+                    oVenDet = oRowData?.VenDet;
+                    sVendorId = oRowData?.Lifnr;
+                }
+
+                const vendorPath = `${this.vendorPathBase}/${sVendorId}`;
+                const oSavedData = this.projectModel.getProperty(vendorPath);
+
+                // Validate
+                const validation = this._validateAmount(approvalAmt, sOrderId ? parseFloat(oRowData?.DocAmt || 0) : sTotalAmt);
+                oSource.setValueState(validation.state);
+                oSource.setValueStateText(validation.text);
+                if (validation.state === "Error") return;
+
+                if (sOrderId) {
+                    // --- Invoice-level change ---
+                    oRowData.ApprovalAmt = approvalAmt;
+
+                    const oDialogModel = oContext.getModel("dialogModel");
+                    const aInvoices = oDialogModel.getProperty("/Invoices") || [];
+                    const total = aInvoices.reduce((sum, row) => sum + (parseFloat(row.ApprovalAmt) || 0), 0);
+
+                    oDialogModel.setProperty("/ApprovalAmount", parseFloat(total.toFixed(2)));
+                    this._checkIfAllInvoicesSelected(oDialogModel);
+
+                } else {
+                    // --- Vendor-level change ---
+                    const aMerged = this._distributeAmountAcrossInvoices(approvalAmt, oVenDet.results?.slice() || [], oSavedData);
+                    this.dialogModelCache = this.dialogModelCache || {};
+                    this.dialogModelCache[`${sProjectId}_${sVendorId}`] = aMerged;
+
+                    if (sField === "ApprovalAmount") {
+                        this.dialog.getModel("dialogModel").setProperty("/Invoices", aMerged);
+                    } else {
+                        this.VendorsObj[sVendorId].VenDet.results = aMerged;
+                        this.VendorsObj[sVendorId].Invoices = aMerged;
+                    }
+
+                    const sPayType = this._calculatePayType(approvalAmt, sTotalAmt);
+                    const sPath = oSource.getBindingContext("ordersModel").getPath();
+                    this.getView().getModel("ordersModel").setProperty(sPath + "/PayType", sPayType);
+                    oSavedData.PayType = sPayType;
+                }
+            },
+
+            _validateAmount: function (enteredAmt, maxAmt) {
+                if (isNaN(enteredAmt) || enteredAmt < 0) {
+                    return { state: "Error", text: "Enter valid amount" };
+                }
+                if (enteredAmt > maxAmt) {
+                    return { state: "Error", text: "Exceeds Total Amount" };
+                }
+                return { state: "None", text: "" };
+            },
+
+            // --- PAY TYPE CALCULATION ---
+            _calculatePayType: function (enteredAmt, totalAmt) {
+                return Math.abs(enteredAmt - totalAmt) < 0.01 ? "Full" : "Partial";
+            },
+
+            // --- AMOUNT DISTRIBUTION ACROSS INVOICES ---
+            _distributeAmountAcrossInvoices: function (totalAmt, invoiceList, savedData) {
+                let remaining = totalAmt;
+                invoiceList.forEach(doc => {
+                    const distAmt = Math.min(remaining, parseFloat(doc.DocAmt));
+                    remaining -= distAmt;
+                    // if (!savedData[doc.Ukey]) savedData[doc.Ukey] = {};
+                    // savedData[doc.Ukey].ApprovalAmt = distAmt.toFixed(2);
+                    doc.ApprovalAmt = distAmt.toFixed(2);
+                });
+                return invoiceList; 
+            },
+            onPayMethodPress: function (oEvent) {
+                this.oSource1 = oEvent.getSource();
+                const oContext = this.oSource1.getBindingContext("ordersModel");
+                this.Context = oContext;
+
+                const oRowData = oContext?.getObject();
+                this.vendorData = oRowData;
+
+                const approvalAmt = parseFloat(oRowData?.ApprovalAmt || 0);
+                const sTotalAmt = parseFloat(oRowData?.TotalAmt || 0);
+
+                // Validate Approval Amount
+                const validation = this._validateAmount(approvalAmt, sTotalAmt);
+                if (validation.state === "Error") {
+                    MessageBox.warning(validation.text);
                     return;
                 }
 
+                // Check if approval input has errors
+                const oApprovalInput = this._findApprovalAmtInput(oEvent.getSource());
+                if (oApprovalInput?.getValueState() === "Error") {
+                    MessageBox.warning("Please correct the Approval Amount before proceeding.");
+                    return;
+                }
+
+                const aInvoices = oRowData?.Invoices || oRowData?.VenDet?.results || [];
+                this._openInvoiceDialog({
+                    PayType: oRowData.PayType,
+                    Invoices: aInvoices,
+                    TotalAmount: sTotalAmt,
+                    ApprovalAmount: approvalAmt
+                });
+            },
+            _findApprovalAmtInput: function (oSource) {
+                const aInputs = oSource.getParent().findAggregatedObjects(true, control => {
+                    return control.isA("sap.m.Input") &&
+                        control.getCustomData().some(data => data.getKey() === "field" && data.getValue() === "ApprovalAmt");
+                });
+                return aInputs[0];
+            },
+
+            // --- OPEN INVOICE DIALOG ---
+            _openInvoiceDialog: function (dialogData) {
+                const oView = this.getView();
+                this._pDialog = this._pDialog || Fragment.load({
+                    name: "bcmrequest.view.InvoiceDetail",
+                    controller: this
+                }).then(dialog => {
+                    oView.addDependent(dialog);
+                    return dialog;
+                });
+
+                this._pDialog.then(dialog => {
+                    dialog.setModel(new JSONModel(dialogData), "dialogModel");
+                    dialog.open();
+                    this.dialog = dialog;
+                });
+            },
+
+            onDialogPayTypeChange: function (oEvent) {
+                const sSelected = oEvent.getSource().getSelectedKey();
+                const oDialog = oEvent.getSource().getParent();
                 const oDialogModel = oDialog.getModel("dialogModel");
-                const aDetails = oDialogModel.getProperty("/Invoices") || [];
-                const sPayType = oDialogModel.getProperty("/PayType") || "Full";
-                const total = aDetails.reduce((sum, row) => sum + parseFloat(row.ApprovalAmt || 0), 0);
+                oDialogModel.setProperty("/PayType", sSelected);
 
+                const aInvoices = oDialogModel.getProperty("/Invoices") || [];
+
+                if (sSelected === "Full") {
+                    aInvoices.forEach(row => {
+                        row.ApprovalAmt = parseFloat(row.DocAmt).toFixed(2);
+                        row.FullSelected = true;
+                    });
+
+                    oDialogModel.setProperty("/ApprovalAmount", this.vendorData.TotalAmt);
+                    oDialogModel.setProperty("/Invoices", aInvoices);
+                }
+                else {
+                    aInvoices.forEach(row => {
+                        row.ApprovalAmt = parseFloat(0).toFixed(2);
+                    });
+                    oDialogModel.setProperty("/ApprovalAmount", parseFloat(0).toFixed(2));
+                }
+                oDialogModel.setProperty("/Invoices", aInvoices);
+            },
+            onFullPaymentSelected: function (oEvent) {
+                const bSelected = oEvent.getParameter("selected");
+                const oContext = oEvent.getSource().getBindingContext("dialogModel");
+                const oDialogModel = oContext.getModel("dialogModel");
+                const aDetails = oDialogModel.getData();
+
+                const record = oContext.getObject();
+                if (bSelected) {
+                    record.ApprovalAmt = record.DocAmt;
+                    record.PayMethod = "X";
+                } else {
+                    record.ApprovalAmt = parseFloat(0).toFixed(2);
+                    record.PayMethod = "";
+                }
+                const total = parseFloat(
+                    (aDetails.Invoices || []).reduce((sum, row) => {
+                        return sum + (parseFloat(row.ApprovalAmt) || 0);
+                    }, 0).toFixed(2)
+                );
+
+                oDialogModel.setProperty("/ApprovalAmount", total);
+                const oModel = oContext.getModel();
+                oModel.checkUpdate(true);
+
+                this._checkIfAllInvoicesSelected(oModel);
+            },
+            _checkIfAllInvoicesSelected: function (oDialog) {
+                const aInvoices = oDialog.getProperty("/Invoices") || [];
+
+                const bAllSelected = aInvoices.every(invoice => {
+                    const docAmt = parseFloat(invoice.DocAmt || 0).toFixed(2);
+                    const approvalAmt = parseFloat(invoice.ApprovalAmt || 0).toFixed(2);
+                    return docAmt === approvalAmt;
+                });
+
+                if (bAllSelected) {
+                    oDialog.setProperty("/PayType", "Full");
+                }
+            },
+
+            onCloseOrderDialog: function () {
+                this._pDialog.then(oDialog => {
+                    const aInputs = oDialog.findElements(true).filter(c => c.isA("sap.m.Input"));
+                    const hasError = aInputs.some(input => input.getValueState() === "Error");
+
+                    if (hasError) {
+                        MessageBox.warning("Please correct all input errors before closing.");
+                        return;
+                    }
+
+                    const oDialogModel = oDialog.getModel("dialogModel");
+                    const aDetails = oDialogModel.getProperty("/Invoices") || [];
+                    const sPayType = oDialogModel.getProperty("/PayType") || "Full";
+                    const total = aDetails.reduce((sum, row) => sum + parseFloat(row.ApprovalAmt || 0), 0);
+
+                    const oOrdersModel = this.getView().getModel("ordersModel");
+                    const oVendorContext = this.oSource1.getBindingContext("ordersModel");
+                    const sPath = oVendorContext.getPath();
+                    oOrdersModel.setProperty(sPath + "/ApprovalAmt", total.toFixed(2));
+                    oOrdersModel.setProperty(sPath + "/PayType", sPayType);
+                    oOrdersModel.setProperty(sPath + "/Invoices", aDetails);
+
+                    oDialog.close();
+                });
+            },
+
+            onNavBack: function () {
+                if (this._currentLevel === "project") {
+                    this._setListVisibility("busComp");
+                    this.byId("masterPage").setTitle("Company");
+                    this._currentLevel = "busComp";
+                    const oDetailPage = this.byId("detailPage");
+                    if (oDetailPage.getVisible()) {
+                        oDetailPage.setVisible(false);
+                    }
+
+                    // this.getView().setModel(this.projectModel, "projectModel");
+
+                } else if (this._currentLevel === "busComp") {
+                    this._setListVisibility("busSeg");
+                    this.byId("masterPage").setTitle("Business Segment");
+                    this._currentLevel = "busSeg";
+                } else if (this._currentLevel === "busSeg") {
+                    this._setListVisibility("city");
+                    this.byId("masterPage").setTitle("City");
+                    this._currentLevel = "city";
+                }
+                else if (this._currentLevel === "city") {
+                    this._setListVisibility("city");
+                    this.byId("masterPage").setTitle("City");
+                }
+
+
+            },
+            _setListVisibility: function (level) {
+                this.byId("cityList").setVisible(level === "city");
+                this.byId("busSegList").setVisible(level === "busSeg");
+                this.byId("busCompList").setVisible(level === "busComp");
+                this.byId("projectList").setVisible(level === "project");
+
+                const oPage = this.byId("masterPage");
+                if (level === "city") {
+                    oPage.setShowNavButton(false);
+                } else {
+                    oPage.setShowNavButton(true);
+                }
+            },
+
+            // PAYLOAD
+
+            onVendorSelection: function (oEvent) {
+                const oTable = oEvent.getSource();
+                const aSelectedItems = oTable.getSelectedItems();
                 const oOrdersModel = this.getView().getModel("ordersModel");
-                const oVendorContext = this.oSource1.getBindingContext("ordersModel");
-                const sPath = oVendorContext.getPath();
-                oOrdersModel.setProperty(sPath + "/ApprovalAmt", total.toFixed(2));
-                oOrdersModel.setProperty(sPath + "/PayType", sPayType);
-                oOrdersModel.setProperty(sPath + "/Invoices", aDetails);
+                const allVendors = oOrdersModel.getProperty("/vendors") || [];
 
-                oDialog.close();
-            });
-        },
+                if (!allVendors.length) return;
 
-        onNavBack: function () {
-            if (this._currentLevel === "project") {
-                this._setListVisibility("busComp");
-                this.byId("masterPage").setTitle("Company");
-                this._currentLevel = "busComp";
-                const oDetailPage = this.byId("detailPage");
-                if (oDetailPage.getVisible()) {
-                    oDetailPage.setVisible(false);
+                const { Zzcity, BusSeg, Bukrs, Gsber } = allVendors[0];
+                const normalizedCityKey = Zzcity && Zzcity.trim() !== "" ? Zzcity : "noncity";
+
+                const projectId = Gsber; // unique project key 
+                let selectedProductsByProject = this.selectedVendorsModel.getProperty("/selectedProducts") || {};
+
+                // Ensure structure
+                if (!selectedProductsByProject[projectId]) {
+                    selectedProductsByProject[projectId] = [];
                 }
+                const aSelectedVendorIds = [];
+                const selectedIds = aSelectedItems.map(oItem => {
+                    const oProduct = oItem.getBindingContext("ordersModel").getObject();
+                    aSelectedVendorIds.push(oProduct.Lifnr);
+                    return oProduct.Lifnr;
 
-                // this.getView().setModel(this.projectModel, "projectModel");
-
-            } else if (this._currentLevel === "busComp") {
-                this._setListVisibility("busSeg");
-                this.byId("masterPage").setTitle("Business Segment");
-                this._currentLevel = "busSeg";
-            } else if (this._currentLevel === "busSeg") {
-                this._setListVisibility("city");
-                this.byId("masterPage").setTitle("City");
-                this._currentLevel = "city";
-            }
-            else if (this._currentLevel === "city") {
-                this._setListVisibility("city");
-                this.byId("masterPage").setTitle("City");
-            }
+                });
 
 
-        },
-        _setListVisibility: function (level) {
-            this.byId("cityList").setVisible(level === "city");
-            this.byId("busSegList").setVisible(level === "busSeg");
-            this.byId("busCompList").setVisible(level === "busComp");
-            this.byId("projectList").setVisible(level === "project");
+                const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}/VendorsById`;
+                const vendorsById = this.projectModel.getProperty(vendorPath) || {};
+                Object.keys(vendorsById).forEach(vendorId => {
+                    vendorsById[vendorId].isSelected = aSelectedVendorIds.includes(vendorId);
+                });
+                allVendors.forEach(vendor => {
+                    vendor.isSelected = aSelectedVendorIds.includes(vendor.Lifnr);
+                });
+                oOrdersModel.setProperty("/vendors", allVendors);
+                oOrdersModel.refresh(true);
 
-            const oPage = this.byId("masterPage");
-            if (level === "city") {
-                oPage.setShowNavButton(false);
-            } else {
-                oPage.setShowNavButton(true);
-            }
-        },
+                // this.VendorsObj[vendorId].isSelected = true;
 
-        // PAYLOAD
+                const newSelections = aSelectedItems.map(oItem => {
+                    const oProduct = oItem.getBindingContext("ordersModel").getObject();
+                    return {
+                        ...this.VendorsObj[oProduct.Lifnr],
+                        Gsber: projectId,
+                        Remark: oProduct.Remark
+                    };
+                });
 
-        onVendorSelection: function (oEvent) {
-            const oTable = oEvent.getSource();
-            const aSelectedItems = oTable.getSelectedItems();
-            const oOrdersModel = this.getView().getModel("ordersModel");
-            const allVendors = oOrdersModel.getProperty("/vendors") || [];
+                // Remove deselected vendors from current project
+                selectedProductsByProject[projectId] = selectedProductsByProject[projectId]
+                    .filter(vendor => selectedIds.includes(vendor.Lifnr));
 
-            if (!allVendors.length) return;
+                // Add any newly selected vendors
+                newSelections.forEach(newVendor => {
+                    if (!selectedProductsByProject[projectId].some(v => v.Lifnr === newVendor.Lifnr)) {
+                        selectedProductsByProject[projectId].push(newVendor);
+                    }
+                });
 
-            const { Zzcity, BusSeg, Bukrs, Gsber } = allVendors[0];
-            const normalizedCityKey = Zzcity && Zzcity.trim() !== "" ? Zzcity : "noncity";
+                // Save back to model
+                this.selectedVendorsModel.setProperty("/selectedProducts", selectedProductsByProject);
 
-            const projectId = Gsber; // unique project key 
-            let selectedProductsByProject = this.selectedVendorsModel.getProperty("/selectedProducts") || {};
-
-            // Ensure structure
-            if (!selectedProductsByProject[projectId]) {
-                selectedProductsByProject[projectId] = [];
-            }
-            const aSelectedVendorIds = [];
-            const selectedIds = aSelectedItems.map(oItem => {
-                const oProduct = oItem.getBindingContext("ordersModel").getObject();
-                aSelectedVendorIds.push(oProduct.Lifnr);
-                return oProduct.Lifnr;
-
-            });
-
-
-            const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}/VendorsById`;
-            const vendorsById = this.projectModel.getProperty(vendorPath) || {};
-            Object.keys(vendorsById).forEach(vendorId => {
-                vendorsById[vendorId].isSelected = aSelectedVendorIds.includes(vendorId);
-            });
-
-            // this.VendorsObj[vendorId].isSelected = true;
-
-            const newSelections = aSelectedItems.map(oItem => {
-                const oProduct = oItem.getBindingContext("ordersModel").getObject();
-                return {
-                    ...this.VendorsObj[oProduct.Lifnr],
-                    Gsber: projectId,
-                    Remark: oProduct.Remark
-                };
-            });
-
-            // Remove deselected vendors from current project
-            selectedProductsByProject[projectId] = selectedProductsByProject[projectId]
-                .filter(vendor => selectedIds.includes(vendor.Lifnr));
-
-            // Add any newly selected vendors
-            newSelections.forEach(newVendor => {
-                if (!selectedProductsByProject[projectId].some(v => v.Lifnr === newVendor.Lifnr)) {
-                    selectedProductsByProject[projectId].push(newVendor);
-                }
-            });
-
-            // Save back to model
-            this.selectedVendorsModel.setProperty("/selectedProducts", selectedProductsByProject);
-
-            // Calculate overall total
-            const total = Object.values(selectedProductsByProject).flat().reduce((sum, vendor) => {
-                const amt = parseFloat(vendor.ApprovalAmt || 0);
-                return sum + (isNaN(amt) ? 0 : amt);
-            }, 0);
-
-
-            this.selectedVendorsModel.setProperty("/ApprovalAmount", total);
-
-            const projectTotal = selectedProductsByProject[projectId]
-                .reduce((sum, vendor) => sum + (parseFloat(vendor.ApprovalAmt) || 0), 0);
-
-            // Update hierarchy for this project only
-            this._updateApprovalHierarchy(
-                { normalizedCityKey, BusSeg, Bukrs, Gsber },
-                projectTotal
-            );
-        },
-
-
-        _updateApprovalHierarchy: function (projectDetails, approvalAmtTotal) {
-            const oModel = this.projectModel;
-
-            if (!projectDetails?.normalizedCityKey || !projectDetails.BusSeg || !projectDetails.Bukrs || !projectDetails.Gsber) {
-                console.warn("Invalid project details for hierarchy update", projectDetails);
-                return;
-            }
-
-            const { normalizedCityKey, BusSeg, Bukrs, Gsber } = projectDetails;
-
-            const sumApproval = (list) =>
-                Object.values(list || {}).reduce((sum, item) => {
-                    const amt = parseFloat(item.ApprovalAmt || 0);
+                // Calculate overall total
+                const total = Object.values(selectedProductsByProject).flat().reduce((sum, vendor) => {
+                    const amt = parseFloat(vendor.ApprovalAmt || 0);
                     return sum + (isNaN(amt) ? 0 : amt);
                 }, 0);
 
-            // 1. Project level
-            const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}`;
-            oModel.setProperty(`${vendorPath}/ApprovalAmt`, approvalAmtTotal);
 
-            // 2. Company level
-            const companyProjectsPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById`;
-            const totalCompany = sumApproval(oModel.getProperty(companyProjectsPath));
-            oModel.setProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ApprovalAmt`, totalCompany.toFixed(2));
+                this.selectedVendorsModel.setProperty("/ApprovalAmount", total);
 
-            // 3. Business Segment level
-            const totalBusSeg = sumApproval(oModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById`));
-            oModel.setProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/ApprovalAmt`, totalBusSeg.toFixed(2));
+                const projectTotal = selectedProductsByProject[projectId]
+                    .reduce((sum, vendor) => sum + (parseFloat(vendor.ApprovalAmt) || 0), 0);
 
-            // 4. City level
-            const totalCity = sumApproval(oModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById`));
-            oModel.setProperty(`/CityProjectsById/${normalizedCityKey}/ApprovalAmt`, totalCity.toFixed(2));
+                // Update hierarchy for this project only
+                this._updateApprovalHierarchy(
+                    { normalizedCityKey, BusSeg, Bukrs, Gsber },
+                    projectTotal
+                );
+            },
 
-            const updateList = (path, key, value) => {
-                const list = oModel.getProperty(path) || [];
-                list.forEach(item => {
-                    if (item[key] === value.id) {
-                        item.ApprovalAmt = value.amount;
-                    }
-                });
-                oModel.setProperty(path, list);
-            };
 
-            updateList("/CityProjectList", "Zzcity", { id: normalizedCityKey, amount: totalCity.toFixed(2) });
-            updateList("/CompanyList", "Bukrs", { id: Bukrs, amount: totalCompany.toFixed(2) });
-            updateList("/BusinessSegmentList", "BusSeg", { id: BusSeg, amount: totalBusSeg.toFixed(2) });
-            updateList("/ProjectList", "Gsber", { id: Gsber, amount: approvalAmtTotal });
-        },
+            _updateApprovalHierarchy: function (projectDetails, approvalAmtTotal) {
+                const oModel = this.projectModel;
 
-        //FOOTER
-
-        onSubmitPress: function (oEvent) {
-            var othis = this;
-            const oView = this.getView();
-            const sSelectedKey = this.projectModel.getProperty("/SelectedKey");
-            if (sSelectedKey === "Customers") {
-
-            }
-            else if (sSelectedKey === "Vendors") {
-                const aVenReq = [];
-                const oVendorData = this.selectedVendorsModel.getProperty("/selectedProducts");
-
-                if (!oVendorData || Object.keys(oVendorData).length === 0) {
-                    MessageToast.show("Please select at least one vendor record.");
+                if (!projectDetails?.normalizedCityKey || !projectDetails.BusSeg || !projectDetails.Bukrs || !projectDetails.Gsber) {
+                    console.warn("Invalid project details for hierarchy update", projectDetails);
                     return;
                 }
 
-                Object.values(oVendorData).forEach(aInvoices => {
+                const { normalizedCityKey, BusSeg, Bukrs, Gsber } = projectDetails;
 
-                    aInvoices.forEach(invoice => {
-                        if (parseFloat(invoice.ApprovalAmt) !== 0) {
-                            aVenReq.push({
-                                "Lifnr": invoice.Lifnr,
-                                "Gsber": invoice.Gsber,
-                                "Category": invoice.Category,
-                                "Docnr": invoice.Docnr,
-                                "Bukrs": invoice.Bukrs,
-                                "Gjahr": invoice.Gjahr,
-                                "Budat": invoice.Budat,
-                                "DocAmt": invoice.DocAmt,
-                                "PayMethod": parseFloat(invoice.DocAmt) === parseFloat(invoice.ApprovalAmt) ? "X" : "",
-                                "ApprovalAmt": invoice.ApprovalAmt,
-                                "Project": invoice.Project || "",
-                                "ProjectName": invoice.ProjectName || "",
-                                "RequestNo": "",
-                                "Zzcity": invoice.Zzcity,
-                                "BusSeg": invoice.BusSeg,
-                                "Buzei": invoice.Buzei,
-                            });
+                const sumApproval = (list) =>
+                    Object.values(list || {}).reduce((sum, item) => {
+                        const amt = parseFloat(item.ApprovalAmt || 0);
+                        return sum + (isNaN(amt) ? 0 : amt);
+                    }, 0);
+
+                // 1. Project level
+                const vendorPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById/${Gsber}`;
+                oModel.setProperty(`${vendorPath}/ApprovalAmt`, approvalAmtTotal);
+
+                // 2. Company level
+                const companyProjectsPath = `/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ProjectsById`;
+                const totalCompany = sumApproval(oModel.getProperty(companyProjectsPath));
+                oModel.setProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById/${Bukrs}/ApprovalAmt`, totalCompany.toFixed(2));
+
+                // 3. Business Segment level
+                const totalBusSeg = sumApproval(oModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/oCompanyById`));
+                oModel.setProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById/${BusSeg}/ApprovalAmt`, totalBusSeg.toFixed(2));
+
+                // 4. City level
+                const totalCity = sumApproval(oModel.getProperty(`/CityProjectsById/${normalizedCityKey}/BusinessSegmentById`));
+                oModel.setProperty(`/CityProjectsById/${normalizedCityKey}/ApprovalAmt`, totalCity.toFixed(2));
+
+                const updateList = (path, key, value) => {
+                    const list = oModel.getProperty(path) || [];
+                    list.forEach(item => {
+                        if (item[key] === value.id) {
+                            item.ApprovalAmt = value.amount;
                         }
                     });
-                });
-
-                oView.setBusy(true);
-
-                const oPayload = {
-                    RequestNo: "",
-                    VenReq: aVenReq
+                    oModel.setProperty(path, list);
                 };
 
-                this.oModel.create("/VendorReqSet", oPayload, {
-                    success: function () {
-                        oView.setBusy(false);
-                        MessageBox.success("Vendor submission successful!");
-                        othis.clearAllFields();
-                        othis.onTableRefresh();
-                    },
-                    error: function (oError) {
-                        oView.setBusy(false);
-                        console.error("Error: ", oError);
-                        MessageBox.error("Vendor submission failed. Please try again.");
+                updateList("/CityProjectList", "Zzcity", { id: normalizedCityKey, amount: totalCity.toFixed(2) });
+                updateList("/CompanyList", "Bukrs", { id: Bukrs, amount: totalCompany.toFixed(2) });
+                updateList("/BusinessSegmentList", "BusSeg", { id: BusSeg, amount: totalBusSeg.toFixed(2) });
+                updateList("/ProjectList", "Gsber", { id: Gsber, amount: approvalAmtTotal });
+            },
+
+            //FOOTER
+
+            onSubmitPress: function (oEvent) {
+                var othis = this;
+                const oView = this.getView();
+                const sSelectedKey = this.projectModel.getProperty("/SelectedKey");
+                if (sSelectedKey === "Customers") {
+
+                }
+                else if (sSelectedKey === "Vendors") {
+                    const aVenReq = [];
+                    const oVendorData = this.selectedVendorsModel.getProperty("/selectedProducts");
+
+                    if (!oVendorData || Object.keys(oVendorData).length === 0) {
+                        MessageToast.show("Please select at least one vendor record.");
+                        return;
                     }
-                });
 
+                    Object.values(oVendorData).forEach(aVendors  => {
 
-
-            }
-        },
-        clearAllFields: function () {
-            const sSelectedKey = this.projectModel.getProperty("/SelectedKey");
-            this.byId("cityList").removeSelections();
-            this.byId("projectList").setVisible(false);
-            this._currentLevel = "city";
-
-            // var oSmartFilterBar;
-            if (sSelectedKey === "Customers") {
-
-            } else if (sSelectedKey === "Vendors") {
-                MessageToast.show("Refreshed!");
-
-                this.byId("fallbackPage").setVisible(true);
-                this.byId("splitContainer").setVisible(false);
-
-                this.clearModel();
-
-            }
-            // var oFilterData = oSmartFilterBar.getFilterData();
-            // var oPreservedDate = oFilterData.DateAson;
-            // var oPreservedPaval = oFilterData.Paval;
-            // oSmartFilterBar.clear();
-            // oSmartFilterBar.setFilterData({
-            //     DateAson: oPreservedDate,
-            //     Paval: oPreservedPaval
-            // });
-            // oSmartFilterBar.search();
-        },
-        clearModel: function () {
-            this.selectedVendorsModel.setData({});
-            this.projectModel.setProperty("/CustomerDetails", {});
-            this.projectModel.setProperty("/BusinessSegmentList", []);
-            this.projectModel.setProperty("/CityProjectList", []);
-            this.projectModel.setProperty("/CompanyList", []);
-            this.projectModel.setProperty("/ProjectList", []);
-            this.projectModel.setProperty("/SelectedKey", "Vendors");
-            if (this.getView().getModel("ordersModel")) {
-                this.getView().getModel("ordersModel").setProperty("/vendors", []);
-
-                this.getView().getModel("ordersModel").updateBindings(true)
-                this.byId("vendorsTable").getBinding("items").refresh();;
-                this.byId("vendorsTable").getBinding("items").refresh();
-            }
-            this.getView().getModel("projectModel").updateBindings(true);
-            this.byId("cityList").getBinding("items").refresh();
-            this.byId("busSegList").getBinding("items").refresh();
-            this.byId("busCompList").getBinding("items").refresh();
-            this.byId("projectList").getBinding("items").refresh();
-
-
-        },
-
-        onTableRefresh: function () {
-
-            const sSelectedKey = Vendors;
-            const oSmartTable = this.getView().byId(sSelectedKey === "Customers" ? "customerTable" : "vendorTable");
-            if (oSmartTable) {
-                const oTableBinding = oSmartTable.getBinding("items");
-                // oSmartTable.removeSelections(true); 
-                oTableBinding.refresh();
-            }
-        },
-
-        onCancelPress: function () {
-            this.clearAllFields();
-        },
-
+                        aVendors .forEach(vendor => {
+                             if (vendor.VenDet && vendor.VenDet.results) {
+            vendor.VenDet.results.forEach(invoice => {
+                if (parseFloat(invoice.ApprovalAmt) !== 0) {
+                                aVenReq.push({
+                                    "Lifnr": invoice.Lifnr,
+                                    "Gsber": invoice.Gsber,
+                                    "Category": invoice.Category,
+                                    "Docnr": invoice.Docnr,
+                                    "Bukrs": invoice.Bukrs,
+                                    "Gjahr": invoice.Gjahr,
+                                    "Budat": invoice.Budat,
+                                    "DocAmt": invoice.DocAmt,
+                                    "PayMethod": parseFloat(invoice.DocAmt) === parseFloat(invoice.ApprovalAmt) ? "X" : "",
+                                    "ApprovalAmt": invoice.ApprovalAmt,
+                                    "Project": invoice.Project || "",
+                                    "ProjectName": invoice.ProjectName || "",
+                                    "RequestNo": "",
+                                    "Zzcity": invoice.Zzcity,
+                                    "BusSeg": invoice.BusSeg,
+                                    "Buzei": invoice.Buzei,
+                                    "Sgtxt":invoice.Sgtxt,
+                                    "Ukey":invoice.Ukey
+                                });
+                            }
+                        });
+                        }
     });
-});
+                    });
+
+                    oView.setBusy(true);
+
+                    const oPayload = {
+                        RequestNo: "",
+                        VenReq: aVenReq
+                    };
+                    console.log(oPayload);
+
+                    this.oModel.create("/VendorReqSet", oPayload, {
+                        success: function () {
+                            oView.setBusy(false);
+                            MessageBox.success("Vendor submission successful!");
+                            othis.clearAllFields();
+                            // othis.onTableRefresh();
+                        },
+                        error: function (oError) {
+                            oView.setBusy(false);
+                            console.error("Error: ", oError);
+                            MessageBox.error("Vendor submission failed. Please try again.");
+                        }
+
+                    });
+                }
+            },
+            clearAllFields: function () {
+                const sSelectedKey = this.projectModel.getProperty("/SelectedKey");
+                this.byId("cityList").removeSelections();
+                this.byId("projectList").setVisible(false);
+                this._currentLevel = "city";
+
+                // var oSmartFilterBar;
+                if (sSelectedKey === "Customers") {
+
+                } else if (sSelectedKey === "Vendors") {
+                    MessageToast.show("Refreshed!");
+
+                    this.byId("fallbackPage").setVisible(true);
+                    this.byId("splitContainer").setVisible(false);
+
+                    this.clearModel();
+
+                }
+                // var oFilterData = oSmartFilterBar.getFilterData();
+                // var oPreservedDate = oFilterData.DateAson;
+                // var oPreservedPaval = oFilterData.Paval;
+                // oSmartFilterBar.clear();
+                // oSmartFilterBar.setFilterData({
+                //     DateAson: oPreservedDate,
+                //     Paval: oPreservedPaval
+                // });
+                // oSmartFilterBar.search();
+            },
+            clearModel: function () {
+                this.selectedVendorsModel.setData({});
+                this.projectModel.setProperty("/CustomerDetails", {});
+                this.projectModel.setProperty("/BusinessSegmentList", []);
+                this.projectModel.setProperty("/CityProjectList", []);
+                this.projectModel.setProperty("/CompanyList", []);
+                this.projectModel.setProperty("/ProjectList", []);
+                this.projectModel.setProperty("/SelectedKey", "Vendors");
+                if (this.getView().getModel("ordersModel")) {
+                    this.getView().getModel("ordersModel").setProperty("/vendors", []);
+
+                    this.getView().getModel("ordersModel").updateBindings(true)
+                    this.byId("vendorsTable").getBinding("items").refresh();;
+                    this.byId("vendorsTable").getBinding("items").refresh();
+                }
+                this.getView().getModel("projectModel").updateBindings(true);
+                this.byId("cityList").getBinding("items").refresh();
+                this.byId("busSegList").getBinding("items").refresh();
+                this.byId("busCompList").getBinding("items").refresh();
+                this.byId("projectList").getBinding("items").refresh();
+
+
+            },
+
+            // onTableRefresh: function () {
+
+            //     const sSelectedKey = Vendors;
+            //     const oSmartTable = this.getView().byId(sSelectedKey === "Customers" ? "customerTable" : "vendorTable");
+            //     if (oSmartTable) {
+            //         const oTableBinding = oSmartTable.getBinding("items");
+            //         // oSmartTable.removeSelections(true); 
+            //         oTableBinding.refresh();
+            //     }
+            // },
+
+            onCancelPress: function () {
+                this.clearAllFields();
+            },
+
+        });
+    });

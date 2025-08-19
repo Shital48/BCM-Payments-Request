@@ -1,97 +1,26 @@
-
-    <core:FragmentDefinition
-        xmlns="sap.m"
-        xmlns:core="sap.ui.core"
-        xmlns:table="sap.ui.table"
-        xmlns:mvc="sap.ui.core.mvc"
-        xmlns:f="sap.ui.layout.form"
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:table="sap.ui.table"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:f="sap.ui.layout.form"
+>
+    <Dialog
+        id="AdHocDialog"
+        title="{i18n>AdHocDetails}"
+        draggable="true"
+        resizable="true"
+        contentWidth="80%"
+        contentHeight="90%"
     >
-        <Dialog
-            id="AdHocDialog"
-            title="{i18n>InvoiceDetails}"
-            draggable="true"
-            resizable="true"
-            contentWidth="80%"
-            contentHeight="90%"
-            class="sapUiContentPadding"
-        >
-        <f:Form editable="true">
-            <f:layout>
-                   <f:ResponsiveGridLayout
-
-                                    labelSpanXL="1"
-                                    labelSpanL="6"
-                                    labelSpanM="6"
-                                    labelSpanS="12"
-                                    adjustLabelSpan="false"
-                                    emptySpanXL="0"
-                                    emptySpanL="0"
-                                    emptySpanM="0"
-                                    emptySpanS="0"
-                                    columnsXL="3"
-                                    columnsL="3"
-                                    columnsM="3"
-                        />
-            </f:layout>
-            <f:formContainers>
-                <f:FormContainer>
-                <f:formElements>
-
-                    <!-- 1st element -->
-                    <f:FormElement label="{i18n>TotalApprovalAmt}">
-                    <f:fields>
-                        <Input value="{path:'dialogModel>/ApprovalAmt',formatter:'.formatAmount'}" editable="false"
-                        width="100%" textAlign="End" class="sapUiSmallMarginEnd"
-                        valueLiveUpdate="true"
-                        valueHelpRequest="onVHRAmt"
-                        >
-                        </Input>
-                    </f:fields>
-                    </f:FormElement>
-                    </f:formElements>
-                </f:FormContainer>
-                
-                    <f:FormContainer>
-                <f:formElements>
-
-                    <f:FormElement label="{i18n>TotalOutStandingAmount}">
-                    <f:fields>
-                                    <Input value="{path:'dialogModel>/TotalAmt',formatter:'.formatAmount'}" editable="false"
-                        width="100%" textAlign="End" class="sapUiSmallMarginEnd"
-                        />
-
-                    </f:fields>
-                    </f:FormElement>
-                    </f:formElements>
-                </f:FormContainer>
-                <f:FormContainer>
-                <f:formElements>
-                    <f:FormElement label="{i18n>project}">
-                    <f:fields>
-                    <Input value="{dialogModel>/Project}" editable="false"
-                        width="100%" textAlign="End" />
-                    </f:fields>
-                    </f:FormElement>
-                    </f:formElements>
-                </f:FormContainer>
-            </f:formContainers>
-            </f:Form>
-
         <Table
             id="invoiceDetailTable"
-            items="{dialogModel>/Invoices}"
-            width="100%"        >
-            <headerToolbar>
-                <Toolbar>
-                    <Title text="{Bill}" />
-                </Toolbar>
-            </headerToolbar>
+            items="{adHocModel>/}"
+            width="100%"
+            growing="true"
+        >
+             
             <columns>
-                <Column>
-                    <header>
-                        <Label text="{i18n>Catagory}" />
-                    </header>
-                </Column>
                 <Column>
                     <header>
                         <Label text="{i18n>DocumentNo}" />
@@ -107,11 +36,7 @@
                         <Label text="{i18n>DocumentAmount}" />
                     </header>
                 </Column>
-                <Column hAlign="Center">
-                    <header>
-                        <Label text="{i18n>FullPayment}" />
-                    </header>
-                </Column>
+
                 <Column hAlign="End">
                     <header>
                         <Label text="{i18n>ApprovalAmount}" />
@@ -122,19 +47,28 @@
                         <Label text="{i18n>InvoiceNo}" />
                     </header>
                 </Column>
-
+                <Column>
+                    <header>
+                        <Label text="{i18n>Remark}" />
+                    </header>
+                </Column>
             </columns>
 
             <items>
                 <ColumnListItem type="Active">
                     <cells>
-                        <Text text="{path: 'dialogModel>Category', formatter: '.formatCategory'}" />
-                        <Text text="{dialogModel>Docnr}" />
-                        <Text text="{path: 'dialogModel>Budat', formatter: '.formatDate'}" />
-                        <Text text="{path:'dialogModel>DocAmt',formatter: '.formatAmount'}" />
-                        <CheckBox selected="{= ${dialogModel>PayMethod} === 'X' ? true : false }" editable="false"/>
-                        <Text text="{path:'dialogModel>ApprovalAmt',formatter: '.formatAmount'}" />   
-                        <Text text="{dialogModel>Xblnr}" />                     
+                        <Text text="{adHocModel>Docnr}" />
+                        <Text
+                            text="{path: 'adHocModel>Budat', formatter: '.formatDate'}"
+                        />
+                        <Text
+                            text="{path:'adHocModel>DocAmt',formatter: '.formatAmount'}"
+                        />
+                        <Text
+                            text="{path:'adHocModel>ApprovalAmt',formatter: '.formatAmount'}"
+                        />
+                        <Text text="{adHocModel>Xblnr}" />
+                        <Text text="{adHocModel>Sgtxt}" />
                     </cells>
                 </ColumnListItem>
             </items>
